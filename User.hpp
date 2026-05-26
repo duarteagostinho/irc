@@ -12,10 +12,16 @@ class User
         // bool        _OPStatus;
 
     public:
-
+    //Constructor
+        User();
         User(std::string name, std::string nick);
+        User(const User &other);
+    //Destructor
         ~User();
+    //Overload Assignment Operator
+        User &operator=(const User &other);
 
+    //Getters
         const std::string GetName() const ;
         const std::string GetNick() const ;
 
