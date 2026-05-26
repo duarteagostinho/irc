@@ -1,11 +1,20 @@
-#include "../client.hpp"
+# include <iostream>
+# include <sys/types.h>
+# include <sys/socket.h>
+# include <netinet/in.h>
+# include "Server.hpp"
 
-int main(int ac, char **av)
+int main(int argc, char **argv)
 {
-    if (ac != 3)
+    if (argc != 3)
     {
-        std::cout << "Wrong number of args" << std::endl;
-        return (1);
+        std::cout << "Usage: ./ircserv <port> <pass>" << std::endl;
+        return 1;
     }
-    
+
+    Server server(argc, argv);
+    if (!server.init())
+        return 1;
+    server.run();
+    return 0;
 }
