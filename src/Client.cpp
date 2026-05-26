@@ -1,11 +1,11 @@
-#include "../client.hpp"
+#include "../Client.hpp"
 
 Client::Client(std::string name, std::string nick): _name(name), _nick(nick)
 {
 
 }
 
-~Client::Client(){}
+Client::~Client(){}
 
 const std::string Client::GetName() const
 {

@@ -3,14 +3,13 @@
 
 #include <iostream>
 #include <string>
-#include <bool.h>
 
-class client
+class Client
 {
     private:
         const std::string _name;
         const std::string _nick;
-        bool        _OPStatus;
+        // bool        _OPStatus;
 
     public:
 

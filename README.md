@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculim by duandrad and gufreire.*
+*This project has been created as part of the 42 curriculim by duandrad, gufreire and vloureir.*
 
 # Description:
 
