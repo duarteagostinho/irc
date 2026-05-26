@@ -3,7 +3,7 @@
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include "../Server.hpp"
-# include "../Client.hpp"
+# include "../User.hpp"
 
 int main(int argc, char **argv)
 {

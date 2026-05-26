@@ -7,7 +7,7 @@ SRC_DIR = src
 OBJ_DIR = obj
 
 # SRC_Functions
-SRC_FILES = Client.cpp main.cpp Server.cpp
+SRC_FILES = User.cpp main.cpp Server.cpp
 SRC_FUNC = $(addprefix $(SRC_DIR)/, $(SRC_FILES))
 
 SRC = $(SRC_FUNC) 
