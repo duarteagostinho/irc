@@ -22,10 +22,12 @@ class User
         User &operator=(const User &other);
 
     //Getters
-        const std::string GetName() const ;
-        const std::string GetNick() const ;
+        const std::string GetName() const;
+        const std::string GetNick() const;
 
-
+    //Setters
+        void    setNick(std::string nick);
+        void    setName(std::string name);
 };
 
 #endif
