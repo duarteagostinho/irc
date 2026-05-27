@@ -9,7 +9,6 @@ class User
     private:
         const std::string _nick;//tem que ser unico
         const std::string _name;//not unique
-        // bool        _OPStatus;
 
     public:
     //Constructor

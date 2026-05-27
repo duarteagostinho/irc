@@ -9,12 +9,14 @@
 class Channel
 {
     private:
-        bool        _inviteOnly;
-        std::string _topic;
-        bool        _passOnly;
-        std::string _pass;
-        int         _userLimit;
-        std::vector<User> _users;
+        bool                     _inviteOnly;
+        std::string              _topic;
+        bool                     _passOnly;
+        std::string              _pass;
+        int                      _userLimit;
+        std::string              _creator;
+        std::vector<std::string> _users;
+        std::vector<std::string> _operators
 
     public:
     //Constructors
@@ -31,15 +33,19 @@ class Channel
         const bool        getPassOnly() const;
         const std::string getTopic() const;
         const std::string getPass() const;
-        const int         getUserLimit() const
+        const int         getUserLimit() const;
+        const std::string getCreator() const;
         const int         getUserNb() const;
+        const int         getOperators() const;
 
     //Setters
         void    setInvite(bool state);
         void    setPassOnly(bool state);
         void    setTopic(std::string topic);
-        void    setPass(sd::String pass);
+        void    setPass(std::string pass);
         void    setUserLmit(int limit);
+        void    addOperator();
+        void    rmOperator();
         //to add users to the vector we can use push_back,
         //we need to do it this way vector.push_back(User(variables)),
         //but this doesnt check for duplicates 
