@@ -1,4 +1,4 @@
-#include "../Server.hpp"
+#include "../inc/Server.hpp"
 #include <cstring>
 #include <filesystem>
 #include <netinet/in.h>
@@ -6,6 +6,9 @@
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <unistd.h>
+#include <cerrno>
+#include <stdio.h>
+
 /*
 ** ------------------------------- CONSTRUCTORS --------------------------------
 */
@@ -17,8 +20,10 @@ Server::Server()
 
 Server::Server(int ac, char **av)
 {
-	if (ac != 3)
+	if (ac < 2 || ac > 3)
 		throw std::runtime_error("Invalid number of arguments");
+	if (ac == 3)
+		_password = av[2];
 	_port = std::atoi(av[1]);
 	_sockfd = -1;
 	std::cout << "Server Constructor" << std::endl;
@@ -102,64 +107,60 @@ void	Server::run()
 	{
 		readfds = master;
 		int ready = select(max_fd + 1, &readfds, NULL, NULL, NULL);
-		if (ready < 0)
-		{
-			// handle EINTR & continue;
-		}
 		for (int fd = 0;fd <= max_fd && ready > 0; ++fd)
 		{
 			if (!FD_ISSET(fd, &readfds))
 				continue;
 			if (fd == _sockfd)
 			{
-				int client_fd = accept(_sockfd, NULL, NULL);
-				if (client_fd < 0)
+				int user_fd = accept(_sockfd, NULL, NULL);
+				if (user_fd < 0)
 				{
-					std::cout << "Error: accepting client_fd" << std::endl;
+					perror("accept()");
 					continue;
 				}
-				FD_SET(client_fd, &master);
-				if (client_fd > max_fd)
-					max_fd = client_fd;
-				acceptClient(client_fd);
-				close(client_fd);
+				FD_SET(user_fd, &master);
+				if (user_fd > max_fd)
+					max_fd = user_fd;
+				int res = acceptUser(user_fd);
+				if (res == 1)
+				{
+					std::cout << "User " << user_fd << " disconnected" << std::endl;
+					close(user_fd);
+					continue;
+				}
 			}
 		}
 	}
-	
 }
 
 /*
- * TODO: change this from a loop to a func for each client
+ * TODO: change this from a loop to a func for each User
  */
 
-void	Server::acceptClient(int fd)
+int	Server::acceptUser(int fd)
 {
 	char 		buf[1025];
 	ssize_t		bytes_rcvd = 1;
 	const char	*reply = "Enter nickname\n";
 
-	while (true)
+	memset(buf, 0, 1025);
+	bytes_rcvd = recv(fd, buf, 1024, 0);
+	if (bytes_rcvd < 0)
 	{
-		memset(buf, 0, 1025);
-		bytes_rcvd = recv(fd, buf, 1024, 0);
-		if (bytes_rcvd < 0)
-		{
-			std::cout << "Error: recv() failed" << std::endl;
-			continue; ;
-		}
-		if (bytes_rcvd == 0)
-		{
-			std::cout << "Client disconnected" << std::endl;
-			break ;
-		}
-		buf[bytes_rcvd] = '\0';
-		std::cout << "Received: " << buf << std::endl;
-		
-		if (send(fd , reply, strlen(reply) + 1, 0) < 0)
-		{
-			std::cout << "Error: send() failed" << std::endl;
-			break;
-		}		
+		perror("recv()");
 	}
+	if (bytes_rcvd == 0)
+	{
+		return 1;
+	}
+	else
+		std::cout << "User connected on fd: " << fd << std::endl;
+	buf[bytes_rcvd] = '\0';
+	if (send(fd , reply, strlen(reply) + 1, 0) < 0)
+	{
+		perror("send()");
+		return 2;
+	}
+	return 0;
 }

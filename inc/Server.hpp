@@ -38,9 +38,9 @@ class Server {
 		
 		int					_sockfd;
 		int					_port;
+		std::string			_password;
 		struct sockaddr_in	_addr;
-		std::vector<User>	_users;
-
+//		std::vector<User>	_users;
 	public:
         // Constructors & Destructor
         Server();                                  // Default
@@ -52,7 +52,7 @@ class Server {
         Server &operator=(const Server &src); // Copy Assignment
 		bool	init(); // Creates socket, bind, listen
 		void	run();	// Accept clients in a loop;
-		void	acceptClient(int fd);	// Handle new connection
+		int		acceptUser(int fd);	// Handle new connection
 		void	closeServer();	// Clean up
 
 };
