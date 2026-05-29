@@ -9,6 +9,7 @@
 class Channel
 {
     private:
+        std::string              _name;
         bool                     _inviteOnly;
         std::string              _topic;
         bool                     _passOnly;
@@ -21,7 +22,7 @@ class Channel
     public:
     //Constructors
         Channel();
-        Channel(/*unknown*/);
+        Channel(std::string name, std::string& creator);
         Channel(const Channel &other);
     //Destructor
         ~Channel();
@@ -29,6 +30,7 @@ class Channel
         Channel &operator=(const Channel &other);
 
     //Getters
+        const std::string               getName() const;
         const bool                      getInvite() const;
         const bool                      getPassOnly() const;
         const std::string               getTopic() const;
