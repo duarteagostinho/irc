@@ -29,14 +29,15 @@ class Channel
         Channel &operator=(const Channel &other);
 
     //Getters
-        const bool        getInvite() const;
-        const bool        getPassOnly() const;
-        const std::string getTopic() const;
-        const std::string getPass() const;
-        const int         getUserLimit() const;
-        const std::string getCreator() const;
-        const int         getUserNb() const;
-        const int         getOperators() const;
+        const bool                      getInvite() const;
+        const bool                      getPassOnly() const;
+        const std::string               getTopic() const;
+        const std::string               getPass() const;
+        const int                       getUserLimit() const;
+        const std::string               getCreator() const;
+        const int                       getUserLimit() const;
+        const std::vector<std::string>  getUsers() const;
+        const std::vector<std::string>  getOperators() const;
 
     //Setters
         void    setInvite(bool state);
@@ -44,8 +45,10 @@ class Channel
         void    setTopic(std::string topic);
         void    setPass(std::string pass);
         void    setUserLmit(int limit);
-        void    addOperator();
-        void    rmOperator();
+        void    addUser(std::string& nick);
+        void    rmUser(std::string& nick);
+        void    addOperator(std::string& nick);
+        void    rmOperator(std::string& nick);
         //to add users to the vector we can use push_back,
         //we need to do it this way vector.push_back(User(variables)),
         //but this doesnt check for duplicates 

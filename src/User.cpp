@@ -18,9 +18,10 @@ User &User::operator=(const User &other)
     return *this;
 }
 
-const std::string User::GetName() const {return _name;}
+const std::string& User::GetName() const {return _name;}
 
-const std::string User::GetNick() const
-{
-    return _nick;
-}
+const std::string& User::GetNick() const {return _nick;}
+
+void User::setNick(std::string nick): _nick(nick) {}
+
+void User::setName(std::string name): _name(name) {}
