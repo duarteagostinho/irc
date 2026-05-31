@@ -60,16 +60,6 @@ void socket_steps(char **argv)
 	}
 	
 	// Bind the socket
-	// struct sockaddr_in hint;
-
-	// memset(&hint, 0, sizeof(hint));
-	// int check_bind = bind(listening, (struct sockaddr *)&hint, sizeof(hint));
-	// if (check_bind == -1)
-	// {
-	// 	std::cerr << "-error: Failed to bind\n";
-	// 	exit (4);
-	// }
-
 	struct sockaddr_in hint;
 
 	hint.sin_family = AF_INET;
@@ -152,20 +142,6 @@ void socket_steps(char **argv)
 			// Reset string
 			test.clear();
 		}
-		// if (test == "\r\n")
-		// 	continue ;
-
-
-		
-		// Display message
-		
-
-//		std::cout << "Received num: " << (int)buffer[0] << std::endl;
-//		std::cout << "Received num: " << (int)buffer[1] << std::endl;
-
-		// Resend message
-		
-
 	}
 	close(listening);
 	close(client_socket);

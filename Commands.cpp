@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/05/28 11:09:03 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/05/31 16:26:02 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,19 +14,38 @@
 
 int Commands::check_cmd(std::string data)
 {
-	size_t i = 0;
-	std::array<std::string, 4> accepted = {"KICK", "INVITE", "TOPIC", "MODE"};
+	// Clean the string from the carriage return
+	std::string to_del = "\r\n";
+	int pos = data.find(to_del);
+	if (pos != data.npos)
+		data.erase(pos, to_del.length());
 	
-	for ( ;i < accepted.size(); i++)
+	// Create an argv from the data
+	std::stringstream split(data);
+	std::string token;
+	std::vector<std::string> av;
+	while (std::getline(split, token, ' '))
+		av.push_back(token);
+
+	// Check the first index for the chosen commands
+	std::array<std::string, 4> accepted = {"KICK", "INVITE", "TOPIC", "MODE"};
+	for (size_t i ; i < accepted.size(); i++)
 	{
-		if (accepted[i] == data)
-			break ;
+		if (accepted[i] == av[0])
+			return (i);
 	}
+	return (-1);
+}
+
+void Commands::exec_cmd(std::string data)
+{
+	int i = Commands::check_cmd(data);
+
 	switch(i)
 	{
 		case 0:
 			Commands::kick();
-			return -1;
+			break;
 		case 1:
 			Commands::invite();
 			break;
@@ -39,14 +58,13 @@ int Commands::check_cmd(std::string data)
 		default:
 			std::cout << "Invalid Command" << std::endl;
 	}
-	return 0;
+	return ;
 }
 
 
 void Commands::kick(void)
 { 
 	std::cout << "kick called\n";
-//	close(client_socket);
 }
 
 void Commands::invite(void)
@@ -73,19 +91,16 @@ void Commands::mode(void)
 Commands::Commands()
 {
 
-	
 }
 
 Commands::Commands(const Commands &other)
 {
 	(void)other;
-	
 }
 
 Commands::~Commands()
 {
 
-	
 }
 
 Commands &Commands::operator=(const Commands &other)
