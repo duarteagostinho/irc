@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/01 16:37:31 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/01 17:08:26 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ void Commands::exec_cmd(std::string data)
 			Commands::kick();
 			break;
 		case 1:
-			Commands::invite();
+			Commands::invite(av, 0);
 			break;
 		case 2:
 			Commands::topic(data, 0);
@@ -99,7 +99,7 @@ Usage: KICK <nick> [reason], kicks the nick from the current channel
 	std::cout << "kick called\n";
 }
 
-void Commands::invite(void)
+void Commands::invite(std::vector<std::string>& av, int op)
 { 
 /*
 
@@ -116,7 +116,19 @@ Usage: INVITE <nick> [<channel>], invites someone to a channel, by default the c
 
 */
 
-	std::cout << "invite called\n";
+	if (av.size() == 1) // SEND BACK MESSAGE
+		std::cout << INV_USAGE << std::endl;
+	else
+	{
+		if (!op) // SEND BACK THIS MESSAGE
+			std::cout << "#channel: You are not the channel operator" << std::endl;
+		else // BROADCAST THIS MESSAGE TO EVERYONE
+		{
+			std::cout << "You've invited <nick> to #channel" << std::endl; // SEND BACK TO SENDER
+			std::cout << "You have been invited to #channel by <operator>" << std::endl; // SEND BACK TO CLIENT
+			// ADD THE INVITED CLIENT TO THE OPERATOR LIST
+		}
+	}
 }
 
 void Commands::topic(std::string data, int op)
@@ -134,7 +146,7 @@ Topic for #channel is: <TOPIC HERE>
 
 */
 
-	std::string old_topic = "placeholder"; // THIS IS A PLACEHOLDER, TRADE FOR THE ACTUAL VARIABLE
+	std::string old_topic = ""; // THIS IS A PLACEHOLDER, TRADE FOR THE ACTUAL VARIABLE
 
 	int i = 0;
 	for ( ; data[i] != 'C'; i++)
@@ -142,8 +154,13 @@ Topic for #channel is: <TOPIC HERE>
 	i++;
 	data = &data[i];
 
-	if (!data[i] || (data[i] == ' ' && !data[i + 1]))  // SEND BACK THIS MESSAGE
-		std::cout << "Topic for #channel is: " << old_topic << std::endl;
+	if (!data[i] || (data[i] == ' ' && !data[i + 1]))
+	{
+		if (old_topic.empty())  // SEND BACK THIS MESSAGE
+			std::cout << "#channel: No topic is set." << std::endl;
+		else 
+			std::cout << "Topic for #channel is: " << old_topic << std::endl;
+	}
 	else
 	{
 		if (!op) // SEND BACK THIS MESSAGE
@@ -203,7 +220,7 @@ IF INVITED, IGNORE THE KEYWORD
 */
 
 	if (av.size() == 1) // SEND BACK MESSAGE
-		std::cout << "Usage: JOIN <channel>, joins the channel" << std::endl;
+		std::cout << JOIN_USAGE << std::endl;
 	else if (av[1][0] != '#')
 		return ;
 	else

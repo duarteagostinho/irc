@@ -6,7 +6,7 @@ _pass("Void"), _userLimit(-1), _creator("Void"), _users(), _operators() {}
 Channel::Channel(std::string name, std::string& creator)
 {
     _name = name;
-    _inv = false;
+    _inviteOnly = false;
     _topic = "";
     _passOnly = false;
     _pass = "";
@@ -19,7 +19,7 @@ Channel::Channel(std::string name, std::string& creator)
 Channel::Channel(const Channel &other)
 {
     _name = other._name;
-    _inv = other._inv;
+    _inviteOnly = other._inviteOnly;
     _topic = other._topic;
     _passOnly = other._passOnly;
     _pass = other._pass;
@@ -36,7 +36,7 @@ Channel &Channel::operator=(const Channel &other)
     if (this != &other)
     {
         _name = other._name;
-        _inv = other._inv;
+        _inviteOnly = other._inviteOnly;
         _topic = other._topic;
         _passOnly = other._passOnly;
         _pass = other._pass;
@@ -50,19 +50,17 @@ Channel &Channel::operator=(const Channel &other)
 
 const std::string Channel::getName() const {return _name;}
 
-const bool Channel::getInvite() const {return _inviteOnly;}
+bool Channel::getInvite() const {return _inviteOnly;}
 
-const bool Channel::getPassOnly() const {return _passOnly;}
+bool Channel::getPassOnly() const {return _passOnly;}
 
 const std::string Channel::getTopic() const {return _topic;}
 
 const std::string Channel::getPass() const {return _pass;}
 
-const int Channel::getUserLimit() const {return _userLimit;}
+int Channel::getUserLimit() const {return _userLimit;}
 
 const std::string Channel::getCreator() const {return _creator;}
-
-const int Channel::getUserLimit() const {return _userLimit;}
 
 const std::vector<std::string> Channel::getUsers() const {return _users;}
 

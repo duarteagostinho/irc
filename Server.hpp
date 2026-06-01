@@ -10,6 +10,8 @@
 # include "Commands.hpp"
 # include "Channel.hpp"
 
+# define MAX_CHANNEL 10
+
 /*
     struct sockaddr_in {
         sa_family_t sin_family;         // Address family (AF_INET)
@@ -40,7 +42,7 @@ class Server : public Commands
 		int _sockfd;
 		int	_port;
 		struct sockaddr_in _addr;
-//		Channel test;
+//		Channel channels[MAX_CHANNEL];
 		// std::map<int, Client> _clients
 
 	public:
