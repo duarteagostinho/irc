@@ -138,7 +138,6 @@ void socket_steps(char **argv)
 			// 	close(client_socket);
 			Commands::exec_cmd(test);
 
-
 			// Reset string
 			test.clear();
 		}

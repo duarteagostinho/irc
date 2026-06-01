@@ -31,16 +31,15 @@ class Channel
         Channel &operator=(const Channel &other);
 
     //Getters
-        const std::string               getName() const;
-        const bool                      getInvite() const;
-        const bool                      getPassOnly() const;
-        const std::string               getTopic() const;
-        const std::string               getPass() const;
-        const int                       getUserLimit() const;
-        const std::string               getCreator() const;
-        const int                       getUserLimit() const;
-        const std::vector<std::string>  getUsers() const;
-        const std::vector<std::string>  getOperators() const;
+        std::string               getName() const;
+        bool                      getInvite() const;
+        bool                      getPassOnly() const;
+        std::string               getTopic() const;
+        std::string               getPass() const;
+        int                       getUserLimit() const;
+        std::string               getCreator() const;
+        std::vector<std::string>  getUsers() const;
+        std::vector<std::string>  getOperators() const;
 
     //Setters
         void    setInvite(bool state);

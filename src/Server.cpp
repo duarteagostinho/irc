@@ -6,6 +6,27 @@
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <unistd.h>
+
+/*
+** ------------------------------- TO DELETE --------------------------------
+*/
+
+void print_str(const char *str)
+{
+	std::cout << "Function print: ";
+	for (int i = 0; str[i]; i++)
+	{
+		if (str[i] == '\r')
+			std::cout << "'\\r'";
+		else if (str[i] == '\n')
+			std::cout << "'\\n'";
+		else
+			std::cout << str[i];
+	}
+	std::cout << std::endl;
+}
+
+
 /*
 ** ------------------------------- CONSTRUCTORS --------------------------------
 */
@@ -135,20 +156,18 @@ void	Server::run()
 
 void	Server::acceptClient(int fd)
 {
-	char 		buf[1025];
-	ssize_t		bytes_rcvd = 1;
-	const char	*reply = "Enter nickname\n";
+	char buf[4097];
+	std::string str;
+	ssize_t		bytes_rcvd = 0;
 
 	while (true)
 	{
-		
-
-		memset(buf, 0, 1025);
-		bytes_rcvd = recv(fd, buf, 1024, 0);
+		memset(buf, 0, 4097);
+		bytes_rcvd = recv(fd, buf, 4096, 0);
 		if (bytes_rcvd < 0)
 		{
 			std::cout << "Error: recv() failed" << std::endl;
-			continue; ;
+			continue ;
 		}
 		if (bytes_rcvd == 0)
 		{
@@ -156,13 +175,27 @@ void	Server::acceptClient(int fd)
 			break ;
 		}
 		buf[bytes_rcvd] = '\0';
-		Commands::exec_cmd(buf);
-		std::cout << "Received: " << buf << std::endl;
-		
-		if (send(fd , reply, strlen(reply) + 1, 0) < 0)
+
+		str.append(buf);
+		size_t find = str.find("\r\n");
+		if (find != std::string::npos)
 		{
-			std::cout << "Error: send() failed" << std::endl;
-			break;
-		}		
+			std::cout << "Test: " << str << std::endl;
+			print_str(str.c_str());
+			
+			if (send(fd , str.c_str(), str.size(), 0) < 0)
+			{
+				std::cout << "Error: send() failed" << std::endl;
+				break;
+			}	
+
+			// Do stuff
+			str.erase(find, 2);
+			Server::exec_cmd(str);
+
+			// Reset string
+			str.clear();
+		}
+		std::cout << "Received: " << buf << std::endl;
 	}
 }

@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/01 14:05:17 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/01 16:37:31 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ void Commands::exec_cmd(std::string data)
 	int i = Commands::check_cmd(data, av);
 
 	for (size_t i = 0; i < av.size(); i++)
-		std::cout << "return: " << av[i] << std::endl;
+		std::cout << "inside exec_cmd: " << av[i] << std::endl;
 
 	switch(i)
 	{
@@ -59,13 +59,13 @@ void Commands::exec_cmd(std::string data)
 			Commands::invite();
 			break;
 		case 2:
-			Commands::topic();
+			Commands::topic(data, 0);
 			break;
 		case 3:
 			Commands::mode();
 			break;
 		case 4:
-			Commands::join();
+			Commands::join(av, 0);
 			break;
 		default:
 			std::cout << "Invalid Command" << std::endl;
@@ -119,7 +119,7 @@ Usage: INVITE <nick> [<channel>], invites someone to a channel, by default the c
 	std::cout << "invite called\n";
 }
 
-void Commands::topic(void)
+void Commands::topic(std::string data, int op)
 {
 /*
 
@@ -130,12 +130,34 @@ Topic for #channel is: <TOPIC HERE>
 	IF (!operator)
 		#channel :You're not channel operator
 	ELSE
-		 <operator> has changed the topic to: <topic>				-> BROADCAST	
+		 <operator> has changed the topic to: <topic>	-> BROADCAST	
 
 */
 
+	std::string old_topic = "placeholder"; // THIS IS A PLACEHOLDER, TRADE FOR THE ACTUAL VARIABLE
+
+	int i = 0;
+	for ( ; data[i] != 'C'; i++)
+		;
+	i++;
+	data = &data[i];
+
+	if (!data[i] || (data[i] == ' ' && !data[i + 1]))  // SEND BACK THIS MESSAGE
+		std::cout << "Topic for #channel is: " << old_topic << std::endl;
+	else
+	{
+		if (!op) // SEND BACK THIS MESSAGE
+			std::cout << "#channel: You are not the channel operator" << std::endl;
+		else // BROADCAST THIS MESSAGE TO EVERYONE
+			std::cout << "<nick> has changed the topic to: " << data << std::endl;
+	}
 	
-	std::cout << "topic called\n";
+	// TODO: update the topic variable of the channel
+//	this->test._topic = data; // How to solve this shit ?
+	old_topic = data;
+
+	std::cout << "[" << data << "]" << std::endl;
+
 }
 
 void Commands::mode(void)
@@ -160,7 +182,7 @@ void Commands::mode(void)
 }
 
 
-void Commands::join(void)
+void Commands::join(std::vector<std::string>& av, int key)
 {
 /*
 
@@ -179,6 +201,29 @@ Usage: JOIN <channel>, joins the channel
 IF INVITED, IGNORE THE KEYWORD
 
 */
+
+	if (av.size() == 1) // SEND BACK MESSAGE
+		std::cout << "Usage: JOIN <channel>, joins the channel" << std::endl;
+	else if (av[1][0] != '#')
+		return ;
+	else
+	{
+		if (!key) // SEND BACK MESSAGE
+			std::cout << "#channel: You are not the channel operator" << std::endl;
+		else // SEND BACK MESSAGE
+			std::cout << "Now talking on #channel" << std::endl;
+		
+		// Need to actually add the person to the channel list
+
+
+		// HOW TO DETERMINE IF THE PERSON WAS INVITED ???
+		// CANT I JUST SET THE OP FLAG TO 1 ??
+	}
+	// Channel class could have a vec<string> invited
+	// Saves each invited name in there, if the name is there
+	// disable the key and remove name from the list
+
+
 	std::cout << "join called\n";
 }
 
@@ -202,3 +247,18 @@ Commands &Commands::operator=(const Commands &other)
 	(void)other;
 	return (*this);
 }
+
+
+/*
+
+about the server message
+
+'*' indicates the message is from the server
+	otherwise it has the nickname before it
+
+maybe could use a flag to indicate
+1- send the mesage back to the sender
+2- send the message back to everyone BUT the sender
+3- broadcast the message
+
+*/

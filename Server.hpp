@@ -8,6 +8,7 @@
 # include <stdlib.h>
 
 # include "Commands.hpp"
+# include "Channel.hpp"
 
 /*
     struct sockaddr_in {
@@ -39,6 +40,7 @@ class Server : public Commands
 		int _sockfd;
 		int	_port;
 		struct sockaddr_in _addr;
+//		Channel test;
 		// std::map<int, Client> _clients
 
 	public:
