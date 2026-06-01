@@ -1,4 +1,5 @@
 #include "../inc/Server.hpp"
+#include "../inc/User.hpp"
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
@@ -146,6 +147,7 @@ void	Server::run()
 					continue;
 				}
 				userMessage(fd, buf, bytes);
+				// std::cout << "recv() buffer for fd "<< fd << " = "<< buf << std::endl;
 			}
 		}
 	}
@@ -163,7 +165,38 @@ void	Server::newConnection(int fd)
 
 void	Server::registerUser(int fd)
 {
+	std::istringstream ss(_pending[fd]);
+	std::string		cmd, token;
+	ss >> cmd >> token;
 
+	if (_users.find(fd) == _users.end())
+	{
+		if (cmd == "NICK")
+		{
+			_reg[fd]._nickname = token;
+			_reg[fd].has_nick = true;
+		}
+		if (cmd == "USER")
+		{
+			_reg[fd]._username = token;
+			_reg[fd].has_user = true;
+		}
+		if (cmd == "PASS")
+		{
+			if (token.compare(_password) != 0)
+			{
+				std::cout << "Wrong password!" << std::endl;
+				return ;
+			}
+		}
+		if (_reg[fd].has_nick && _reg[fd].has_user)
+		{
+			_users[fd] = User(fd, _reg[fd]._nickname,_reg[fd]._username);
+			_users[fd].registered = true;
+			_reg.erase(fd);
+			return ;
+		}
+	}
 	return ;
 }
 
@@ -171,7 +204,8 @@ void	Server::userMessage(int fd, const std::string &msg, ssize_t bytes)
 {
 	if (_users.find(fd) == _users.end())
 	{
-		_pending[fd].append(msg, bytes);
+		std::cout << "bytes= " << bytes << ", msg = " << msg << std::endl;
+		_pending[fd].append(msg);
 		registerUser(fd);
 	}
 	else
@@ -195,47 +229,47 @@ void	Server::disconnect(int fd)
 	close(fd);
 }
 
-void Server::handleCommand(int fd, const std::string &line)
-{
-    std::istringstream ss(line);
-    std::string cmd;
-    ss >> cmd;
-
-    if (cmd == "PING")
-    {
-        std::string token;
-        ss >> token;
-        std::string pong = "PONG " + token + "\r\n";
-        send(fd, pong.c_str(), pong.size(), 0);
-    }
-    else if (cmd == "PRIVMSG")
-    {
-        std::string target, msg;
-        ss >> target;
-        std::getline(ss, msg);
-        std::cout << "[PRIVMSG] " << _users[fd].getNickname()
-                  << " → " << target << " :" << msg << std::endl;
-    }
-    else if (cmd == "JOIN")
-    {
-        std::string channel;
-        ss >> channel;
-        std::cout << "[JOIN] " << _users[fd].getNickname()
-                  << " entrou em " << channel << std::endl;
-    }
-    else if (cmd == "QUIT")
-    {
-        std::cout << "[QUIT] " << _users[fd].getNickname()
-                  << " desligou-se" << std::endl;
-        disconnect(fd);
-    }
-    else
-    {
-        std::cout << "[UNKNOWN] fd=" << fd
-                  << " cmd='" << cmd << "' line='" << line << "'" << std::endl;
-    }
-}
-
+// void Server::handleCommand(int fd, const std::string &line)
+// {
+//     std::istringstream ss(line);
+//     std::string cmd;
+//     ss >> cmd;
+//
+//     if (cmd == "PING")
+//     {
+//         std::string token;
+//         ss >> token;
+//         std::string pong = "PONG " + token + "\r\n";
+//         send(fd, pong.c_str(), pong.size(), 0);
+//     }
+//     else if (cmd == "PRIVMSG")
+//     {
+//         std::string target, msg;
+//         ss >> target;
+//         std::getline(ss, msg);
+//         std::cout << "[PRIVMSG] " << _users[fd].getNickname()
+//                   << " → " << target << " :" << msg << std::endl;
+//     }
+//     else if (cmd == "JOIN")
+//     {
+//         std::string channel;
+//         ss >> channel;
+//         std::cout << "[JOIN] " << _users[fd].getNickname()
+//                   << " entrou em " << channel << std::endl;
+//     }
+//     else if (cmd == "QUIT")
+//     {
+//         std::cout << "[QUIT] " << _users[fd].getNickname()
+//                   << " desligou-se" << std::endl;
+//         disconnect(fd);
+//     }
+//     else
+//     {
+//         std::cout << "[UNKNOWN] fd=" << fd
+//                   << " cmd='" << cmd << "' line='" << line << "'" << std::endl;
+//     }
+// }
+//
 void	Server::parseMessage(int fd)
 {
 	std::string msg = _users[fd].recvBuf;
@@ -247,6 +281,6 @@ void	Server::parseMessage(int fd)
 		msg.erase(0, pos + 1);
 		while (!line.empty() && (line.back() == '\r' || line.back() == '\n')) 
 			line.pop_back();
-		handleCommand(fd, line);
+		// handleCommand(fd, line);
 	}
 }

@@ -13,8 +13,14 @@ User::User(int fd, const std::string &nick, const std::string &user)
 {	
 }
 
-
-
+// User &User::operator=(const User &src) {
+//     if (this != &src) {
+//     	this->_username = src._username;
+// 		this->_nickname = src._nickname;
+// 		this->_fd = src._fd;
+//     }
+//     return *this;
+// }
 /*
 ** -------------------------------- DESTRUCTOR --------------------------------
 */

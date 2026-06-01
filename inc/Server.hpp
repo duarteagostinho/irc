@@ -2,6 +2,7 @@
 # define SERVER_HPP
 
 # include <iostream>
+#include <string>
 # include <sys/types.h>
 # include <sys/socket.h>
 # include <netinet/in.h>
@@ -34,6 +35,14 @@
 
 class Server {
 
+	struct Registration {
+
+		std::string	_nickname;
+		std::string	_username;
+		bool		has_nick;
+		bool		has_user;
+	};
+
 	private: 
 		
 		int							_sockfd;
@@ -42,6 +51,7 @@ class Server {
 		struct sockaddr_in			_addr;
 		std::map<int, User>			_users;
 		std::map<int, std::string>	_pending;
+		std::map<int, Registration>	_reg;
 		fd_set						_master;
 		int							_maxFd;
 	
