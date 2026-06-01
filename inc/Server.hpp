@@ -6,7 +6,7 @@
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <stdlib.h>
-# include <vector>
+# include <map>
 # include "User.hpp"
 
 /*                        STRUCTURE FOR SOCKET ADDR
@@ -36,11 +36,15 @@ class Server {
 
 	private: 
 		
-		int					_sockfd;
-		int					_port;
-		std::string			_password;
-		struct sockaddr_in	_addr;
-//		std::vector<User>	_users;
+		int							_sockfd;
+		int							_port;
+		std::string					_password;
+		struct sockaddr_in			_addr;
+		std::map<int, User>			_users;
+		std::map<int, std::string>	_pending;
+		fd_set						_master;
+		int							_maxFd;
+	
 	public:
         // Constructors & Destructor
         Server();                                  // Default
@@ -52,7 +56,12 @@ class Server {
         Server &operator=(const Server &src); // Copy Assignment
 		bool	init(); // Creates socket, bind, listen
 		void	run();	// Accept clients in a loop;
-		int		acceptUser(int fd);	// Handle new connection
+		void	newConnection(int fd);
+		void	userMessage(int fd, const std::string &msg, ssize_t bytes);
+		void	disconnect(int fd);
+		void	parseMessage(int fd);
+		void	handleCommand(int fd, const std::string &line);
+		void	registerUser(int fd);
 		void	closeServer();	// Clean up
 
 };

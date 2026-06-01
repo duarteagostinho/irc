@@ -7,18 +7,26 @@
 class User
 {
 	private:
-
-	std::string _nickname;
-	std::string _username;
+	
+		int			_fd;
+		std::string _nickname;
+		std::string _username;
+		bool		registered;
 
 	public:
 
+		std::string recvBuf;
+
 		User();
-		User(std::string nick, std::string user);
+		User(int fd, const std::string &nick, const std::string &user);
 		User( User const & src );
 		~User();
 
 		User &		operator=( User const & rhs );
+	
+		int			getFd() const {return _fd;}
+		std::string	getNickname() const {return _nickname;}
+		std::string	getUsername() const {return _username;}
 
 };
 
