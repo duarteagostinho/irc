@@ -134,9 +134,9 @@ void socket_steps(char **argv)
 
 			// Do stuff
 			test.erase(find, 2);
-			if (Commands::check_cmd(test) == -1)
-				close(client_socket);
-
+			// if (Commands::check_cmd(test) == -1)
+			// 	close(client_socket);
+			Commands::exec_cmd(test);
 
 
 			// Reset string

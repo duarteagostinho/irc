@@ -1,26 +1,37 @@
-NAME := ircserv
+NAME = irc
+CXX = c++
+CXX_FLAGS = -g -Wall -Wextra -Werror #-std=c++98
 
-CXX := c++
+# Directories
+SRC_DIR = src
+OBJ_DIR = obj
 
-CXXFLAGS := -Wall -Wextra -Werror -g #-std=c++98
+# SRC_Functions
+SRC_FILES = User.cpp main.cpp Server.cpp Commands.cpp
+SRC_FUNC = $(addprefix $(SRC_DIR)/, $(SRC_FILES))
 
-SRC := main.cpp Commands.cpp
-
-OBJ := $(SRC:.cpp=.o)
-
-RM := rm -f
+SRC = $(SRC_FUNC) 
+OBJ = $(addprefix $(OBJ_DIR)/, $(notdir $(SRC:.cpp=.o)))
 
 all: $(NAME)
 
 $(NAME): $(OBJ)
-	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJ)
+	$(CXX) $(CXX_FLAGS) -o $(NAME) $(OBJ)
+
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
+	$(CXX) $(CXX_FLAGS) -c $< -o $@
 
 clean:
-	$(RM) $(OBJ)
+	rm -rf $(OBJ_DIR)
 
 fclean: clean
-	$(RM) $(NAME)
+	rm -f $(NAME)
 
-re: fclean all
+re:
+	$(MAKE) fclean
+	$(MAKE) all
 
 .PHONY: all clean fclean re

@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:35:05 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/01 14:07:10 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/01 12:01:41 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,12 +31,9 @@ public:
 	static void mode(void);
 	static void join(void);
 
+private:
 	Commands();
 	Commands(const Commands &other);
+	~Commands();
 	Commands &operator=(const Commands &other);
-
-	virtual ~Commands() = 0;
-
-private:
-
 };
