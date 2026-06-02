@@ -32,8 +32,7 @@ Server::Server(int ac, char **av)
 		_password = av[2];
 	_port = std::atoi(av[1]);
 	_sockfd = -1;
-	std::cout << "Server Constructor" << std::endl;
-
+	std::cout << "	Server created!" << std::endl;
 }
 
 Server::Server(const Server &src) {
@@ -100,6 +99,11 @@ bool	Server::init()
 		std::cout << "Error: Listen failed" << std::endl;
 		return false;
 	}
+	std::cout << "	Server initialized!" << std::endl << std::endl;
+	std::cout << "      ╔════════════════════════╗" << std::endl;
+	std::cout << "      ║    IRC SERVER READY    ║" << std::endl;
+	std::cout << "      ║  Listening on port " << _port << "║" << std::endl;
+	std::cout << "      ╚════════════════════════╝" << std::endl;
 	return true;
 }
 
@@ -159,43 +163,39 @@ void	Server::newConnection(int fd)
 	if (fd > _maxFd)
 		_maxFd = fd;
 	_pending[fd] = "";
-	std::cout << "[CONNECT] fd="<< fd << std::endl;
-
+	std::cout << "[CONNECT] fd = "<< fd << std::endl;
+	return ;
 }
 
 void	Server::registerUser(int fd)
 {
 	std::istringstream ss(_pending[fd]);
 	std::string		cmd, token;
+	unsigned long 	pos;
 	ss >> cmd >> token;
 
-	if (_users.find(fd) == _users.end())
+	if (_users.find(fd) != _users.end())
+		return ;
+	if ((pos = _pending[fd].find('\n')) == std::string::npos)
+		return ;
+	std::string line = _pending[fd].substr(0, pos);
+	_pending[fd].erase(0, pos + 1);
+	if (cmd == "NICK")
 	{
-		if (cmd == "NICK")
-		{
-			_reg[fd]._nickname = token;
-			_reg[fd].has_nick = true;
-		}
-		if (cmd == "USER")
-		{
-			_reg[fd]._username = token;
-			_reg[fd].has_user = true;
-		}
-		if (cmd == "PASS")
-		{
-			if (token.compare(_password) != 0)
-			{
-				std::cout << "Wrong password!" << std::endl;
-				return ;
-			}
-		}
-		if (_reg[fd].has_nick && _reg[fd].has_user)
-		{
-			_users[fd] = User(fd, _reg[fd]._nickname,_reg[fd]._username);
-			_users[fd].registered = true;
-			_reg.erase(fd);
-			return ;
-		}
+		_reg[fd]._nickname = token;
+		_reg[fd].has_nick = true;
+	}
+	if (cmd == "USER")
+	{
+		_reg[fd]._username = token;
+		_reg[fd].has_user = true;
+	}
+	if (_reg[fd].has_nick && _reg[fd].has_user)
+	{
+		_users[fd] = User(fd, _reg[fd]._nickname,_reg[fd]._username);
+		_users[fd].registered = true;
+		send(fd, "Welcome to ft_irc!\n", 19, 0);
+		_reg.erase(fd);
 	}
 	return ;
 }
@@ -204,7 +204,6 @@ void	Server::userMessage(int fd, const std::string &msg, ssize_t bytes)
 {
 	if (_users.find(fd) == _users.end())
 	{
-		std::cout << "bytes= " << bytes << ", msg = " << msg << std::endl;
 		_pending[fd].append(msg);
 		registerUser(fd);
 	}
@@ -217,10 +216,10 @@ void	Server::userMessage(int fd, const std::string &msg, ssize_t bytes)
 
 void	Server::disconnect(int fd)
 {
-	std::cout << "[DISCONECT] fd=" << fd << std::endl;
+	std::cout << "[DISCONECT] fd = "<< fd << std::endl;
 	if (_users.find(fd) != _users.end())
 	{
-		std::cout << " nick=" << _users[fd].getNickname();
+		std::cout << "nick=" << _users[fd].getNickname() << std::endl;
 		_users.erase(fd);
 	}
 	else
