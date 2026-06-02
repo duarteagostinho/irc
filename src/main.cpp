@@ -2,12 +2,7 @@
 # include <sys/types.h>
 # include <sys/socket.h>
 # include <netinet/in.h>
-<<<<<<< HEAD
 # include "../inc/Server.hpp"
-=======
-# include "../Server.hpp"
-# include "../User.hpp"
->>>>>>> gui
 
 int main(int argc, char **argv)
 {

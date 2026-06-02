@@ -9,7 +9,6 @@
 # include <stdlib.h>
 # include <map>
 # include "User.hpp"
-
 /*                        STRUCTURE FOR SOCKET ADDR
     struct sockaddr_in {
         sa_family_t sin_family;         // Address family (AF_INET)
@@ -52,6 +51,7 @@ class Server {
 		std::map<int, User>			_users;
 		std::map<int, std::string>	_pending;
 		std::map<int, Registration>	_reg;
+		//std::map<int, Channel>		_channels;
 		fd_set						_master;
 		int							_maxFd;
 	

@@ -1,1 +1,2 @@
 implementar pass no user registration
+implementar general channel
