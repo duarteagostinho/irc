@@ -18,13 +18,14 @@ class User
 		bool		registered;
 
 		User();
-		User(int fd, const std::string &nick, const std::string &user);
+		User(int fd, std::string nick, std::string user);
 		User( User const & src );
 		~User();
 
+		User &operator=(const User &src);
 		int			getFd() const {return _fd;}
-		std::string	getNickname() const {return _nickname;}
-		std::string	getUsername() const {return _username;}
+		const std::string&	getNickname() const {return _nickname;}
+		const std::string&	getUsername() const {return _username;}
 
 };
 

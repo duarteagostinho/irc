@@ -1,61 +1,6 @@
-#include "Channel.hpp"
+#include "../inc/Channel.hpp"
 
-<<<<<<< HEAD
-/*
-** ------------------------------- CONSTRUCTOR --------------------------------
-*/
-
-Channel::Channel()
-{
-}
-
-Channel::Channel( const Channel & src )
-{
-}
-
-
-/*
-** -------------------------------- DESTRUCTOR --------------------------------
-*/
-
-Channel::~Channel()
-{
-}
-
-
-/*
-** --------------------------------- OVERLOAD ---------------------------------
-*/
-
-Channel &				Channel::operator=( Channel const & rhs )
-{
-	//if ( this != &rhs )
-	//{
-		//this->_value = rhs.getValue();
-	//}
-	return *this;
-}
-
-std::ostream &			operator<<( std::ostream & o, Channel const & i )
-{
-	//o << "Value = " << i.getValue();
-	return o;
-}
-
-
-/*
-** --------------------------------- METHODS ----------------------------------
-*/
-
-
-/*
-** --------------------------------- ACCESSOR ---------------------------------
-*/
-
-
-/* ************************************************************************** */
-=======
-Channel::Channel(): _name("Void"), _inviteOnly(false), _topicOp(false) _topic("Void"), _passOnly(false),
+Channel::Channel(): _name("Void"), _inviteOnly(false), _topicOp(false) ,_topic("Void"), _passOnly(false),
 _pass("Void"), _userLimit(-1), _creator("Void"), _users(NULL), _operators(NULL) {}
 
 Channel::Channel(std::string name, std::string& creator)
@@ -107,7 +52,7 @@ Channel &Channel::operator=(const Channel &other)
 }
 
 //Getters
-const std::string Channel::getName() const {return _name;}
+const std::string Channel::getUser() const {return _name;}
 
 const bool Channel::getInvite() const {return _inviteOnly;}
 
@@ -139,7 +84,7 @@ void Channel::setUserLmit(int limit) {_userLimit = limit;}
 
 void Channel::addUser(std::string& nick)
 {
-    if ((size_t pos = _users.find(nick)) != std::string::npos)
+    if (std::find(_users.begin(), _users.end(), nick) != _users.end())
     {
         if (_userLimit == -1)
         {
@@ -162,10 +107,10 @@ void Channel::addUser(std::string& nick)
 }
 
 void Channel::rmUser(std::string& nick)
-{
-    if ((size_t pos = _users.find(nick)) != std::string::npos)
+{   
+    if (std::find(_users.begin(), _users.end(), nick) != _users.end())
     {
-        if (_users[pos] == _creator)
+        if (*(std::find(_users.begin(), _users.end(), nick)) == _creator)
         {
             std::cout << "That User can't be removed from the channel " << _name << " has he is the creator" << std::endl;
             return ;
@@ -206,4 +151,3 @@ void Channel::rmOperator(std::string &nick)
     else
         return ;
 }
->>>>>>> gui

@@ -246,19 +246,19 @@ void	Server::disconnect(int fd)
 //         std::string target, msg;
 //         ss >> target;
 //         std::getline(ss, msg);
-//         std::cout << "[PRIVMSG] " << _users[fd].getNickname()
+//         std::cout << "[PRIVMSG] " << _users[fd].getNicknamename()
 //                   << " → " << target << " :" << msg << std::endl;
 //     }
 //     else if (cmd == "JOIN")
 //     {
 //         std::string channel;
 //         ss >> channel;
-//         std::cout << "[JOIN] " << _users[fd].getNickname()
+//         std::cout << "[JOIN] " << _users[fd].getNicknamename()
 //                   << " entrou em " << channel << std::endl;
 //     }
 //     else if (cmd == "QUIT")
 //     {
-//         std::cout << "[QUIT] " << _users[fd].getNickname()
+//         std::cout << "[QUIT] " << _users[fd].getNicknamename()
 //                   << " desligou-se" << std::endl;
 //         disconnect(fd);
 //     }

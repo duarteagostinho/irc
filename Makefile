@@ -1,6 +1,6 @@
-NAME = irc
+NAME = ircserv
 CXX = c++
-CXX_FLAGS = -g -Wall -Wextra -Werror -std=c++98
+CXX_FLAGS = -g -Wall -Wextra -Werror #-std=c++98
 
 # Directories
 SRC_DIR = src
