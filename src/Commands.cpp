@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/02 12:23:30 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/02 15:53:35 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,6 @@ int Commands::check_cmd(std::string data, std::vector<std::string>& av)
 
 void Commands::exec_cmd(std::string data)
 {
-
 	std::vector<std::string> av;
 	int i = Commands::check_cmd(data, av);
 
