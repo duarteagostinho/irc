@@ -11,6 +11,7 @@ class Channel
     private:
         std::string              _name;
         bool                     _inviteOnly;
+        bool                     _topicOp;
         std::string              _topic;
         bool                     _passOnly;
         std::string              _pass;
@@ -37,7 +38,6 @@ class Channel
         const std::string               getPass() const;
         const int                       getUserLimit() const;
         const std::string               getCreator() const;
-        const int                       getUserLimit() const;
         const std::vector<std::string>  getUsers() const;
         const std::vector<std::string>  getOperators() const;
 

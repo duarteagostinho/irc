@@ -1,12 +1,13 @@
 #include "Channel.hpp"
 
-Channel::Channel(): _name("Void"), _inviteOnly(false), _topic("Void"), _passOnly(false),
+Channel::Channel(): _name("Void"), _inviteOnly(false), _topicOp(false) _topic("Void"), _passOnly(false),
 _pass("Void"), _userLimit(-1), _creator("Void"), _users(NULL), _operators(NULL) {}
 
 Channel::Channel(std::string name, std::string& creator)
 {
     _name = name;
     _inviteOnly = false;
+    _topicOp = false;
     _topic = "";
     _passOnly = false;
     _pass = "";
@@ -20,6 +21,7 @@ Channel::Channel(const Channel &other)
 {
     _name = other._name;
     _inviteOnly = other._inviteOnly;
+    _topicOp = other._topicOp;
     _topic = other._topic;
     _passOnly = other._passOnly;
     _pass = other._pass;
@@ -37,6 +39,7 @@ Channel &Channel::operator=(const Channel &other)
     {
         _name = other._name;
     	_inviteOnly = other._inviteOnly;
+        _topicOp = other._topicOp;
     	_topic = other._topic;
     	_passOnly = other._passOnly;
     	_pass = other._pass;
@@ -48,6 +51,7 @@ Channel &Channel::operator=(const Channel &other)
     return *this;
 }
 
+//Getters
 const std::string Channel::getName() const {return _name;}
 
 const bool Channel::getInvite() const {return _inviteOnly;}
@@ -62,12 +66,12 @@ const int Channel::getUserLimit() const {return _userLimit;}
 
 const std::string Channel::getCreator() const {return _creator;}
 
-const int Channel::getUserLimit() const {return _userLimit;}
-
 const std::vector<std::string> Channel::getUsers() const {return _users;}
 
 const std::vector<std::string> Channel::getOperators() const {return _operators;}
 
+
+//Setters
 void Channel::setInvite(bool state) {_inviteOnly = state;}
 
 void Channel::setPassOnly(bool state) {_passOnly = state;}
@@ -80,87 +84,70 @@ void Channel::setUserLmit(int limit) {_userLimit = limit;}
 
 void Channel::addUser(std::string& nick)
 {
-    //falta fazer search antes para saber se o user ja esta no channel
-    if (_userLimit == -1)
+    if ((size_t pos = _users.find(nick)) != std::string::npos)
     {
-        _users.push_back(nick);
-        std::cout << "User added to " << _name << std::endl;
-    }
-    else if (_userLimit > _users.size())
-    {
-        _users.push_back(nick);
-        std::cout << "User added to " << _name << std::endl;
+        if (_userLimit == -1)
+        {
+            _users.push_back(nick);
+            std::cout << "User added to " << _name << std::endl;
+        }
+        else if (_userLimit > _users.size())
+        {
+            _users.push_back(nick);
+            std::cout << "User added to " << _name << std::endl;
+        }
+        else
+        {
+            std::cout << "No space on the channel" << std::endl;
+            return ;
+        }
     }
     else
-    {
-        //ainda nao sei como vamos lidar com os erros
-    }
+        return ;
 }
 
 void Channel::rmUser(std::string& nick)
 {
-	size_t i = 0;
-    for(i; i < _users.size(); i++)
+    if ((size_t pos = _users.find(nick)) != std::string::npos)
     {
-        if (_users[i] == _creator)
+        if (_users[pos] == _creator)
         {
             std::cout << "That User can't be removed from the channel " << _name << " has he is the creator" << std::endl;
-            //ainda nao sei como vamos lidar com isto
+            return ;
         }
-        if (_users[i] == nick)
+        else
         {
-            _users.erase(_users.begin() + i);
+            _users.erase(_users.begin() + pos);
             std::cout << "User removed from " << _name << std::endl;
-            break ;
+            return ;
         }
-    }
-    if (i == _users.size())
-    {
-        //throw or ainda nao sei
-        //isto no caso do user nao existir no channel
     }
 }
 
 void Channel::addOperator(std::string& nick)
 {
-    //falta fazer search antes para saber se o user ja esta no channel
-    if (_userLimit == -1)
-    {
-        _operators.push_back(nick);
-        std::cout << "User added has an operator to " << _name << std::endl;
-    }
-    else if (_userLimit > _operators.size())
+    if ((size_t pos = _operators.find(nick)) != std::string::npos)
     {
         _operators.push_back(nick);
         std::cout << "User added has an operator to " << _name << std::endl;
     }
     else
-    {
-        //ainda nao sei como vamos lidar com os erros
-    }
+        return ;
 }
 
 void Channel::rmOperator(std::string &nick)
 {
-	size_t i = 0;
-    //falta fazer search antes para saber se ja existe no channel como operator
-    for(i; i < _operators.size(); i++)
+    if (nick == _creator)
     {
-        if (_operators[i] == nick)
-        {
-            std::cout << "That User can't be removed from operator status has he is the creator of the channel " << _name << std::endl;
-            //ainda nao sei como vamos lidar com isto
-        }
-        if (_operators[i] == nick)
-        {
-            _operators.erase(_operators.begin() + i);
-            std::cout << "User removed has an operator from " << _name << std::endl;
-            break ;
-        }
+        std::cout << "That User can't be removed from operator status has he is the creator of the channel " << _name << std::endl;
+        return ;
     }
-    if (i == _operators.size())
+    if ((size_t pos = _operators.find(nick)) != std::string::npos)
     {
-        //throw or ainda nao sei
-        //isto no caso do user nao existir no channel
+        _operators.erase(_operators.begin() + pos);
+        std::cout << "User removed has an operator from " << _name << std::endl;
+        return ;
     }
+    else
+        return ;
 }
