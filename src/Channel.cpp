@@ -1,15 +1,15 @@
 #include "Channel.hpp"
 
 Channel::Channel(): _name("Void"), _inviteOnly(false), _topic("Void"), _passOnly(false),
-_pass("Void"), _userLimit(-1), _creator("Void"), _users(void), _operators(void) {}
+_pass("Void"), _userLimit(-1), _creator("Void"), _users(NULL), _operators(NULL) {}
 
 Channel::Channel(std::string name, std::string& creator)
 {
     _name = name;
-    _inv = false;
-    _topic = NULL;
+    _inviteOnly = false;
+    _topic = "";
     _passOnly = false;
-    _pass = NULL;
+    _pass = "";
     _userLimit = -1;
     _creator = creator;
     _users.push_back(creator);
@@ -19,31 +19,31 @@ Channel::Channel(std::string name, std::string& creator)
 Channel::Channel(const Channel &other)
 {
     _name = other._name;
-    _inv = other._inv;
+    _inviteOnly = other._inviteOnly;
     _topic = other._topic;
-    _passOnly = other._passO;
+    _passOnly = other._passOnly;
     _pass = other._pass;
-    _userLimit = other._userL;
+    _userLimit = other._userLimit;
     _creator = other._creator;
     _users = other._users;
-    _operators = other._op;
+    _operators = other._operators;
 }
 
 Channel::~Channel() {}
 
-Channel &Channel::operator=(const Cannel &other)
+Channel &Channel::operator=(const Channel &other)
 {
-    if (*this != other)
+    if (this != &other)
     {
         _name = other._name;
-        _inv = other._inv;
-        _topic = other._topic;
-        _passOnly = other._passO;
-        _pass = other._pass;
-        _userLimit = other._userL;
-        _creator = other._creator;
-        _users = other._users;
-        _operators = other._op;
+    	_inviteOnly = other._inviteOnly;
+    	_topic = other._topic;
+    	_passOnly = other._passOnly;
+    	_pass = other._pass;
+    	_userLimit = other._userLimit;
+    	_creator = other._creator;
+    	_users = other._users;
+    	_operators = other._operators;
     }
     return *this;
 }
@@ -83,12 +83,12 @@ void Channel::addUser(std::string& nick)
     //falta fazer search antes para saber se o user ja esta no channel
     if (_userLimit == -1)
     {
-        _users.pushback(nick);
+        _users.push_back(nick);
         std::cout << "User added to " << _name << std::endl;
     }
     else if (_userLimit > _users.size())
     {
-        _users.pushback(nick);
+        _users.push_back(nick);
         std::cout << "User added to " << _name << std::endl;
     }
     else
@@ -99,7 +99,8 @@ void Channel::addUser(std::string& nick)
 
 void Channel::rmUser(std::string& nick)
 {
-    for(size_t i = 0; i < _users.size(), i++)
+	size_t i = 0;
+    for(i; i < _users.size(); i++)
     {
         if (_users[i] == _creator)
         {
@@ -108,7 +109,7 @@ void Channel::rmUser(std::string& nick)
         }
         if (_users[i] == nick)
         {
-            _users.erase(_users.begin() + i)
+            _users.erase(_users.begin() + i);
             std::cout << "User removed from " << _name << std::endl;
             break ;
         }
@@ -125,12 +126,12 @@ void Channel::addOperator(std::string& nick)
     //falta fazer search antes para saber se o user ja esta no channel
     if (_userLimit == -1)
     {
-        _operators.pushback(nick);
+        _operators.push_back(nick);
         std::cout << "User added has an operator to " << _name << std::endl;
     }
     else if (_userLimit > _operators.size())
     {
-        _operators.pushback(nick);
+        _operators.push_back(nick);
         std::cout << "User added has an operator to " << _name << std::endl;
     }
     else
@@ -139,10 +140,11 @@ void Channel::addOperator(std::string& nick)
     }
 }
 
-void Channel::rmOperator()
+void Channel::rmOperator(std::string &nick)
 {
+	size_t i = 0;
     //falta fazer search antes para saber se ja existe no channel como operator
-    for(size_t i = 0; i < _operators.size(), i++)
+    for(i; i < _operators.size(); i++)
     {
         if (_operators[i] == nick)
         {
@@ -151,7 +153,7 @@ void Channel::rmOperator()
         }
         if (_operators[i] == nick)
         {
-            _operators.erase(_operators.begin() + i)
+            _operators.erase(_operators.begin() + i);
             std::cout << "User removed has an operator from " << _name << std::endl;
             break ;
         }

@@ -17,7 +17,7 @@ class Channel
         int                      _userLimit;
         std::string              _creator;
         std::vector<std::string> _users;
-        std::vector<std::string> _operators
+        std::vector<std::string> _operators;
 
     public:
     //Constructors
@@ -27,7 +27,7 @@ class Channel
     //Destructor
         ~Channel();
     //Overload Assignment Operator
-        Channel &operator=(const Channel &other);
+        Channel& operator=(const Channel &other);
 
     //Getters
         const std::string               getName() const;
