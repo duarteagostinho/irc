@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/01 17:08:26 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/02 12:23:30 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ void Commands::exec_cmd(std::string data)
 	switch(i)
 	{
 		case 0:
-			Commands::kick();
+			Commands::kick(av, 0);
 			break;
 		case 1:
 			Commands::invite(av, 0);
@@ -74,7 +74,7 @@ void Commands::exec_cmd(std::string data)
 }
 
 
-void Commands::kick(void)
+void Commands::kick(std::vector<std::string>& av, int op)
 { 
 /*
 
@@ -96,6 +96,17 @@ Usage: KICK <nick> [reason], kicks the nick from the current channel
 			If no reason, operator name = reason.
 			
 */
+
+	if (av.size() == 1) // SEND BACK MESSAGE
+		std::cout << KICK_USAGE << std::endl;
+	else
+	{
+		if (!op) // SEND BACK THIS MESSAGE
+			std::cout << "#channel: You are not the channel operator" << std::endl;
+		
+
+
+	}
 	std::cout << "kick called\n";
 }
 

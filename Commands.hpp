@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:35:05 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/01 17:05:25 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/02 12:18:35 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 # include <unistd.h>
 # include <vector>
 
+# define KICK_USAGE "Usage: KICK <nick> [reason], kicks the nick from the current channel"
 # define INV_USAGE "Usage: INVITE <nick> [<channel>], invites someone to a channel, by default the current channel"
 # define JOIN_USAGE "Usage: JOIN <channel>, joins the channel"
 # define NOT_OPERATOR ": You are not the channel operator"
@@ -29,7 +30,7 @@ public:
 	void	exec_cmd(std::string data); // This is probably better at server
 	int		check_cmd(std::string data, std::vector<std::string>& av);
 	
-	void	kick(void);
+	void	kick(std::vector<std::string>& av, int op);
 	void	invite(std::vector<std::string>& av, int op);
 	void	topic(std::string data, int op);
 	void	mode(void);
