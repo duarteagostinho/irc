@@ -1,27 +1,18 @@
-#include "../User.hpp"
+#include "../inc/User.hpp"
 
-User::User(): _name("Void"), _nick("Void") {}
+User::User(): _fd(-1), _nickname("Void"), _username("Void") {}
 
-User::User(std::string name, std::string nick): _name(name), _nick(nick) {}
+User::User(int fd, std::string nick, std::string name): _fd(fd), _nickname(nick), _username(name)  {}
 
-User::User(const User &other): _name(other._name), _nick(other._nick) {}
+User::User(const User &other): _nickname(other._nickname), _username(other._username) {}
 
 User::~User(){}
 
-User &User::operator=(const User &other)
-{
-    if (this != &other)
-    {
-        _nick = other._nick;
-        _name = other._name;
+User &User::operator=(const User &src) {
+    if (this != &src) {
+    	this->_username = src._username;
+		this->_nickname = src._nickname;
+		this->_fd = src._fd;
     }
     return *this;
 }
-
-const std::string& User::GetName() const {return _name;}
-
-const std::string& User::GetNick() const {return _nick;}
-
-void User::setNick(std::string nick) { _nick = nick; }
-
-void User::setName(std::string name) { _name = name; }

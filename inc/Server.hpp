@@ -48,7 +48,7 @@ class Server {
 	};
 
 	private: 
-		
+
 		int							_sockfd;
 		int							_port;
 		std::string					_password;
@@ -56,18 +56,20 @@ class Server {
 		std::map<int, User>			_users;
 		std::map<int, std::string>	_pending;
 		std::map<int, Registration>	_reg;
-		//std::map<int, Channel>		_channels;
-		fd_set						_master;
-		int							_maxFd;
+		//std::map<int, Channel>	_channels;
 
-		std::vector<struct pollfd>	_fds; // NEW
-	
+
+//		fd_set						_master;	// REMOVED, FROM SET, NOT USED ANYMORE
+//		int							_maxFd;
+
+		std::vector<struct pollfd>	_fds;
+		std::vector<std::string>	_nick;
+
 	public:
         // Constructors & Destructor
-        Server();                                  // Default
-		Server(int ac, char **av);
-        Server(const Server &src);            // Copy
-        ~Server();                                 // Destructor
+        Server();									// Default
+        Server(const Server &src);					// Copy
+        ~Server();									// Destructor
 
         // Operators
         Server &operator=(const Server &src); // Copy Assignment
@@ -80,6 +82,15 @@ class Server {
 		void	handleCommand(int fd, const std::string &line);
 		void	registerUser(int fd);
 		void	closeServer();	// Clean up
+
+
+		void	setPassword(char *pass);
+
+		void	setPort(int port);
+		int		getPort(void) const;
+
+		void	getMessage(std::string &line, char *buffer, int i);
+		void	getUserConfig(std::string &line, char *buffer, int i);
 
 };
 

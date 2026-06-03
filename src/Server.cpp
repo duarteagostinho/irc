@@ -1,49 +1,44 @@
-#include "../Server.hpp"
+#include "../inc/Server.hpp"
+#include "../inc/User.hpp"
+#include <cstddef>
+#include <cstdio>
 #include <cstring>
-#include <filesystem>
+#include <iostream>
+#include <map>
 #include <netinet/in.h>
 #include <stdexcept>
+#include <string>
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <unistd.h>
+#include <cerrno>
+#include <stdio.h>
+#include <sstream>
 
-/*
-** ------------------------------- TO DELETE --------------------------------
-*/
-
-void print_str(const char *str)
+void	Server::setPort(int port)
 {
-	std::cout << "Function print: ";
-	for (int i = 0; str[i]; i++)
-	{
-		if (str[i] == '\r')
-			std::cout << "'\\r'";
-		else if (str[i] == '\n')
-			std::cout << "'\\n'";
-		else
-			std::cout << str[i];
-	}
-	std::cout << std::endl;
+	_port = port;
 }
 
+int		Server::getPort(void) const
+{
+	return (_port); 
+}
+
+void	Server::setPassword(char *pass)
+{
+	_password = pass;
+}
 
 /*
 ** ------------------------------- CONSTRUCTORS --------------------------------
 */
 
-Server::Server()
+Server::Server() : _sockfd(-1), _port(0)
 {
     std::cout << "Default Constructor called" << std::endl;
-}
-
-Server::Server(int ac, char **av)
-{
-	if (ac != 3)
-		throw std::runtime_error("Invalid number of arguments");
-	_port = std::atoi(av[1]);
-	_sockfd = -1;
-	std::cout << "Server Constructor" << std::endl;
-
+	std::string name = "server";
+	_nick.push_back(name);
 }
 
 Server::Server(const Server &src) {
@@ -63,7 +58,8 @@ Server::~Server() {
 ** --------------------------------- OVERLOADS ---------------------------------
 */
 
-Server &Server::operator=(const Server &src) {
+Server &Server::operator=(const Server &src)
+{
     if (this != &src) {
         // Copy attributes here
     }
@@ -81,13 +77,62 @@ std::ostream &operator<<(std::ostream &o, const Server &i)
 ** --------------------------------- METHODS ----------------------------------
 */
 
+void Server::getUserConfig(std::string &line, char *buffer, int i)
+{
+	(void)buffer;
+	(void)i;
+
+	std::string tmp;
+	for (size_t j = 0; j < _nick.size(); j++)
+	{
+		if (tmp == _nick[i])
+			disconnect(i);
+		else
+			_nick.push_back(line);
+	}
+}
+
+void Server::getMessage(std::string &line, char *buffer, int i)
+{
+std::cout << "fd size: " << _fds.size() << ", nick size: " << _nick.size() << std::endl;
+
+
+
+
+
+
+	line.append(buffer);
+	size_t find = line.find("\r\n");
+	if (find != std::string::npos)
+	{
+		// for (size_t j = 1; j < _fds.size(); j++)
+		// {
+		// 	std::string tmp = _nick[i] + ": " + line;
+		// 	send(_fds[j].fd, tmp.c_str(), tmp.size(), 0);
+		// }
+
+		// Do stuff
+		line.erase(find, 2);
+
+		if (_fds.size() > _nick.size()) // Means a connection was accepted, but user had no info
+			getUserConfig(line, buffer, i);
+
+
+		// Reset string
+		line.clear();
+	}
+
+	std::cout << line << std::endl;
+}
+
+
 bool	Server::init()
 {
 	_sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (_sockfd < 0)
 	{	
 		std::cout << "Error: Socket creation failed" << std::endl;
-		return 1;
+		return false;
 	}
 	memset(&_addr, 0, sizeof(_addr));
 	_addr.sin_family = AF_INET; // IPV4 PROTOCOL
@@ -110,92 +155,204 @@ bool	Server::init()
 		std::cout << "Error: Listen failed" << std::endl;
 		return false;
 	}
+	std::cout << "	Server initialized!" << std::endl << std::endl;
+	std::cout << "      ╔════════════════════════╗" << std::endl;
+	std::cout << "      ║    IRC SERVER READY    ║" << std::endl;
+	std::cout << "      ║  Listening on port " << _port << "║" << std::endl;
+	std::cout << "      ╚════════════════════════╝" << std::endl;
 	return true;
 }
 
+
+// NEW
 void	Server::run()
 {
-	fd_set master, readfds;
-	FD_ZERO(&master);
-	FD_SET(_sockfd, &master);
-	int				max_fd =_sockfd;
+	struct pollfd server;
+
+	server.fd = _sockfd;
+	server.events = POLLIN;
+	server.revents = 0;
+	_fds.push_back(server);
+
 	while (true)
 	{
-		readfds = master;
-		int ready = select(max_fd + 1, &readfds, NULL, NULL, NULL);
-		if (ready < 0)
+		if (poll(&_fds[0], _fds.size(), -1) == -1)
 		{
-			// handle EINTR & continue;
+			std::cerr << "-error: poll failure\n";
+			exit (10);
 		}
-		for (int fd = 0;fd <= max_fd && ready > 0; ++fd)
+		for (size_t i = 0; i <= _fds.size() ;++i)
 		{
-			if (!FD_ISSET(fd, &readfds))
-				continue;
-			if (fd == _sockfd)
+			if (_fds[i].revents & POLLIN)
 			{
-				int client_fd = accept(_sockfd, NULL, NULL);
-				if (client_fd < 0)
+				if (_fds[i].fd == _sockfd)  // New connection
 				{
-					std::cout << "Error: accepting client_fd" << std::endl;
-					continue;
+					int user_fd = accept(_sockfd, NULL, NULL);
+					if (user_fd < 0)
+					{
+						perror("accept()");
+						continue;
+					}
+					newConnection(user_fd);
+					send(user_fd,"NICK: ", 6, 0);
 				}
-				FD_SET(client_fd, &master);
-				if (client_fd > max_fd)
-					max_fd = client_fd;
-				acceptClient(client_fd);
-				close(client_fd);
+				else // Existing user message 
+				{
+					char buf[4096] = {};
+					std::string line;
+					ssize_t bytes = recv(_fds[i].fd, buf, 4095, 0);
+					if (bytes < 0)
+					{
+						perror("recv()");
+						continue;
+					}
+					if (bytes == 0)
+					{
+						disconnect(i);
+						continue;
+					}
+					buf[bytes] = 0;
+//					userMessage(_fds[i].fd, buf, bytes);
+					getMessage(line, buf, i);
+				}
 			}
 		}
 	}
-	
 }
 
-/*
- * TODO: change this from a loop to a func for each client
-*/
 
-void	Server::acceptClient(int fd)
+
+
+void	Server::newConnection(int fd)
 {
-	char buf[4097];
-	std::string str;
-	ssize_t		bytes_rcvd = 0;
+	struct pollfd client;
+	client.fd = fd;
+	client.events = POLLIN;
+	client.revents = 0;
+	_fds.push_back(client);
+	// if (fd > _maxFd)
+	// 	_maxFd = fd;
+	_pending[fd] = "";
+	std::cout << "[CONNECT] fd = "<< fd << std::endl;
+	return ;
+}
 
-	while (true)
+void	Server::registerUser(int fd)
+{
+	std::istringstream ss(_pending[fd]);
+	std::string		cmd, token;
+	unsigned long 	pos;
+	ss >> cmd >> token;
+
+	if (_users.find(fd) != _users.end())
+		return ;
+	if ((pos = _pending[fd].find('\n')) == std::string::npos)
+		return ;
+	std::string line = _pending[fd].substr(0, pos);
+	_pending[fd].erase(0, pos + 1);
+	if (cmd == "NICK")
 	{
-		memset(buf, 0, 4097);
-		bytes_rcvd = recv(fd, buf, 4096, 0);
-		if (bytes_rcvd < 0)
-		{
-			std::cout << "Error: recv() failed" << std::endl;
-			continue ;
-		}
-		if (bytes_rcvd == 0)
-		{
-			std::cout << "Client disconnected" << std::endl;
-			break ;
-		}
-		buf[bytes_rcvd] = '\0';
+		_reg[fd]._nickname = token;
+		_reg[fd].has_nick = true;
+	}
+	if (cmd == "USER")
+	{
+		_reg[fd]._username = token;
+		_reg[fd].has_user = true;
+	}
+	if (_reg[fd].has_nick && _reg[fd].has_user)
+	{
+		_users[fd] = User(fd, _reg[fd]._nickname,_reg[fd]._username);
+		_users[fd].registered = true;
+		send(fd, "Welcome to ft_irc!\n", 19, 0);
+		_reg.erase(fd);
+	}
+	return ;
+}
 
-		str.append(buf);
-		size_t find = str.find("\r\n");
-		if (find != std::string::npos)
-		{
-			std::cout << "Test: " << str << std::endl;
-			print_str(str.c_str());
-			
-			if (send(fd , str.c_str(), str.size(), 0) < 0)
-			{
-				std::cout << "Error: send() failed" << std::endl;
-				break;
-			}	
+void	Server::userMessage(int fd, const std::string &msg, ssize_t bytes)
+{
+	if (_users.find(fd) == _users.end())
+	{
+		_pending[fd].append(msg);
+		registerUser(fd);
+	}
+	else
+	{
+		_users[fd].recvBuf.append(msg, bytes);
+		parseMessage(fd);
+	}
+}
 
-			// Do stuff
-			str.erase(find, 2);
-			Server::exec_cmd(str);
+// NEW
+void	Server::disconnect(int i)
+{
+	std::cout << "[DISCONECT] fd = "<< _fds[i].fd << std::endl;
+	if (_users.find(_fds[i].fd) != _users.end())
+	{
+		std::cout << "nick=" << _users[_fds[i].fd].getNickname() << std::endl;
+		_users.erase(_fds[i].fd);
+	}
+	else
+		_pending.erase(_fds[i].fd);
+	close(_fds[i].fd);
+	_fds.erase(_fds.begin() + i);
+}
 
-			// Reset string
-			str.clear();
-		}
-		std::cout << "Received: " << buf << std::endl;
+void Server::handleCommand(int fd, const std::string &line)
+{
+    std::istringstream ss(line);
+    std::string cmd;
+    ss >> cmd;
+
+	std::cout << cmd << std::endl;
+
+    if (cmd == "PING")
+    {
+        std::string token;
+        ss >> token;
+        std::string pong = "PONG " + token + "\r\n";
+        send(fd, pong.c_str(), pong.size(), 0);
+    }
+    else if (cmd == "PRIVMSG")
+    {
+        std::string target, msg;
+        ss >> target;
+        std::getline(ss, msg);
+        std::cout << "[PRIVMSG] " << _users[fd].getNickname()
+                  << " → " << target << " :" << msg << std::endl;
+    }
+    else if (cmd == "JOIN")
+    {
+        std::string channel;
+        ss >> channel;
+        std::cout << "[JOIN] " << _users[fd].getNickname()
+                  << " entrou em " << channel << std::endl;
+    }
+    else if (cmd == "QUIT")
+    {
+        std::cout << "[QUIT] " << _users[fd].getNickname()
+                  << " desligou-se" << std::endl;
+        disconnect(fd);
+    }
+    else
+    {
+        std::cout << "[UNKNOWN] fd=" << fd
+                  << " cmd='" << cmd << "' line='" << line << "'" << std::endl;
+    }
+}
+
+void	Server::parseMessage(int fd)
+{
+	std::string msg = _users[fd].recvBuf;
+	size_t		pos;
+	
+	while((pos = msg.find('\n')) != std::string::npos)
+	{
+		std::string line = msg.substr(0, pos + 1);
+		msg.erase(0, pos + 1);
+		while (!line.empty() && (line.back() == '\r' || line.back() == '\n')) 
+			line.pop_back();
+		handleCommand(fd, line);
 	}
 }

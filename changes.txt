@@ -1,0 +1,28 @@
+|---------------------------- REMOVED ----------------------------|
+
+- Constructor that took an argc and argv
+REASON: was not parsing correctly the input, was segfaulting with invalid amount of arguments
+
+
+
+
+
+
+
+|----------------------------  ADDED  ----------------------------|
+
+- Small parsing function on top os main, move later to a different folder
+REASON: better error messages and error checking in case of port -1, 53672165783, 111a, etc...
+
+- Increased buffer size to 4096
+REASON: Harder to break
+
+
+
+
+
+|----------------------------  TODO  ----------------------------|
+
+
+- Put sockets in non blocking mode
+- 
