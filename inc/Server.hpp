@@ -13,6 +13,8 @@
 // NEW
 # include <poll.h>
 # include <vector>
+# include <sstream>
+# include "Commands.hpp"
 
 /*                        STRUCTURE FOR SOCKET ADDR
     struct sockaddr_in {
@@ -37,7 +39,8 @@
 		close()		  -- Clean up socket
 */
 
-class Server {
+class Server : public Commands
+{
 
 	struct Registration {
 

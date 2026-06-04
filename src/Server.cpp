@@ -41,7 +41,8 @@ Server::Server() : _sockfd(-1), _port(0)
 	_nick.push_back(name);
 }
 
-Server::Server(const Server &src) {
+Server::Server(const Server &src) : Commands(src)
+{
     std::cout << "Copy Constructor called" << std::endl;
     *this = src;
 }
@@ -77,52 +78,37 @@ std::ostream &operator<<(std::ostream &o, const Server &i)
 ** --------------------------------- METHODS ----------------------------------
 */
 
-void Server::getUserConfig(std::string &line, char *buffer, int i)
-{
-	(void)buffer;
-	(void)i;
-
-	std::string tmp;
-	for (size_t j = 0; j < _nick.size(); j++)
-	{
-		if (tmp == _nick[i])
-			disconnect(i);
-		else
-			_nick.push_back(line);
-	}
-}
-
 void Server::getMessage(std::string &line, char *buffer, int i)
 {
-std::cout << "fd size: " << _fds.size() << ", nick size: " << _nick.size() << std::endl;
-
-
-
-
-
-
 	line.append(buffer);
 	size_t find = line.find("\r\n");
 	if (find != std::string::npos)
 	{
-		// for (size_t j = 1; j < _fds.size(); j++)
-		// {
-		// 	std::string tmp = _nick[i] + ": " + line;
-		// 	send(_fds[j].fd, tmp.c_str(), tmp.size(), 0);
-		// }
-
 		// Do stuff
 		line.erase(find, 2);
 
-		if (_fds.size() > _nick.size()) // Means a connection was accepted, but user had no info
-			getUserConfig(line, buffer, i);
+		// parse and execute commands here
+		exec_cmd(line);
+
+
+		// THIS LOOP IS JUST SENDING THE MESSAGE AND NICK BACK TO EACH OTHER CLIENT
+		for (size_t j = 1; j < _fds.size(); j++) // start at 1 to always ignore the listening socket
+		{
+			std::ostringstream ss;
+			std::string str;
+			ss << _nick[i] << ": " << line << "\r\n";
+			str = ss.str();
+
+			if (_fds[i].fd != _fds[j].fd) // Send to every fd that is not mine
+				send(_fds[j].fd, str.c_str(), str.size() + 1, 0);
+		}
+
 
 
 		// Reset string
+		std::cout << "server line: " << line << std::endl;
 		line.clear();
 	}
-
-	std::cout << line << std::endl;
 }
 
 
@@ -193,8 +179,15 @@ void	Server::run()
 						perror("accept()");
 						continue;
 					}
+					// std::ostringstream ss;
+					// ss << "USER#" << _fds[i].fd << ": ";
+					// ss >> _nick[i];
 					newConnection(user_fd);
-					send(user_fd,"NICK: ", 6, 0);
+					std::string new_nick = "USER#" + std::to_string(user_fd);
+					_nick.push_back(new_nick);
+
+					std::string welcome = "Welcome to IRC!\r\n";
+					send(user_fd, welcome.c_str(), welcome.size(), 0);
 				}
 				else // Existing user message 
 				{
