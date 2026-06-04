@@ -1,10 +1,13 @@
 |---------------------------- REMOVED ----------------------------|
 
 - Constructor that took an argc and argv
-REASON: was not parsing correctly the input, was segfaulting with invalid amount of arguments
+REASON: Was not parsing correctly the input, was segfaulting with invalid amount of arguments
 
+- Changed the whole structure of the Channel
+REASON: To make a simplified version for now, just to implement it fast and be able to work on commands
 
-
+- Removed everything that was not allowed past c++98
+REASON: To conform to the standards we need to follow
 
 
 

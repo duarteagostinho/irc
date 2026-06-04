@@ -12,6 +12,8 @@ class User
 		std::string _nickname;
 		std::string _username;
 
+		std::string channel;
+
 	public:
 
 		std::string recvBuf;

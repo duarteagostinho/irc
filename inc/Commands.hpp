@@ -6,14 +6,14 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:35:05 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/02 12:18:35 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/04 12:10:12 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 # include <iostream>
-# include <array>
+//# include <array>
 # include <string>
 # include <sstream>
 # include <unistd.h>

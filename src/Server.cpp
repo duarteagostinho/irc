@@ -160,6 +160,22 @@ void	Server::run()
 	server.revents = 0;
 	_fds.push_back(server);
 
+	// WHY THE FUCK WITH ONE SERVER IT GIVES VALGRIND ERRORS? BUT TWO WORKS
+
+	// struct pollfd server2;
+
+	// server2.fd = _sockfd;
+	// server2.events = POLLIN;
+	// server2.revents = 0;
+	// _fds.push_back(server2);
+
+	// struct pollfd server3;
+
+	// server3.fd = _sockfd;
+	// server3.events = POLLIN;
+	// server3.revents = 0;
+	// _fds.push_back(server3);
+
 	while (true)
 	{
 		if (poll(&_fds[0], _fds.size(), -1) == -1)
@@ -179,11 +195,11 @@ void	Server::run()
 						perror("accept()");
 						continue;
 					}
-					// std::ostringstream ss;
-					// ss << "USER#" << _fds[i].fd << ": ";
-					// ss >> _nick[i];
 					newConnection(user_fd);
-					std::string new_nick = "USER#" + std::to_string(user_fd);
+					std::ostringstream ss;
+					ss << user_fd;
+
+					std::string new_nick = "USER#" + ss.str();
 					_nick.push_back(new_nick);
 
 					std::string welcome = "Welcome to IRC!\r\n";
@@ -223,9 +239,10 @@ void	Server::newConnection(int fd)
 	client.events = POLLIN;
 	client.revents = 0;
 	_fds.push_back(client);
+
 	// if (fd > _maxFd)
 	// 	_maxFd = fd;
-	_pending[fd] = "";
+//	_pending[fd] = "";
 	std::cout << "[CONNECT] fd = "<< fd << std::endl;
 	return ;
 }
@@ -337,15 +354,16 @@ void Server::handleCommand(int fd, const std::string &line)
 
 void	Server::parseMessage(int fd)
 {
-	std::string msg = _users[fd].recvBuf;
-	size_t		pos;
+	(void)fd;
+	// std::string msg = _users[fd].recvBuf;
+	// size_t		pos;
 	
-	while((pos = msg.find('\n')) != std::string::npos)
-	{
-		std::string line = msg.substr(0, pos + 1);
-		msg.erase(0, pos + 1);
-		while (!line.empty() && (line.back() == '\r' || line.back() == '\n')) 
-			line.pop_back();
-		handleCommand(fd, line);
-	}
+	// while((pos = msg.find('\n')) != std::string::npos)
+	// {
+	// 	std::string line = msg.substr(0, pos + 1);
+	// 	msg.erase(0, pos + 1);
+	// 	while (!line.empty() && (line.back() == '\r' || line.back() == '\n')) 
+	// 		line.pop_back();
+	// 	handleCommand(fd, line);
+	// }
 }

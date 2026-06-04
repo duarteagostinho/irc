@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/04 07:12:00 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/04 12:11:09 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,8 +32,8 @@ int Commands::check_cmd(std::string data, std::vector<std::string>& av)
 	
 	// Check the first index for the chosen commands
 	const size_t size = 5;
-	std::array<std::string, size> accepted = {"KICK", "INVITE", "TOPIC", "MODE", "JOIN"};
-	for (size_t i = 0; i < accepted.size(); i++)
+	std::string accepted[5] = {"KICK", "INVITE", "TOPIC", "MODE", "JOIN"};
+	for (size_t i = 0; i < size; i++)
 	{
 		if (accepted[i] == av[0])
 			return (i);

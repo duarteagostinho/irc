@@ -15,6 +15,7 @@
 # include <vector>
 # include <sstream>
 # include "Commands.hpp"
+# include "Channel.hpp"
 
 /*                        STRUCTURE FOR SOCKET ADDR
     struct sockaddr_in {
@@ -60,6 +61,8 @@ class Server : public Commands
 		std::map<int, std::string>	_pending;
 		std::map<int, Registration>	_reg;
 		//std::map<int, Channel>	_channels;
+
+		Channel						_channel;
 
 
 //		fd_set						_master;	// REMOVED, FROM SET, NOT USED ANYMORE

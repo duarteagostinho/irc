@@ -25,7 +25,10 @@ void args_check(Server &server, int argc, char **argv)
 		}
 		try
 		{
-			server.setPort(std::stoi(argv[1]));
+//			server.setPort(std::stoi(argv[1]));
+			char *end;
+			server.setPort(std::strtol(argv[1], &end, 10));
+
 			if (server.getPort() < 1024 || server.getPort() > 65535)
 				throw(std::out_of_range(""));
 		}
@@ -46,6 +49,7 @@ int main(int argc, char **argv)
 	
     if (!server.init())
         return 1;
+	// create a signal handler for ctrl c ?
     server.run();
     return 0;
 }
