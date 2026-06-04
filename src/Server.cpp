@@ -38,6 +38,7 @@ Server::Server() : _sockfd(-1), _port(0)
 {
     std::cout << "Default Constructor called" << std::endl;
 	std::string name = "server";
+	_fds.reserve(500);
 	_nick.push_back(name);
 }
 
@@ -160,30 +161,15 @@ void	Server::run()
 	server.revents = 0;
 	_fds.push_back(server);
 
-	// WHY THE FUCK WITH ONE SERVER IT GIVES VALGRIND ERRORS? BUT TWO WORKS
-
-	// struct pollfd server2;
-
-	// server2.fd = _sockfd;
-	// server2.events = POLLIN;
-	// server2.revents = 0;
-	// _fds.push_back(server2);
-
-	// struct pollfd server3;
-
-	// server3.fd = _sockfd;
-	// server3.events = POLLIN;
-	// server3.revents = 0;
-	// _fds.push_back(server3);
-
 	while (true)
 	{
+		std::cout << _fds.size() << std::endl;
 		if (poll(&_fds[0], _fds.size(), -1) == -1)
 		{
 			std::cerr << "-error: poll failure\n";
 			exit (10);
 		}
-		for (size_t i = 0; i <= _fds.size() ;++i)
+		for (size_t i = 0; i < _fds.size() ;++i)
 		{
 			if (_fds[i].revents & POLLIN)
 			{

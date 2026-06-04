@@ -29,3 +29,34 @@ REASON: Harder to break
 
 - Put sockets in non blocking mode
 - 
+
+
+operators unique: KICK, INVITE, TOPIC, MODE
+
+
+Every IRC action follow this form
+
+action:
+executor:
+channel:
+target:
+permission:
+
+action: KICK
+executor: vloureir
+channel: #42
+target: andrade
+permission: false
+
+action: KICK
+executor: vloureir
+channel: #42
+target:
+permission: true
+
+action: INVITE
+executor: vloureir
+channel: #42
+target: andrade
+permission: true
+error:
