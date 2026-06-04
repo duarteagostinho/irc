@@ -13,11 +13,13 @@ typedef std::vector<std::pair<int, std::string> > operator_user_pair;
 class Channel
 {
     private:
-        std::string             _name;
-        std::string             _topic;
-        operator_user_pair      opFlag_users;
+        std::string                 _name;
+        std::string                 _topic;
+        operator_user_pair          opFlag_users;
 
-//        std::map<int, std::string> opFlag_users;
+        // Add any invited user to this vector, once it joins the channel, remove from here
+        std::vector<std::string>    _invited; 
+
 
     public:
         Channel();

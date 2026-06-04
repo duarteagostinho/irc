@@ -62,14 +62,10 @@ class Server : public Commands
 		std::map<int, Registration>	_reg;
 		//std::map<int, Channel>	_channels;
 
-		Channel						_channel;
-
-
-//		fd_set						_master;	// REMOVED, FROM SET, NOT USED ANYMORE
-//		int							_maxFd;
 
 		std::vector<struct pollfd>	_fds;
-		std::vector<std::string>	_nick;
+		std::vector<Channel>		_channel;
+		std::vector<std::string>	_nick; // Change this to be the User
 
 	public:
         // Constructors & Destructor
@@ -97,6 +93,9 @@ class Server : public Commands
 
 		void	getMessage(std::string &line, char *buffer, int i);
 		void	getUserConfig(std::string &line, char *buffer, int i);
+
+
+		const std::vector<Channel> &getChannel(void) const;
 
 };
 

@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/04 12:11:09 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/04 18:19:40 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ int Commands::check_cmd(std::string data, std::vector<std::string>& av)
 	return (-1);
 }
 
-void Commands::exec_cmd(std::string data)
+void Commands::exec_cmd(Server &server, std::string data)
 {
 	std::vector<std::string> av;
 	int i = Commands::check_cmd(data, av);
@@ -64,13 +64,68 @@ void Commands::exec_cmd(std::string data)
 			Commands::mode();
 			break;
 		case 4:
-			Commands::join(av, 0);
+			Commands::join(server, av, 0);
 			break;
 		default:
 			std::cout << "Invalid Command" << std::endl;
 	}
 	return ;
 }
+
+void Commands::join(Server &server, std::vector<std::string>& av, int key)
+{
+/*
+
+/join
+Usage: JOIN <channel>, joins the channel
+
+/join alo
+*nothing happens*
+
+ /join #mychannel
+	IF (keyword)
+		 Cannot join #mtg (Requires keyword)
+	ELSE
+		 Now talking on #channel
+
+IF INVITED, IGNORE THE KEYWORD
+
+*/
+
+	std::find(server.begin(), server.end());
+
+	if (av.size() == 1) // SEND BACK MESSAGE
+		std::cout << JOIN_USAGE << std::endl;
+	else if (av[1][0] != '#')
+		return ;
+	else
+	{
+		if (key) // SEND BACK MESSAGE
+			std::cout << "Cannot join #channel (Requires keyword)" << std::endl;
+		else // SEND BACK MESSAGE
+			std::cout << "Now talking on #channel" << std::endl;
+		
+		// Need to actually add the person to the channel list
+
+
+
+	}
+
+
+
+
+	
+	// HOW TO DETERMINE IF THE PERSON WAS INVITED ???
+	// CANT I JUST SET THE OP FLAG TO 1 ??
+
+	// Channel class could have a vec<string> invited
+	// Saves each invited name in there, if the name is there
+	// disable the key and remove name from the list
+
+
+}
+
+
 
 
 void Commands::kick(std::vector<std::string>& av, int op)
@@ -208,51 +263,6 @@ void Commands::mode(void)
 	std::cout << "mode called\n";
 }
 
-
-void Commands::join(std::vector<std::string>& av, int key)
-{
-/*
-
-/join
-Usage: JOIN <channel>, joins the channel
-
-/join alo
-*nothing happens*
-
- /join #mychannel
-	IF (keyword)
-		 Cannot join #mtg (Requires keyword)
-	ELSE
-		 Now talking on #channel
-
-IF INVITED, IGNORE THE KEYWORD
-
-*/
-
-	if (av.size() == 1) // SEND BACK MESSAGE
-		std::cout << JOIN_USAGE << std::endl;
-	else if (av[1][0] != '#')
-		return ;
-	else
-	{
-		if (!key) // SEND BACK MESSAGE
-			std::cout << "#channel: You are not the channel operator" << std::endl;
-		else // SEND BACK MESSAGE
-			std::cout << "Now talking on #channel" << std::endl;
-		
-		// Need to actually add the person to the channel list
-
-
-		// HOW TO DETERMINE IF THE PERSON WAS INVITED ???
-		// CANT I JUST SET THE OP FLAG TO 1 ??
-	}
-	// Channel class could have a vec<string> invited
-	// Saves each invited name in there, if the name is there
-	// disable the key and remove name from the list
-
-
-	std::cout << "join called\n";
-}
 
 Commands::Commands()
 {

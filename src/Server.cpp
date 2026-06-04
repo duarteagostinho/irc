@@ -89,7 +89,7 @@ void Server::getMessage(std::string &line, char *buffer, int i)
 		line.erase(find, 2);
 
 		// parse and execute commands here
-		exec_cmd(line);
+		exec_cmd(*this, line);
 
 
 		// THIS LOOP IS JUST SENDING THE MESSAGE AND NICK BACK TO EACH OTHER CLIENT
@@ -163,7 +163,6 @@ void	Server::run()
 
 	while (true)
 	{
-		std::cout << _fds.size() << std::endl;
 		if (poll(&_fds[0], _fds.size(), -1) == -1)
 		{
 			std::cerr << "-error: poll failure\n";
@@ -226,9 +225,6 @@ void	Server::newConnection(int fd)
 	client.revents = 0;
 	_fds.push_back(client);
 
-	// if (fd > _maxFd)
-	// 	_maxFd = fd;
-//	_pending[fd] = "";
 	std::cout << "[CONNECT] fd = "<< fd << std::endl;
 	return ;
 }
