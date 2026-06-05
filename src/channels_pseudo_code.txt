@@ -1,0 +1,18 @@
+/*
+
+/join
+Usage: JOIN <channel>, joins the channel
+
+/join alo
+*nothing happens*
+
+ /join #mychannel
+	IF (keyword)
+		 Cannot join #mtg (Requires keyword)
+	ELSE
+		 Now talking on #channel
+
+IF INVITED, IGNORE THE KEYWORD
+
+*/
+

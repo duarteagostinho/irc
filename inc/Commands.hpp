@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:35:05 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/04 18:18:27 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/05 15:39:19 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,14 +29,14 @@ class Server;
 class Commands
 {
 public:
-	void	exec_cmd(Server &server, std::string data);
+	void	exec_cmd(std::string data, int i);
 	int		check_cmd(std::string data, std::vector<std::string>& av);
 	
 	void	kick(std::vector<std::string>& av, int op);
 	void	invite(std::vector<std::string>& av, int op);
 	void	topic(std::string data, int op);
 	void	mode(void);
-	void	join(Server &server, std::vector<std::string>& av, int op);
+	void	join(std::vector<std::string>& av, int i);
 
 	Commands();
 	Commands(const Commands &other);

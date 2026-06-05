@@ -1,16 +1,19 @@
 #include "../inc/Channel.hpp"
 
-Channel::Channel(): _name("")
+Channel::Channel()
+: _name(""), _topic(""), _pass("")
 {
 
 }
 
-Channel::Channel(std::string name) : _name(name)
+Channel::Channel(std::string name)
+: _name(name), _topic(""), _pass("")
 {
 
 }
 
-Channel::Channel(const Channel &other) : _name(other._name)
+Channel::Channel(const Channel &other)
+: _name(other._name), _topic(other._topic), _pass(other._pass)
 {
 
 }
@@ -45,6 +48,33 @@ bool Channel::isOperator(std::string name) const
     return (false);
 }
 
+bool Channel::hasInvite(std::string nick)
+{
+
+// WHICH ONE IS MORE C++ ??
+
+	std::vector<std::string>::iterator it = std::find(_invited.begin(), _invited.end(), nick);
+	if (it != _invited.end())
+	{
+		_invited.erase(it);
+		return (true);
+	}
+	return (false);
+
+// WHICH ONE IS MORE C++ ??
+
+	for (size_t i = 0; i < _invited.size(); i++)
+	{
+		if (_invited[i] == nick)
+		{
+			_invited.erase(_invited.begin() + i);
+			return (true);
+		}
+	}
+	return (false);
+}
+
+
 
 // const bool Channel::getInvite() const {return _inviteOnly;}
 
@@ -52,7 +82,7 @@ bool Channel::isOperator(std::string name) const
 
 // const std::string Channel::getTopic() const {return _topic;}
 
-// const std::string Channel::getPass() const {return _pass;}
+const std::string Channel::getPass() const {return _pass;}
 
 // const int Channel::getUserLimit() const {return _userLimit;}
 
@@ -88,7 +118,7 @@ void Channel::rmUser(std::string& nick)
     std::cout << "User removed from " << _name << std::endl; // BROADCAST TO CHANNEL !!!
 }
 
-void Channel::addUser(std::string& nick)
+void Channel::addUser(std::string& nick, int flag)
 {
     std::pair<int, std::string> new_user;
 
@@ -97,7 +127,7 @@ void Channel::addUser(std::string& nick)
         if (opFlag_users[i].second == nick)
             return ;
     }
-    new_user.first = 0;
+    new_user.first = flag;
     new_user.second = nick;
     opFlag_users.push_back(new_user);
 }

@@ -42,7 +42,7 @@ Server::Server() : _sockfd(-1), _port(0)
 	_nick.push_back(name);
 }
 
-Server::Server(const Server &src) : Commands(src)
+Server::Server(const Server &src)
 {
     std::cout << "Copy Constructor called" << std::endl;
     *this = src;
@@ -81,6 +81,8 @@ std::ostream &operator<<(std::ostream &o, const Server &i)
 
 void Server::getMessage(std::string &line, char *buffer, int i)
 {
+	for (size_t i = 0; i < line.size(); i++)
+		std::cout << "line in: " << (int)line[i] << std::endl;
 	line.append(buffer);
 	size_t find = line.find("\r\n");
 	if (find != std::string::npos)
@@ -89,7 +91,7 @@ void Server::getMessage(std::string &line, char *buffer, int i)
 		line.erase(find, 2);
 
 		// parse and execute commands here
-		exec_cmd(*this, line);
+		exec_cmd(line, i);
 
 
 		// THIS LOOP IS JUST SENDING THE MESSAGE AND NICK BACK TO EACH OTHER CLIENT

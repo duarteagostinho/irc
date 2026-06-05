@@ -15,10 +15,11 @@ class Channel
     private:
         std::string                 _name;
         std::string                 _topic;
+		std::string                 _pass;
         operator_user_pair          opFlag_users;
 
         // Add any invited user to this vector, once it joins the channel, remove from here
-        std::vector<std::string>    _invited; 
+        std::vector<std::string>    _invited;
 
 
     public:
@@ -47,8 +48,11 @@ class Channel
         void                addOperator(std::string& nick);
         void                rmOperator(std::string& nick);
 
-        void                addUser(std::string& nick);
+        void                addUser(std::string& nick, int flag);
         void                rmUser(std::string& nick);
+
+
+		bool				hasInvite(std::string nick);
 
 
     //Setters

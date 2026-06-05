@@ -6,13 +6,13 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/04 18:19:40 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/05 19:14:25 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../inc/Commands.hpp"
+#include "../inc/Server.hpp"
 
-int Commands::check_cmd(std::string data, std::vector<std::string>& av)
+int Server::check_cmd(std::string data, std::vector<std::string>& av)
 {
 	// Clean the string from the carriage return
 	std::string to_del = "\r\n";
@@ -41,94 +41,88 @@ int Commands::check_cmd(std::string data, std::vector<std::string>& av)
 	return (-1);
 }
 
-void Commands::exec_cmd(Server &server, std::string data)
+void Server::exec_cmd(std::string data, int index)
 {
 	std::vector<std::string> av;
-	int i = Commands::check_cmd(data, av);
+	int cmds = check_cmd(data, av);
+	
+	// for (size_t i = 0; i < av.size(); i++)
+	// 	for (size_t j = 0; j < av[i].size(); j++)
+	// 		std::cout << "inside exec_cmd: " << (int)av[i][j] << std::endl;
 
-	for (size_t i = 0; i < av.size(); i++)
-		std::cout << "inside exec_cmd: " << av[i] << std::endl;
-
-	switch(i)
+	switch(cmds)
 	{
 		case 0:
-			Commands::kick(av, 0);
+			kick(av, index);
 			break;
 		case 1:
-			Commands::invite(av, 0);
+			invite(av, index);
 			break;
 		case 2:
-			Commands::topic(data, 0);
+			topic(data, index);
 			break;
 		case 3:
-			Commands::mode();
+			mode();
 			break;
 		case 4:
-			Commands::join(server, av, 0);
+			join(av, index);
 			break;
 		default:
 			std::cout << "Invalid Command" << std::endl;
 	}
+
+	std::cout << "size: " << _channels.size() << std::endl;
+	for (size_t i = 0; i < _channels.size(); i++)
+		std::cout << "channels: "  << _channels[i].getName() << std::endl;
+
 	return ;
 }
 
-void Commands::join(Server &server, std::vector<std::string>& av, int key)
+void Server::join(std::vector<std::string>& av, int index)
 {
-/*
-
-/join
-Usage: JOIN <channel>, joins the channel
-
-/join alo
-*nothing happens*
-
- /join #mychannel
-	IF (keyword)
-		 Cannot join #mtg (Requires keyword)
-	ELSE
-		 Now talking on #channel
-
-IF INVITED, IGNORE THE KEYWORD
-
-*/
-
-	std::find(server.begin(), server.end());
-
-	if (av.size() == 1) // SEND BACK MESSAGE
-		std::cout << JOIN_USAGE << std::endl;
-	else if (av[1][0] != '#')
-		return ;
-	else
+	if (av.size() == 1) // Missing arguments
 	{
-		if (key) // SEND BACK MESSAGE
-			std::cout << "Cannot join #channel (Requires keyword)" << std::endl;
-		else // SEND BACK MESSAGE
-			std::cout << "Now talking on #channel" << std::endl;
-		
-		// Need to actually add the person to the channel list
-
-
-
+		std::string response = JOIN_USAGE;
+		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		return ;
 	}
-
-
-
-
-	
-	// HOW TO DETERMINE IF THE PERSON WAS INVITED ???
-	// CANT I JUST SET THE OP FLAG TO 1 ??
-
-	// Channel class could have a vec<string> invited
-	// Saves each invited name in there, if the name is there
-	// disable the key and remove name from the list
-
-
+	else if (av[1][0] != '#') // Missing correct server name format
+	{
+		std::string response = "** - " + av[1] + ": No such channel\r\n";
+		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		return ;
+	}
+	for (size_t i = 0; i < _channels.size(); i++) // Seeing if the channel already exists
+	{
+		if (_channels[i].getName() == av[1])
+		{
+			// Checking invite status, if pass and if pass is correct
+			if (!_channels[i].hasInvite(_nick[i]) && "" != _channels[i].getPass() && av[2] != _channels[i].getPass())
+			{
+				std::string response = "Cannot join " + av[1] + " (Requires keyword)\r\n";
+				send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+			}
+			else // If invited, no pass or pass was correct, enter channel
+			{
+				_channels[i].addUser(_nick[i], 0);
+				std::string response = "Now talking on " + av[1] + "\r\n";
+				send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+			}
+			return ; // If there was a channel with that name, we either fail to enter or enter it
+		}
+	}
+	// If channel doesn't exists, create one
+	Channel tmp(av[1]);
+	tmp.addUser(_nick[index], 1);
+	_channels.push_back(tmp);
+	std::string response = "Now talking on " + av[1] + "\r\n";
+	send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 }
 
 
 
 
-void Commands::kick(std::vector<std::string>& av, int op)
+void Server::kick(std::vector<std::string>& av, int index)
 { 
 /*
 
@@ -164,7 +158,7 @@ Usage: KICK <nick> [reason], kicks the nick from the current channel
 	std::cout << "kick called\n";
 }
 
-void Commands::invite(std::vector<std::string>& av, int op)
+void Server::invite(std::vector<std::string>& av, int index)
 { 
 /*
 
@@ -185,7 +179,7 @@ Usage: INVITE <nick> [<channel>], invites someone to a channel, by default the c
 		std::cout << INV_USAGE << std::endl;
 	else
 	{
-		if (!op) // SEND BACK THIS MESSAGE
+		if (!_channels.isOperator(_nick[index])) // SEND BACK THIS MESSAGE
 			std::cout << "#channel: You are not the channel operator" << std::endl;
 		else // BROADCAST THIS MESSAGE TO EVERYONE
 		{
@@ -196,7 +190,7 @@ Usage: INVITE <nick> [<channel>], invites someone to a channel, by default the c
 	}
 }
 
-void Commands::topic(std::string data, int op)
+void Server::topic(std::string data, int index)
 {
 /*
 
@@ -242,7 +236,7 @@ Topic for #channel is: <TOPIC HERE>
 
 }
 
-void Commands::mode(void)
+void Server::mode(void)
 {
 
 /*
@@ -261,28 +255,6 @@ void Commands::mode(void)
 
 
 	std::cout << "mode called\n";
-}
-
-
-Commands::Commands()
-{
-
-}
-
-Commands::Commands(const Commands &other)
-{
-	(void)other;
-}
-
-Commands::~Commands()
-{
-
-}
-
-Commands &Commands::operator=(const Commands &other)
-{
-	(void)other;
-	return (*this);
 }
 
 

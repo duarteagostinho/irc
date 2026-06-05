@@ -14,8 +14,14 @@
 # include <poll.h>
 # include <vector>
 # include <sstream>
-# include "Commands.hpp"
+//# include "Commands.hpp"
 # include "Channel.hpp"
+
+# define KICK_USAGE "Usage: KICK <nick> [reason], kicks the nick from the current channel\r\n"
+# define INV_USAGE "Usage: INVITE <nick> [<channel>], invites someone to a channel, by default the current channel\r\n"
+# define JOIN_USAGE "Usage: JOIN <channel>, joins the channel\r\n"
+# define NOT_OPERATOR ": You are not the channel operator\r\n"
+
 
 /*                        STRUCTURE FOR SOCKET ADDR
     struct sockaddr_in {
@@ -40,7 +46,7 @@
 		close()		  -- Clean up socket
 */
 
-class Server : public Commands
+class Server
 {
 
 	struct Registration {
@@ -64,7 +70,7 @@ class Server : public Commands
 
 
 		std::vector<struct pollfd>	_fds;
-		std::vector<Channel>		_channel;
+		std::vector<Channel>		_channels;
 		std::vector<std::string>	_nick; // Change this to be the User
 
 	public:
@@ -96,6 +102,18 @@ class Server : public Commands
 
 
 		const std::vector<Channel> &getChannel(void) const;
+
+
+
+		// CMDS
+		void	exec_cmd(std::string data, int index);
+		int		check_cmd(std::string data, std::vector<std::string>& av);
+		
+		void	kick(std::vector<std::string>& av, int index);
+		void	invite(std::vector<std::string>& av, int index);
+		void	topic(std::string data, int index);
+		void	mode(void);
+		void	join(std::vector<std::string>& av, int index);
 
 };
 

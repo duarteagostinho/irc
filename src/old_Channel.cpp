@@ -3,7 +3,7 @@
 Channel::Channel(): _name("Void"), _inviteOnly(false), _topicOp(false) ,_topic("Void"), _passOnly(false),
 _pass("Void"), _userLimit(-1), _creator("Void"), _users(NULL), _operators(NULL) {}
 
-Channel::Channel(std::string name, std::string& creator)
+Channel::Channel(std::string name)
 {
     _name = name;
     _inviteOnly = false;
