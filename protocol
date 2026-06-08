@@ -1,0 +1,16 @@
+
+The IRC message is composed of three parts
+
+prefix (optional), command, parameters (up to 15)
+Space separated
+
+If the message starts with a ':', it means there is a prefix
+
+<message>  ::= [':' <prefix> <SPACE> ] <command> <params> <crlf>
+<prefix>   ::= <servername> | <nick> [ '!' <user> ] [ '@' <host> ]
+<command>  ::= <letter> { <letter> } | <number> <number> <number>
+<SPACE>    ::= ' ' { ' ' }
+<params>   ::= <SPACE> [ ':' <trailing> | <middle> <params> ]
+
+
+Once you connect, client will expect 

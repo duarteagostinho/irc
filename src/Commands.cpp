@@ -6,22 +6,22 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/05 19:14:25 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/08 15:14:45 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/Server.hpp"
 
-int Server::check_cmd(std::string data, std::vector<std::string>& av)
+int Server::check_cmd(std::string line, std::vector<std::string>& av)
 {
 	// Clean the string from the carriage return
 	std::string to_del = "\r\n";
-	size_t pos = data.find(to_del);
-	if (pos != data.npos)
-		data.erase(pos, to_del.length());
+	size_t pos = line.find(to_del);
+	if (pos != line.npos)
+		line.erase(pos, to_del.length());
 	
 	// Create an argv from the data
-	std::stringstream split(data);
+	std::stringstream split(line);
 	std::string token;
 	while (std::getline(split, token, ' '))
 		av.push_back(token);
@@ -41,15 +41,10 @@ int Server::check_cmd(std::string data, std::vector<std::string>& av)
 	return (-1);
 }
 
-void Server::exec_cmd(std::string data, int index)
+void Server::exec_cmd(std::string line, int index)
 {
 	std::vector<std::string> av;
-	int cmds = check_cmd(data, av);
-	
-	// for (size_t i = 0; i < av.size(); i++)
-	// 	for (size_t j = 0; j < av[i].size(); j++)
-	// 		std::cout << "inside exec_cmd: " << (int)av[i][j] << std::endl;
-
+	int cmds = check_cmd(line, av);
 	switch(cmds)
 	{
 		case 0:
@@ -59,7 +54,7 @@ void Server::exec_cmd(std::string data, int index)
 			invite(av, index);
 			break;
 		case 2:
-			topic(data, index);
+			topic(line, index);
 			break;
 		case 3:
 			mode();
@@ -71,10 +66,12 @@ void Server::exec_cmd(std::string data, int index)
 			std::cout << "Invalid Command" << std::endl;
 	}
 
-	std::cout << "size: " << _channels.size() << std::endl;
-	for (size_t i = 0; i < _channels.size(); i++)
-		std::cout << "channels: "  << _channels[i].getName() << std::endl;
+	// std::cout << "size: " << _channels.size() << std::endl;
+	// for (size_t i = 0; i < _channels.size(); i++)
+	// 	std::cout << "channels: "  << _channels[i].getName() << std::endl;
 
+	std::cout << "server line: " << line << std::endl;
+	line.clear();
 	return ;
 }
 
@@ -97,59 +94,50 @@ void Server::join(std::vector<std::string>& av, int index)
 		if (_channels[i].getName() == av[1])
 		{
 			// Checking invite status, if pass and if pass is correct
-			if (!_channels[i].hasInvite(_nick[i]) && "" != _channels[i].getPass() && av[2] != _channels[i].getPass())
+			if (!_channels[i].hasInvite(_users[index].getNickname()) && "" != _channels[i].getPass() && av[2] != _channels[i].getPass())
 			{
 				std::string response = "Cannot join " + av[1] + " (Requires keyword)\r\n";
 				send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 			}
 			else // If invited, no pass or pass was correct, enter channel
 			{
-				_channels[i].addUser(_nick[i], 0);
+				_channels[i].addUser(_users[index].getNickname(), 0);
 				std::string response = "Now talking on " + av[1] + "\r\n";
+				if (_channels[i].getTopic() != "")
+					send(_fds[index].fd, _channels[i].printTopic().c_str(), _channels[i].printTopic().size() + 1, 0);
 				send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 			}
 			return ; // If there was a channel with that name, we either fail to enter or enter it
 		}
 	}
 	// If channel doesn't exists, create one
-	Channel tmp(av[1]);
-	tmp.addUser(_nick[index], 1);
-	_channels.push_back(tmp);
+	int x = _channels.size();
+	_channels.push_back(Channel(av[1]));
+	_channels[x].addUser(_users[index].getNickname(), 1);
+	
 	std::string response = "Now talking on " + av[1] + "\r\n";
 	send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 }
 
-
-
-
 void Server::kick(std::vector<std::string>& av, int index)
 { 
-/*
+	if (av.size() == 1) // Missing arguments
+	{
+		std::string response = KICK_USAGE;
+		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		return ;
+	}
+//	if (_nick[index].getChannel().isOperator())
+		
 
-/kick 
-Usage: KICK <nick> [reason], kicks the nick from the current channel
 
-/kick <nick>
-	IF (!operator)
-		#channel :You're not channel operator
-	ELSE
-		IF (DONT_EXIST)
-			*nothing happens*
-		ELSE
-			/kick chaud
-			vloureir__ has kicked chaud from #mtg (vloureir__)			-> CHANNEL
 
-			You have been kicked from #mtg by vloureir__ (vloureir__)	-> KICKED PERSON
-
-			If no reason, operator name = reason.
-			
-*/
 
 	if (av.size() == 1) // SEND BACK MESSAGE
 		std::cout << KICK_USAGE << std::endl;
 	else
 	{
-		if (!op) // SEND BACK THIS MESSAGE
+		if (index) // SEND BACK THIS MESSAGE
 			std::cout << "#channel: You are not the channel operator" << std::endl;
 		
 
@@ -175,13 +163,14 @@ Usage: INVITE <nick> [<channel>], invites someone to a channel, by default the c
 
 */
 
+	(void)index;
 	if (av.size() == 1) // SEND BACK MESSAGE
 		std::cout << INV_USAGE << std::endl;
 	else
 	{
-		if (!_channels.isOperator(_nick[index])) // SEND BACK THIS MESSAGE
+//		if (!_channels.isOperator(_nick[index])) // SEND BACK THIS MESSAGE
 			std::cout << "#channel: You are not the channel operator" << std::endl;
-		else // BROADCAST THIS MESSAGE TO EVERYONE
+//		else // BROADCAST THIS MESSAGE TO EVERYONE
 		{
 			std::cout << "You've invited <nick> to #channel" << std::endl; // SEND BACK TO SENDER
 			std::cout << "You have been invited to #channel by <operator>" << std::endl; // SEND BACK TO CLIENT
@@ -204,6 +193,12 @@ Topic for #channel is: <TOPIC HERE>
 		 <operator> has changed the topic to: <topic>	-> BROADCAST	
 
 */
+	// (void)index;
+	// if (av.size() == 1) // SEND BACK MESSAGE
+	// 	std::cout << INV_USAGE << std::endl;
+	// else
+
+
 
 	std::string old_topic = ""; // THIS IS A PLACEHOLDER, TRADE FOR THE ACTUAL VARIABLE
 
@@ -222,7 +217,7 @@ Topic for #channel is: <TOPIC HERE>
 	}
 	else
 	{
-		if (!op) // SEND BACK THIS MESSAGE
+		if (index) // SEND BACK THIS MESSAGE
 			std::cout << "#channel: You are not the channel operator" << std::endl;
 		else // BROADCAST THIS MESSAGE TO EVERYONE
 			std::cout << "<nick> has changed the topic to: " << data << std::endl;

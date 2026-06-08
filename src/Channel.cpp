@@ -1,5 +1,25 @@
 #include "../inc/Channel.hpp"
 
+// DEL
+
+void Channel::print_users(void)
+{
+    std::cout << "user size: " << opFlag_users.size() << std::endl;
+
+    for (size_t i = 0; i < opFlag_users.size(); i++)
+    {
+        std::cout << "user: " << opFlag_users[i].second;
+        std::cout << ", op: ";
+        if (opFlag_users[i].first)
+            std::cout << "true";
+        else
+            std::cout << "false";
+        std::cout << std::endl;
+    }
+}
+
+// Orthodox Cannonical Form
+
 Channel::Channel()
 : _name(""), _topic(""), _pass("")
 {
@@ -13,9 +33,8 @@ Channel::Channel(std::string name)
 }
 
 Channel::Channel(const Channel &other)
-: _name(other._name), _topic(other._topic), _pass(other._pass)
 {
-
+    *this = other;
 }
 
 Channel::~Channel()
@@ -28,6 +47,10 @@ Channel &Channel::operator=(const Channel &other)
     if (this != &other)
     {
         _name = other._name;
+        _topic = other._topic;
+		_pass = other._pass;
+        opFlag_users = other.opFlag_users;
+        _invited = other._invited;
     }
     return *this;
 }
@@ -80,9 +103,24 @@ bool Channel::hasInvite(std::string nick)
 
 // const bool Channel::getPassOnly() const {return _passOnly;}
 
-// const std::string Channel::getTopic() const {return _topic;}
+const std::string Channel::printTopic(void) const
+{
+    if (_topic == "")
+        return (getName() + " :No Topic is set.\r\n");
+    else
+        return ("Topic for " + getName() + " is: " + getTopic() + "\r\n");
+}
 
-const std::string Channel::getPass() const {return _pass;}
+
+const std::string Channel::getTopic() const
+{
+    return _topic;
+}
+
+const std::string Channel::getPass() const
+{
+    return _pass;
+}
 
 // const int Channel::getUserLimit() const {return _userLimit;}
 
@@ -118,7 +156,7 @@ void Channel::rmUser(std::string& nick)
     std::cout << "User removed from " << _name << std::endl; // BROADCAST TO CHANNEL !!!
 }
 
-void Channel::addUser(std::string& nick, int flag)
+void Channel::addUser(const std::string& nick, int flag)
 {
     std::pair<int, std::string> new_user;
 

@@ -48,11 +48,15 @@ class Channel
         void                addOperator(std::string& nick);
         void                rmOperator(std::string& nick);
 
-        void                addUser(std::string& nick, int flag);
+        void                addUser(const std::string& nick, int flag);
         void                rmUser(std::string& nick);
+
+        const std::string   printTopic(void) const;
 
 
 		bool				hasInvite(std::string nick);
+
+        void print_users(void);
 
 
     //Setters

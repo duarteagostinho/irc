@@ -8,6 +8,21 @@
 # include <netinet/in.h>
 # include <stdlib.h>
 # include <map>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
+#include <iostream>
+#include <map>
+#include <netinet/in.h>
+#include <stdexcept>
+#include <string>
+#include <sys/socket.h>
+#include <sys/select.h>
+#include <unistd.h>
+#include <cerrno>
+#include <stdio.h>
+#include <sstream>
+# include <fcntl.h>
 # include "User.hpp"
 
 // NEW
@@ -63,7 +78,7 @@ class Server
 		int							_port;
 		std::string					_password;
 		struct sockaddr_in			_addr;
-		std::map<int, User>			_users;
+//		std::map<int, User>			_users;
 		std::map<int, std::string>	_pending;
 		std::map<int, Registration>	_reg;
 		//std::map<int, Channel>	_channels;
@@ -71,7 +86,8 @@ class Server
 
 		std::vector<struct pollfd>	_fds;
 		std::vector<Channel>		_channels;
-		std::vector<std::string>	_nick; // Change this to be the User
+//		std::vector<std::string>	_nick; // Change this to be the User
+		std::vector<User>			_users;
 
 	public:
         // Constructors & Destructor
@@ -106,14 +122,19 @@ class Server
 
 
 		// CMDS
-		void	exec_cmd(std::string data, int index);
-		int		check_cmd(std::string data, std::vector<std::string>& av);
+		void	exec_cmd(std::string line, int index);
+		int		check_cmd(std::string line, std::vector<std::string>& av);
 		
 		void	kick(std::vector<std::string>& av, int index);
 		void	invite(std::vector<std::string>& av, int index);
 		void	topic(std::string data, int index);
 		void	mode(void);
 		void	join(std::vector<std::string>& av, int index);
+
+		// DEL
+		void print_everything(void);
+
+
 
 };
 
