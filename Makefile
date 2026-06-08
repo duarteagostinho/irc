@@ -1,13 +1,13 @@
 NAME = ircserv
 CXX = c++
-CXX_FLAGS = -g -Wall -Wextra -Werror #-std=c++98
+CXX_FLAGS = -g -Wall -Wextra -Werror -std=c++98
 
 # Directories
 SRC_DIR = src
 OBJ_DIR = obj
 
 # SRC_Functions
-SRC_FILES = User.cpp main.cpp Server.cpp
+SRC_FILES = User.cpp main.cpp Server.cpp Commands.cpp Channel.cpp
 SRC_FUNC = $(addprefix $(SRC_DIR)/, $(SRC_FILES))
 
 SRC = $(SRC_FUNC) 

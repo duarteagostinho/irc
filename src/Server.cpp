@@ -1,41 +1,18 @@
 #include "../inc/Server.hpp"
-#include "../inc/User.hpp"
-#include <cstddef>
-#include <cstdio>
-#include <cstring>
-#include <iostream>
-#include <map>
-#include <netinet/in.h>
-#include <stdexcept>
-#include <string>
-#include <sys/socket.h>
-#include <sys/select.h>
-#include <unistd.h>
-#include <cerrno>
-#include <stdio.h>
-#include <sstream>
 
 /*
 ** ------------------------------- CONSTRUCTORS --------------------------------
 */
 
-Server::Server()
+Server::Server() : _sockfd(-1), _port(0)
 {
     std::cout << "Default Constructor called" << std::endl;
+	User server(_sockfd,"server", "server");
+	_users.push_back(server);
 }
 
-Server::Server(int ac, char **av)
+Server::Server(const Server &src)
 {
-	if (ac < 2 || ac > 3)
-		throw std::runtime_error("Invalid number of arguments");
-	if (ac == 3)
-		_password = av[2];
-	_port = std::atoi(av[1]);
-	_sockfd = -1;
-	std::cout << "	Server created!" << std::endl;
-}
-
-Server::Server(const Server &src) {
     std::cout << "Copy Constructor called" << std::endl;
     *this = src;
 }
@@ -52,22 +29,34 @@ Server::~Server() {
 ** --------------------------------- OVERLOADS ---------------------------------
 */
 
-Server &Server::operator=(const Server &src) {
+Server &Server::operator=(const Server &src)
+{
     if (this != &src) {
         // Copy attributes here
     }
     return *this;
 }
 
-std::ostream &operator<<(std::ostream &o, const Server &i)
+/*
+** --------------------------------- DEL ---------------------------------
+*/
+
+void Server::print_everything(void) // DEL
 {
-    (void)i;
-	o << "Type: Server";
-    return o;
+	std::cout << "|---------- INFO ----------|" << std::endl;
+
+	if (_channels.size() == 0)
+		std::cout << "No channel yet." << std::endl;
+	for (size_t i = 0; i < _channels.size(); i++)
+	{
+		std::cout << "channel: " << _channels[i].getName() << std::endl;
+		_channels[i].print_users();
+	}
+	std::cout << std::endl << "|---------- END ----------|" << std::endl;
 }
 
 /*
-** --------------------------------- METHODS ----------------------------------
+** --------------------------------- METHODS ---------------------------------
 */
 
 bool	Server::init()
@@ -84,7 +73,8 @@ bool	Server::init()
 	_addr.sin_addr.s_addr = INADDR_ANY; // Listens on all available IP'S
 
 	int sock_state = 1;
-	if (setsockopt(_sockfd, SOL_SOCKET, SO_REUSEADDR, &sock_state, sizeof(sock_state)) < 0) // Setting options for socket (Reuse IP's)
+	if (setsockopt(_sockfd, SOL_SOCKET, SO_REUSEADDR, &sock_state, sizeof(sock_state)) < 0
+		|| fcntl(_sockfd, F_SETFL, O_NONBLOCK) < 0) // Setting options for socket (Reuse IP's) and Non-block mode
 	{
 		std::cout << "Couldn't set options for socket" << std::endl;
 		return false;
@@ -109,177 +99,145 @@ bool	Server::init()
 
 void	Server::run()
 {
-	FD_ZERO(&_master);
-	FD_SET(_sockfd, &_master);
-	_maxFd =_sockfd;
+	struct pollfd server;
 
+	server.fd = _sockfd;
+	server.events = POLLIN;
+	server.revents = 0;
+	_fds.push_back(server);
+
+	std::string line;
 	while (true)
 	{
-		fd_set readfds = _master;
-		if (select(_maxFd + 1, &readfds, NULL, NULL, NULL) < 0)
+		line.clear();
+		print_everything();
+		if (poll(&_fds[0], _fds.size(), -1) == -1)
 		{
-			perror("select()");
-			break;
+			std::cerr << "-error: poll failure\n";
+			exit (10);
 		}
-		for (int fd = 0;fd <= _maxFd ;++fd)
+
+		for (size_t i = 0; i < _fds.size() ;++i)
 		{
-			if (!FD_ISSET(fd, &readfds))
-				continue;
-			if (fd == _sockfd) // New connection
+			if (_fds[i].revents & POLLIN)
 			{
-				int user_fd = accept(_sockfd, NULL, NULL);
-				if (user_fd < 0)
+				if (_fds[i].fd == _sockfd)  // New connection
 				{
-					perror("accept()");
-					continue;
+					struct sockaddr_in user_socket;
+					socklen_t user_size = sizeof(user_socket);
+					int user_fd = accept(_sockfd, (struct sockaddr *)&user_socket, &user_size);
+					if (user_fd < 0)
+					{
+						perror("accept()");
+						continue;
+					}
+					// Create user inside, after gathering the nick and username
+					// newConnection(user_fd, user_socket, user_size);
+					newConnection(user_fd);
+
+
+
+					// THIS WHOLE PACKAGE NEEDS TO BE IN THE USER REGISTRATION !!
+					std::ostringstream ss;
+					ss << user_fd;
+					std::string new_nick = "USER#" + ss.str();
+					User usr(user_fd, new_nick, new_nick);
+					_users.push_back(usr);
+					// THIS WHOLE PACKAGE NEEDS TO BE IN THE USER REGISTRATION !!
 				}
-				newConnection(user_fd);
-			}
-			else // Existing user message 
-			{
-				char buf[1025] = {};
-				ssize_t bytes = recv(fd, buf, 1024, 0);
-				
-				if (bytes < 0)
+				else // Existing user message 
 				{
-					perror("recv()");
-					continue;
+					char buf[4096] = {};
+					ssize_t bytes = recv(_fds[i].fd, buf, 4095, 0);
+					if (bytes < 0)
+					{
+						perror("recv()");
+						continue;
+					}
+					if (bytes == 0)
+					{
+						disconnect(i);
+						continue;
+					}
+					buf[bytes] = 0;
+					std::cout << "raw buf: " << buf << ", bytes: " << bytes << std::endl;
+//					userMessage(_fds[i].fd, buf, bytes);
+					getMessage(line, buf, i);
 				}
-				if (bytes == 0)
-				{
-					disconnect(fd);
-					continue;
-				}
-				userMessage(fd, buf, bytes);
-				// std::cout << "recv() buffer for fd "<< fd << " = "<< buf << std::endl;
 			}
 		}
 	}
+}
+
+void	Server::setPort(int port)
+{
+	_port = port;
+}
+
+int		Server::getPort(void) const
+{
+	return (_port); 
 }
 
 void	Server::newConnection(int fd)
 {
-	FD_SET(fd, &_master);
-	if (fd > _maxFd)
-		_maxFd = fd;
-	_pending[fd] = "";
+	struct pollfd client;
+	client.fd = fd;
+	client.events = POLLIN;
+	client.revents = 0;
+	_fds.push_back(client);
+
 	std::cout << "[CONNECT] fd = "<< fd << std::endl;
 	return ;
 }
 
-void	Server::registerUser(int fd)
+void	Server::disconnect(int i)
 {
-	std::istringstream ss(_pending[fd]);
-	std::string		cmd, token;
-	unsigned long 	pos;
-	ss >> cmd >> token;
-
-	if (_users.find(fd) != _users.end())
-		return ;
-	if ((pos = _pending[fd].find('\n')) == std::string::npos)
-		return ;
-	std::string line = _pending[fd].substr(0, pos);
-	_pending[fd].erase(0, pos + 1);
-	if (cmd == "NICK")
-	{
-		_reg[fd]._nickname = token;
-		_reg[fd].has_nick = true;
-	}
-	if (cmd == "USER")
-	{
-		_reg[fd]._username = token;
-		_reg[fd].has_user = true;
-	}
-	if (_reg[fd].has_nick && _reg[fd].has_user)
-	{
-		_users[fd] = User(fd, _reg[fd]._nickname,_reg[fd]._username);
-		_users[fd].registered = true;
-		send(fd, "Welcome to ft_irc!\n", 19, 0);
-		_reg.erase(fd);
-	}
-	return ;
+	std::cout << "[DISCONECT] fd = "<< _fds[i].fd << std::endl;
+//	if (_users.find(_fds[i].fd) != _users.end())
+//	{
+	std::cout << "nick=" << _users[i].getNickname() << std::endl;
+//		_users.erase(_fds[i].fd);
+	_users.erase(_users.begin() + i);
+//	}
+	// else
+	// 	_pending.erase(_fds[i].fd);
+	close(_fds[i].fd);
+	_fds.erase(_fds.begin() + i);
 }
 
-void	Server::userMessage(int fd, const std::string &msg, ssize_t bytes)
+void Server::getMessage(std::string &line, char *buffer, int i)
 {
-	if (_users.find(fd) == _users.end())
+	std::cout << std::endl;
+	// for (size_t i = 0; i < line.size(); i++)
+	// 	std::cout << "line in: " << (int)line[i] << std::endl;
+	line.append(buffer);
+	size_t find = line.find("\r\n");
+	if (find != std::string::npos)
 	{
-		_pending[fd].append(msg);
-		registerUser(fd);
-	}
-	else
-	{
-		_users[fd].recvBuf.append(msg, bytes);
-		parseMessage(fd);
+		// Do stuff
+//		line.erase(find, 2);
+
+		// parse and execute commands here
+		exec_cmd(line, i);
+		
+
+		// THIS LOOP IS JUST SENDING THE MESSAGE AND NICK BACK TO EACH OTHER CLIENT
+		for (size_t j = 1; j < _fds.size(); j++) // start at 1 to always ignore the listening socket
+		{
+			std::ostringstream ss;
+			std::string str;
+			ss << _users[i].getNickname() << ": " << line << "\r\n";
+			str = ss.str();
+
+			if (_fds[i].fd != _fds[j].fd) // Send to every fd that is not mine
+				send(_fds[j].fd, str.c_str(), str.size() + 1, 0);
+		}
+		// Reset string
 	}
 }
 
-void	Server::disconnect(int fd)
+void	Server::setPassword(char *pass)
 {
-	std::cout << "[DISCONECT] fd = "<< fd << std::endl;
-	if (_users.find(fd) != _users.end())
-	{
-		std::cout << "nick=" << _users[fd].getNickname() << std::endl;
-		_users.erase(fd);
-	}
-	else
-		_pending.erase(fd);
-	FD_CLR(fd, &_master);
-	close(fd);
-}
-
-// void Server::handleCommand(int fd, const std::string &line)
-// {
-//     std::istringstream ss(line);
-//     std::string cmd;
-//     ss >> cmd;
-//
-//     if (cmd == "PING")
-//     {
-//         std::string token;
-//         ss >> token;
-//         std::string pong = "PONG " + token + "\r\n";
-//         send(fd, pong.c_str(), pong.size(), 0);
-//     }
-//     else if (cmd == "PRIVMSG")
-//     {
-//         std::string target, msg;
-//         ss >> target;
-//         std::getline(ss, msg);
-//         std::cout << "[PRIVMSG] " << _users[fd].getNicknamename()
-//                   << " → " << target << " :" << msg << std::endl;
-//     }
-//     else if (cmd == "JOIN")
-//     {
-//         std::string channel;
-//         ss >> channel;
-//         std::cout << "[JOIN] " << _users[fd].getNicknamename()
-//                   << " entrou em " << channel << std::endl;
-//     }
-//     else if (cmd == "QUIT")
-//     {
-//         std::cout << "[QUIT] " << _users[fd].getNicknamename()
-//                   << " desligou-se" << std::endl;
-//         disconnect(fd);
-//     }
-//     else
-//     {
-//         std::cout << "[UNKNOWN] fd=" << fd
-//                   << " cmd='" << cmd << "' line='" << line << "'" << std::endl;
-//     }
-// }
-//
-void	Server::parseMessage(int fd)
-{
-	std::string msg = _users[fd].recvBuf;
-	size_t		pos;
-	
-	while((pos = msg.find('\n')) != std::string::npos)
-	{
-		std::string line = msg.substr(0, pos + 1);
-		msg.erase(0, pos + 1);
-		while (!line.empty() && (line.back() == '\r' || line.back() == '\n')) 
-			line.pop_back();
-		// handleCommand(fd, line);
-	}
+	_password = pass;
 }
