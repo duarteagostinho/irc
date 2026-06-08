@@ -143,6 +143,16 @@ const std::string Channel::getPass() const
 // void Channel::setUserLmit(int limit) {_userLimit = limit;}
 
 
+std::string Channel::usersFormated(void)
+{
+    std::string ret;
+
+    for (size_t i = 0; i < opFlag_users.size(); i++)
+    {
+        
+    }
+    return (ret);
+}
 
 void Channel::rmUser(std::string& nick)
 {

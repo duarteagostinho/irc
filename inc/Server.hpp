@@ -133,7 +133,7 @@ class Server
 		// DEL
 		void print_everything(void);
 
-
+		std::string usersPreChannelFormated(std::string name);
 
 };
 

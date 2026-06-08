@@ -40,7 +40,7 @@ class Channel
         const std::vector<std::string>  getUsers() const;
 
 
-
+        std::string         usersFormated(void);
 
         const std::string   getName() const;
         bool                isOperator(std::string name) const;

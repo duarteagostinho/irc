@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/08 18:10:27 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/08 19:05:53 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,7 @@ void Server::join(std::vector<std::string>& av, int index)
 	std::string response2 = "332 " + _users[index].getNickname() + " " + av[1] + " :Hello world\r\n";
 	send(_fds[index].fd, response2.c_str(), response2.size() + 1, 0);
 
-	std::string response3 = "353 " + _users[index].getNickname() + " = " + av[1] + ":\r\n";
+	std::string response3 = "353 " + _users[index].getNickname() + " = " + av[1] + " :@" + _users[index].getNickname() + "\r\n";
 	send(_fds[index].fd, response3.c_str(), response3.size() + 1, 0);
 
 	std::string response4 = "366 " + _users[index].getNickname() + " " + av[1] + " :End of /NAMES list\r\n"; 

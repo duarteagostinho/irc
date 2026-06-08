@@ -242,3 +242,17 @@ void	Server::setPassword(char *pass)
 {
 	_password = pass;
 }
+
+
+std::string Server::usersPreChannelFormated(std::string name)
+{
+	std::string ret;
+
+	std::vector<Channel>::iterator it = _channels.begin();
+	for ( ; it < _channels.end(); it++)
+	{
+		if (it->getName() == name)
+			break;
+	}
+	return ("");
+}
