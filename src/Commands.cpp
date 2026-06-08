@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/08 15:14:45 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/08 18:10:27 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,10 +102,22 @@ void Server::join(std::vector<std::string>& av, int index)
 			else // If invited, no pass or pass was correct, enter channel
 			{
 				_channels[i].addUser(_users[index].getNickname(), 0);
-				std::string response = "Now talking on " + av[1] + "\r\n";
-				if (_channels[i].getTopic() != "")
-					send(_fds[index].fd, _channels[i].printTopic().c_str(), _channels[i].printTopic().size() + 1, 0);
-				send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+				std::string response1 = ":" + _users[index].getNickname() + " JOIN " + av[1] + "\r\n";
+				send(_fds[index].fd, response1.c_str(), response1.size() + 1, 0);
+
+				std::string response2 = "332 " + _users[index].getNickname() + " " + av[1] + " :Hello world\r\n";
+				send(_fds[index].fd, response2.c_str(), response2.size() + 1, 0);
+
+				std::string response3 = "353 " + _users[index].getNickname() + " = " + av[1] + ":+o" + _users[index].getNickname() + "\r\n";
+				send(_fds[index].fd, response3.c_str(), response3.size() + 1, 0);
+
+				std::string response4 = "366 " + _users[index].getNickname() + " " + av[1] + ":End of /NAMES list\r\n"; 
+				send(_fds[index].fd, response4.c_str(), response4.size() + 1, 0);
+
+				// std::string response = "Now talking on " + av[1] + "\r\n";
+				// if (_channels[i].getTopic() != "")
+				// 	send(_fds[index].fd, _channels[i].printTopic().c_str(), _channels[i].printTopic().size() + 1, 0);
+				// send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 			}
 			return ; // If there was a channel with that name, we either fail to enter or enter it
 		}
@@ -114,9 +126,23 @@ void Server::join(std::vector<std::string>& av, int index)
 	int x = _channels.size();
 	_channels.push_back(Channel(av[1]));
 	_channels[x].addUser(_users[index].getNickname(), 1);
-	
-	std::string response = "Now talking on " + av[1] + "\r\n";
-	send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+
+
+	std::string response1 = ":" + _users[index].getNickname() + " JOIN " + av[1] + "\r\n";
+	send(_fds[index].fd, response1.c_str(), response1.size() + 1, 0);
+
+	std::string response2 = "332 " + _users[index].getNickname() + " " + av[1] + " :Hello world\r\n";
+	send(_fds[index].fd, response2.c_str(), response2.size() + 1, 0);
+
+	std::string response3 = "353 " + _users[index].getNickname() + " = " + av[1] + ":\r\n";
+	send(_fds[index].fd, response3.c_str(), response3.size() + 1, 0);
+
+	std::string response4 = "366 " + _users[index].getNickname() + " " + av[1] + " :End of /NAMES list\r\n"; 
+	send(_fds[index].fd, response4.c_str(), response4.size() + 1, 0);
+
+	std::cout << "printing responses:\n" << response1 << response2 << response3 + response4 << std::endl;
+	// std::string response2 = "Now talking on " + av[1] + "\r\n";
+	// send(_fds[index].fd, response2.c_str(), response2.size() + 1, 0);
 }
 
 void Server::kick(std::vector<std::string>& av, int index)
@@ -128,7 +154,7 @@ void Server::kick(std::vector<std::string>& av, int index)
 		return ;
 	}
 //	if (_nick[index].getChannel().isOperator())
-		
+//	if (_users[index].getChannel())
 
 
 

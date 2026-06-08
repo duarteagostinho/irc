@@ -141,7 +141,8 @@ void	Server::run()
 					std::ostringstream ss;
 					ss << user_fd;
 					std::string new_nick = "USER#" + ss.str();
-					User usr(user_fd, new_nick, new_nick);
+//					User usr(user_fd, new_nick, new_nick);
+					User usr(user_fd, "chaud", "chaud");
 					_users.push_back(usr);
 					// THIS WHOLE PACKAGE NEEDS TO BE IN THE USER REGISTRATION !!
 				}

@@ -86,7 +86,6 @@ class Server
 
 		std::vector<struct pollfd>	_fds;
 		std::vector<Channel>		_channels;
-//		std::vector<std::string>	_nick; // Change this to be the User
 		std::vector<User>			_users;
 
 	public:
