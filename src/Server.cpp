@@ -1,31 +1,18 @@
-#include "../Server.hpp"
-#include <cstring>
-#include <filesystem>
-#include <netinet/in.h>
-#include <stdexcept>
-#include <sys/socket.h>
-#include <sys/select.h>
-#include <unistd.h>
+#include "../inc/Server.hpp"
+
 /*
 ** ------------------------------- CONSTRUCTORS --------------------------------
 */
 
-Server::Server()
+Server::Server() : _sockfd(-1), _port(0)
 {
     std::cout << "Default Constructor called" << std::endl;
+	User server(_sockfd,"server", "server");
+	_users.push_back(server);
 }
 
-Server::Server(int ac, char **av)
+Server::Server(const Server &src)
 {
-	if (ac != 3)
-		throw std::runtime_error("Invalid number of arguments");
-	_port = std::atoi(av[1]);
-	_sockfd = -1;
-	std::cout << "Server Constructor" << std::endl;
-
-}
-
-Server::Server(const Server &src) {
     std::cout << "Copy Constructor called" << std::endl;
     *this = src;
 }
@@ -42,22 +29,34 @@ Server::~Server() {
 ** --------------------------------- OVERLOADS ---------------------------------
 */
 
-Server &Server::operator=(const Server &src) {
+Server &Server::operator=(const Server &src)
+{
     if (this != &src) {
         // Copy attributes here
     }
     return *this;
 }
 
-std::ostream &operator<<(std::ostream &o, const Server &i)
+/*
+** --------------------------------- DEL ---------------------------------
+*/
+
+void Server::print_everything(void) // DEL
 {
-    (void)i;
-	o << "Type: Server";
-    return o;
+	std::cout << "|---------- INFO ----------|" << std::endl;
+
+	if (_channels.size() == 0)
+		std::cout << "No channel yet." << std::endl;
+	for (size_t i = 0; i < _channels.size(); i++)
+	{
+		std::cout << "channel: " << _channels[i].getName() << std::endl;
+		_channels[i].print_users();
+	}
+	std::cout << std::endl << "|---------- END ----------|" << std::endl;
 }
 
 /*
-** --------------------------------- METHODS ----------------------------------
+** --------------------------------- METHODS ---------------------------------
 */
 
 bool	Server::init()
@@ -66,7 +65,7 @@ bool	Server::init()
 	if (_sockfd < 0)
 	{	
 		std::cout << "Error: Socket creation failed" << std::endl;
-		return 1;
+		return false;
 	}
 	memset(&_addr, 0, sizeof(_addr));
 	_addr.sin_family = AF_INET; // IPV4 PROTOCOL
@@ -74,7 +73,8 @@ bool	Server::init()
 	_addr.sin_addr.s_addr = INADDR_ANY; // Listens on all available IP'S
 
 	int sock_state = 1;
-	if (setsockopt(_sockfd, SOL_SOCKET, SO_REUSEADDR, &sock_state, sizeof(sock_state)) < 0) // Setting options for socket (Reuse IP's)
+	if (setsockopt(_sockfd, SOL_SOCKET, SO_REUSEADDR, &sock_state, sizeof(sock_state)) < 0
+		|| fcntl(_sockfd, F_SETFL, O_NONBLOCK) < 0) // Setting options for socket (Reuse IP's) and Non-block mode
 	{
 		std::cout << "Couldn't set options for socket" << std::endl;
 		return false;
@@ -89,77 +89,155 @@ bool	Server::init()
 		std::cout << "Error: Listen failed" << std::endl;
 		return false;
 	}
+	std::cout << "	Server initialized!" << std::endl << std::endl;
+	std::cout << "      ╔════════════════════════╗" << std::endl;
+	std::cout << "      ║    IRC SERVER READY    ║" << std::endl;
+	std::cout << "      ║  Listening on port " << _port << "║" << std::endl;
+	std::cout << "      ╚════════════════════════╝" << std::endl;
 	return true;
 }
 
 void	Server::run()
 {
-	fd_set master, readfds;
-	FD_ZERO(&master);
-	FD_SET(_sockfd, &master);
-	int				max_fd =_sockfd;
+	struct pollfd server;
+
+	server.fd = _sockfd;
+	server.events = POLLIN;
+	server.revents = 0;
+	_fds.push_back(server);
+
+	std::string line;
 	while (true)
 	{
-		readfds = master;
-		int ready = select(max_fd + 1, &readfds, NULL, NULL, NULL);
-		if (ready < 0)
+		line.clear();
+		print_everything();
+		if (poll(&_fds[0], _fds.size(), -1) == -1)
 		{
-			// handle EINTR & continue;
+			std::cerr << "-error: poll failure\n";
+			exit (10);
 		}
-		for (int fd = 0;fd <= max_fd && ready > 0; ++fd)
+
+		for (size_t i = 0; i < _fds.size() ;++i)
 		{
-			if (!FD_ISSET(fd, &readfds))
-				continue;
-			if (fd == _sockfd)
+			if (_fds[i].revents & POLLIN)
 			{
-				int client_fd = accept(_sockfd, NULL, NULL);
-				if (client_fd < 0)
+				if (_fds[i].fd == _sockfd)  // New connection
 				{
-					std::cout << "Error: accepting client_fd" << std::endl;
-					continue;
+					struct sockaddr_in user_socket;
+					socklen_t user_size = sizeof(user_socket);
+					int user_fd = accept(_sockfd, (struct sockaddr *)&user_socket, &user_size);
+					if (user_fd < 0)
+					{
+						perror("accept()");
+						continue;
+					}
+					// Create user inside, after gathering the nick and username
+					// newConnection(user_fd, user_socket, user_size);
+					newConnection(user_fd);
+
+
+
+					// THIS WHOLE PACKAGE NEEDS TO BE IN THE USER REGISTRATION !!
+					std::ostringstream ss;
+					ss << user_fd;
+					std::string new_nick = "USER#" + ss.str();
+					User usr(user_fd, new_nick, new_nick);
+					_users.push_back(usr);
+					// THIS WHOLE PACKAGE NEEDS TO BE IN THE USER REGISTRATION !!
 				}
-				FD_SET(client_fd, &master);
-				if (client_fd > max_fd)
-					max_fd = client_fd;
-				acceptClient(client_fd);
-				close(client_fd);
+				else // Existing user message 
+				{
+					char buf[4096] = {};
+					ssize_t bytes = recv(_fds[i].fd, buf, 4095, 0);
+					if (bytes < 0)
+					{
+						perror("recv()");
+						continue;
+					}
+					if (bytes == 0)
+					{
+						disconnect(i);
+						continue;
+					}
+					buf[bytes] = 0;
+					std::cout << "raw buf: " << buf << ", bytes: " << bytes << std::endl;
+//					userMessage(_fds[i].fd, buf, bytes);
+					getMessage(line, buf, i);
+				}
 			}
 		}
 	}
-	
 }
 
-/*
- * TODO: change this from a loop to a func for each client
- */
-
-void	Server::acceptClient(int fd)
+void	Server::setPort(int port)
 {
-	char 		buf[1025];
-	ssize_t		bytes_rcvd = 1;
-	const char	*reply = "Enter nickname\n";
+	_port = port;
+}
 
-	while (true)
+int		Server::getPort(void) const
+{
+	return (_port); 
+}
+
+void	Server::newConnection(int fd)
+{
+	struct pollfd client;
+	client.fd = fd;
+	client.events = POLLIN;
+	client.revents = 0;
+	_fds.push_back(client);
+
+	std::cout << "[CONNECT] fd = "<< fd << std::endl;
+	return ;
+}
+
+void	Server::disconnect(int i)
+{
+	std::cout << "[DISCONECT] fd = "<< _fds[i].fd << std::endl;
+//	if (_users.find(_fds[i].fd) != _users.end())
+//	{
+	std::cout << "nick=" << _users[i].getNickname() << std::endl;
+//		_users.erase(_fds[i].fd);
+	_users.erase(_users.begin() + i);
+//	}
+	// else
+	// 	_pending.erase(_fds[i].fd);
+	close(_fds[i].fd);
+	_fds.erase(_fds.begin() + i);
+}
+
+void Server::getMessage(std::string &line, char *buffer, int i)
+{
+	std::cout << std::endl;
+	// for (size_t i = 0; i < line.size(); i++)
+	// 	std::cout << "line in: " << (int)line[i] << std::endl;
+	line.append(buffer);
+	size_t find = line.find("\r\n");
+	if (find != std::string::npos)
 	{
-		memset(buf, 0, 1025);
-		bytes_rcvd = recv(fd, buf, 1024, 0);
-		if (bytes_rcvd < 0)
-		{
-			std::cout << "Error: recv() failed" << std::endl;
-			continue; ;
-		}
-		if (bytes_rcvd == 0)
-		{
-			std::cout << "Client disconnected" << std::endl;
-			break ;
-		}
-		buf[bytes_rcvd] = '\0';
-		std::cout << "Received: " << buf << std::endl;
+		// Do stuff
+//		line.erase(find, 2);
+
+		// parse and execute commands here
+		exec_cmd(line, i);
 		
-		if (send(fd , reply, strlen(reply) + 1, 0) < 0)
+
+		// THIS LOOP IS JUST SENDING THE MESSAGE AND NICK BACK TO EACH OTHER CLIENT
+		for (size_t j = 1; j < _fds.size(); j++) // start at 1 to always ignore the listening socket
 		{
-			std::cout << "Error: send() failed" << std::endl;
-			break;
-		}		
+			std::ostringstream ss;
+			std::string str;
+			ss << _users[i].getNickname() << ": " << line << "\r\n";
+			str = ss.str();
+
+			if (_fds[i].fd != _fds[j].fd) // Send to every fd that is not mine
+				send(_fds[j].fd, str.c_str(), str.size() + 1, 0);
+		}
+		// Reset string
 	}
+}
+
+void	Server::setPassword(char *pass)
+{
+	_password = pass;
 }

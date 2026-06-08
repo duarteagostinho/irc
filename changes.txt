@@ -1,0 +1,62 @@
+|---------------------------- REMOVED ----------------------------|
+
+- Constructor that took an argc and argv
+REASON: Was not parsing correctly the input, was segfaulting with invalid amount of arguments
+
+- Changed the whole structure of the Channel
+REASON: To make a simplified version for now, just to implement it fast and be able to work on commands
+
+- Removed everything that was not allowed past c++98
+REASON: To conform to the standards we need to follow
+
+
+
+
+|----------------------------  ADDED  ----------------------------|
+
+- Small parsing function on top os main, move later to a different folder
+REASON: better error messages and error checking in case of port -1, 53672165783, 111a, etc...
+
+- Increased buffer size to 4096
+REASON: Harder to break
+
+
+
+
+
+|----------------------------  TODO  ----------------------------|
+
+
+- Put sockets in non blocking mode
+- 
+
+
+operators unique: KICK, INVITE, TOPIC, MODE
+
+
+Every IRC action follow this form
+
+action:
+executor:
+channel:
+target:
+permission:
+
+action: KICK
+executor: vloureir
+channel: #42
+target: andrade
+permission: false
+
+action: KICK
+executor: vloureir
+channel: #42
+target:
+permission: true
+
+action: INVITE
+executor: vloureir
+channel: #42
+target: andrade
+permission: true
+error:

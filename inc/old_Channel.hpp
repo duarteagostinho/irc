@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include "User.hpp"
+#include <algorithm>
 
 class Channel
 {
@@ -23,7 +24,7 @@ class Channel
     public:
     //Constructors
         Channel();
-        Channel(std::string name, std::string& creator);
+        Channel(std::string name);
         Channel(const Channel &other);
     //Destructor
         ~Channel();
@@ -32,11 +33,11 @@ class Channel
 
     //Getters
         const std::string               getName() const;
-        const bool                      getInvite() const;
-        const bool                      getPassOnly() const;
+        bool                      getInvite() const;
+        bool                      getPassOnly() const;
         const std::string               getTopic() const;
         const std::string               getPass() const;
-        const int                       getUserLimit() const;
+        int                       getUserLimit() const;
         const std::string               getCreator() const;
         const std::vector<std::string>  getUsers() const;
         const std::vector<std::string>  getOperators() const;

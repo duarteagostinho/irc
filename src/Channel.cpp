@@ -1,153 +1,262 @@
-#include "Channel.hpp"
+#include "../inc/Channel.hpp"
 
-Channel::Channel(): _name("Void"), _inviteOnly(false), _topicOp(false) _topic("Void"), _passOnly(false),
-_pass("Void"), _userLimit(-1), _creator("Void"), _users(NULL), _operators(NULL) {}
+// DEL
 
-Channel::Channel(std::string name, std::string& creator)
+void Channel::print_users(void)
 {
-    _name = name;
-    _inviteOnly = false;
-    _topicOp = false;
-    _topic = "";
-    _passOnly = false;
-    _pass = "";
-    _userLimit = -1;
-    _creator = creator;
-    _users.push_back(creator);
-    _operators.push_back(creator);
+    std::cout << "user size: " << opFlag_users.size() << std::endl;
+
+    for (size_t i = 0; i < opFlag_users.size(); i++)
+    {
+        std::cout << "user: " << opFlag_users[i].second;
+        std::cout << ", op: ";
+        if (opFlag_users[i].first)
+            std::cout << "true";
+        else
+            std::cout << "false";
+        std::cout << std::endl;
+    }
+}
+
+// Orthodox Cannonical Form
+
+Channel::Channel()
+: _name(""), _topic(""), _pass("")
+{
+
+}
+
+Channel::Channel(std::string name)
+: _name(name), _topic(""), _pass("")
+{
+
 }
 
 Channel::Channel(const Channel &other)
 {
-    _name = other._name;
-    _inviteOnly = other._inviteOnly;
-    _topicOp = other._topicOp;
-    _topic = other._topic;
-    _passOnly = other._passOnly;
-    _pass = other._pass;
-    _userLimit = other._userLimit;
-    _creator = other._creator;
-    _users = other._users;
-    _operators = other._operators;
+    *this = other;
 }
 
-Channel::~Channel() {}
+Channel::~Channel()
+{
+
+}
 
 Channel &Channel::operator=(const Channel &other)
 {
     if (this != &other)
     {
         _name = other._name;
-    	_inviteOnly = other._inviteOnly;
-        _topicOp = other._topicOp;
-    	_topic = other._topic;
-    	_passOnly = other._passOnly;
-    	_pass = other._pass;
-    	_userLimit = other._userLimit;
-    	_creator = other._creator;
-    	_users = other._users;
-    	_operators = other._operators;
+        _topic = other._topic;
+		_pass = other._pass;
+        opFlag_users = other.opFlag_users;
+        _invited = other._invited;
     }
     return *this;
 }
 
 //Getters
-const std::string Channel::getName() const {return _name;}
-
-const bool Channel::getInvite() const {return _inviteOnly;}
-
-const bool Channel::getPassOnly() const {return _passOnly;}
-
-const std::string Channel::getTopic() const {return _topic;}
-
-const std::string Channel::getPass() const {return _pass;}
-
-const int Channel::getUserLimit() const {return _userLimit;}
-
-const std::string Channel::getCreator() const {return _creator;}
-
-const std::vector<std::string> Channel::getUsers() const {return _users;}
-
-const std::vector<std::string> Channel::getOperators() const {return _operators;}
-
-
-//Setters
-void Channel::setInvite(bool state) {_inviteOnly = state;}
-
-void Channel::setPassOnly(bool state) {_passOnly = state;}
-
-void Channel::setTopic(std::string topic) {_topic = topic;}
-
-void Channel::setPass(std::string pass) {_pass = pass;}
-
-void Channel::setUserLmit(int limit) {_userLimit = limit;}
-
-void Channel::addUser(std::string& nick)
+const std::string Channel::getName() const 
 {
-    if ((size_t pos = _users.find(nick)) != std::string::npos)
-    {
-        if (_userLimit == -1)
-        {
-            _users.push_back(nick);
-            std::cout << "User added to " << _name << std::endl;
-        }
-        else if (_userLimit > _users.size())
-        {
-            _users.push_back(nick);
-            std::cout << "User added to " << _name << std::endl;
-        }
-        else
-        {
-            std::cout << "No space on the channel" << std::endl;
-            return ;
-        }
-    }
-    else
-        return ;
+    return _name;
 }
+
+bool Channel::isOperator(std::string name) const
+{
+    for (size_t i = 0; i < opFlag_users.size(); i++)
+    {
+        if (opFlag_users[i].second == name && opFlag_users[i].first == true)
+            return (true);
+    }
+    return (false);
+}
+
+bool Channel::hasInvite(std::string nick)
+{
+
+// WHICH ONE IS MORE C++ ??
+
+	std::vector<std::string>::iterator it = std::find(_invited.begin(), _invited.end(), nick);
+	if (it != _invited.end())
+	{
+		_invited.erase(it);
+		return (true);
+	}
+	return (false);
+
+// WHICH ONE IS MORE C++ ??
+
+	for (size_t i = 0; i < _invited.size(); i++)
+	{
+		if (_invited[i] == nick)
+		{
+			_invited.erase(_invited.begin() + i);
+			return (true);
+		}
+	}
+	return (false);
+}
+
+
+
+// const bool Channel::getInvite() const {return _inviteOnly;}
+
+// const bool Channel::getPassOnly() const {return _passOnly;}
+
+const std::string Channel::printTopic(void) const
+{
+    if (_topic == "")
+        return (getName() + " :No Topic is set.\r\n");
+    else
+        return ("Topic for " + getName() + " is: " + getTopic() + "\r\n");
+}
+
+
+const std::string Channel::getTopic() const
+{
+    return _topic;
+}
+
+const std::string Channel::getPass() const
+{
+    return _pass;
+}
+
+// const int Channel::getUserLimit() const {return _userLimit;}
+
+// const std::string Channel::getCreator() const {return _creator;}
+
+// const std::vector<std::string> Channel::getUsers() const {return _users;}
+
+
+
+
+// //Setters
+// void Channel::setInvite(bool state) {_inviteOnly = state;}
+
+// void Channel::setPassOnly(bool state) {_passOnly = state;}
+
+// void Channel::setTopic(std::string topic) {_topic = topic;}
+
+// void Channel::setPass(std::string pass) {_pass = pass;}
+
+// void Channel::setUserLmit(int limit) {_userLimit = limit;}
+
+
 
 void Channel::rmUser(std::string& nick)
 {
-    if ((size_t pos = _users.find(nick)) != std::string::npos)
+    size_t i = 0;
+    for ( ; i < opFlag_users.size(); i++)
     {
-        if (_users[pos] == _creator)
-        {
-            std::cout << "That User can't be removed from the channel " << _name << " has he is the creator" << std::endl;
-            return ;
-        }
-        else
-        {
-            _users.erase(_users.begin() + pos);
-            std::cout << "User removed from " << _name << std::endl;
-            return ;
-        }
+        if (opFlag_users[i].second == nick)
+            break ;
     }
+    opFlag_users.erase(opFlag_users.begin() + i);
+    std::cout << "User removed from " << _name << std::endl; // BROADCAST TO CHANNEL !!!
+}
+
+void Channel::addUser(const std::string& nick, int flag)
+{
+    std::pair<int, std::string> new_user;
+
+    for (size_t i = 0; i < opFlag_users.size(); i++)
+    {
+        if (opFlag_users[i].second == nick)
+            return ;
+    }
+    new_user.first = flag;
+    new_user.second = nick;
+    opFlag_users.push_back(new_user);
 }
 
 void Channel::addOperator(std::string& nick)
 {
-    if ((size_t pos = _operators.find(nick)) != std::string::npos)
+    for (size_t i = 0; i < opFlag_users.size(); i++)
     {
-        _operators.push_back(nick);
-        std::cout << "User added has an operator to " << _name << std::endl;
+        if (opFlag_users[i].second == nick)
+            opFlag_users[i].first = 1;
     }
-    else
-        return ;
 }
 
 void Channel::rmOperator(std::string &nick)
 {
-    if (nick == _creator)
+    for (size_t i = 0; i < opFlag_users.size(); i++)
     {
-        std::cout << "That User can't be removed from operator status has he is the creator of the channel " << _name << std::endl;
-        return ;
+        if (opFlag_users[i].second == nick)
+            opFlag_users[i].first = 0;
     }
-    if ((size_t pos = _operators.find(nick)) != std::string::npos)
-    {
-        _operators.erase(_operators.begin() + pos);
-        std::cout << "User removed has an operator from " << _name << std::endl;
-        return ;
-    }
-    else
-        return ;
 }
+
+// void Channel::addUser(std::string& nick)
+// {
+//     if (std::find(_users.begin(), _users.end(), nick) != _users.end())
+//     {
+//         if (_userLimit == -1)
+//         {
+//             _users.push_back(nick);
+//             std::cout << "User added to " << _name << std::endl;
+//         }
+//         else if (_userLimit > _users.size())
+//         {
+//             _users.push_back(nick);
+//             std::cout << "User added to " << _name << std::endl;
+//         }
+//         else
+//         {
+//             std::cout << "No space on the channel" << std::endl;
+//             return ;
+//         }
+//     }
+//     else
+//         return ;
+// }
+
+// void Channel::rmUser(std::string& nick)
+// {   
+//     if (std::find(_users.begin(), _users.end(), nick) != _users.end())
+//     {
+//         if (*(std::find(_users.begin(), _users.end(), nick)) == _creator)
+//         {
+//             std::cout << "That User can't be removed from the channel " << _name << " has he is the creator" << std::endl;
+//             return ;
+//         }
+//         else
+//         {
+//             _users.erase(_users.begin() + pos);
+//             std::cout << "User removed from " << _name << std::endl;
+//             return ;
+//         }
+//     }
+// }
+
+// void Channel::addOperator(std::string& nick)
+// {
+//   size_t pos = opFlag_users.find(nick);
+//    std::find(opFlag_users.begin(), opFlag_users.end(), nick);
+//    auto it = std::find(opFlag_users.begin(), opFlag_users.end(), [&nick]());
+//     if (() != std::string::npos)
+//     {
+//         _operators.push_back(nick);
+//         std::cout << "User added has an operator to " << _name << std::endl;
+//     }
+//     else
+//         return ;
+// }
+
+// void Channel::rmOperator(std::string &nick)
+// {
+//     if (nick == _creator)
+//     {
+//         std::cout << "That User can't be removed from operator status has he is the creator of the channel " << _name << std::endl;
+//         return ;
+//     }
+//     if ((size_t pos = _operators.find(nick)) != std::string::npos)
+//     {
+//         _operators.erase(_operators.begin() + pos);
+//         std::cout << "User removed has an operator from " << _name << std::endl;
+//         return ;
+//     }
+//     else
+//         return ;
+// }
