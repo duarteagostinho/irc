@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/09 15:50:30 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/09 22:29:49 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -209,22 +209,95 @@ void Server::topic(std::vector<std::string>& av, int index)
 {
 	(void)av;
 	(void)index;
+
 /*
+	av[0] = TOPIC
+	
+	av[1] = <channel> 
+	if (!av[1])
+		:server 461 <nickname> TOPIC :Not enough parameters
+	else
+		if (find(av[1], ',')) // NEED TO SPLIT INTO MULTIPLE CHANNELS
+	
+	for each channel, try whats below
+		
+	if (!channel_name)
+		:server 403 <nickname> <av[1]> :No such channel
 
-/topic
-Topic for #channel is: <TOPIC HERE>
+	av[2] = <parameters>
+	if !av[2]
+		print topic
 
-/topic <topic>
-	IF (!operator)
-		#channel :You're not channel operator
-	ELSE
-		 <operator> has changed the topic to: <topic>	-> BROADCAST	
+	(if we get here, check if <nickname> is operator on channel)
+	if (!operator)
+		:server 482 <nickname> <av[1]> :You're not channel operator
+	else
+		if av[2][0] == ':'
+			merge all avs left into a string, string = new_topic
+		else
+			new_topic == last av[i]
 
 */
-	// (void)index;
-	// if (av.size() == 1) // SEND BACK MESSAGE
-	// 	std::cout << INV_USAGE << std::endl;
-	// else
+
+
+	if (av[1].c_str() == NULL)
+	{
+		std::string response = ":server 461 <nickname> TOPIC :Not enough parameters\r\n";
+		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+	}
+	else
+	{
+		// why dont I always split this?
+		if (av[1].find(",") != std::string::npos)
+		{
+			// NEED to split this, in the "," args;
+
+
+
+		}
+		
+
+
+	}
+
+
+
+	
+	if (!isChannel(av[1]))
+	{
+		std::string response = ":server 403 <nickname> <av[1]> :No such channel\r\n";
+		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+	}
+
+
+/*
+	av[0] = TOPIC
+	
+	av[1] = <channel> 
+	if (!av[1])
+		:server 461 <nickname> TOPIC :Not enough parameters
+	else
+		if (find(av[1], ',')) // NEED TO SPLIT INTO MULTIPLE CHANNELS
+	
+	for each channel, try whats below
+		
+	if (!channel_name)
+		:server 403 <nickname> <av[1]> :No such channel
+
+	av[2] = <parameters>
+	if !av[2]
+		print topic
+
+	(if we get here, check if <nickname> is operator on channel)
+	if (!operator)
+		:server 482 <nickname> <av[1]> :You're not channel operator
+	else
+		if av[2][0] == ':'
+			merge all avs left into a string, string = new_topic
+		else
+			new_topic == last av[i]
+
+*/
 
 	// kakakakakakaka
 	if (av[1].c_str() == NULL || !isChannel(av[1]))
@@ -237,13 +310,10 @@ Topic for #channel is: <TOPIC HERE>
 		std::string response1 = ":server 403 " + _users[index].getNickname() + " " + " :No such channel"; // LIKE THIS?
 		std::cout << send(_fds[index].fd, response1.c_str(), response1.size() + 1, 0) << std::endl;
 
-
-		// std::string response = ":server 403 :No such channel"; // LIKE THIS?
-		// std::cout << send(_fds[index].fd, response.c_str(), response.size() + 1, 0) << std::endl;
 	}
 /*
 
-	:server 482 <nickname> <channel> :You're not channel operator
+	
 	
 
 	Will receive:
@@ -266,36 +336,6 @@ Topic for #channel is: <TOPIC HERE>
 		SEND 332
 		SEND 333
 */
-
-	// std::string old_topic = ""; // THIS IS A PLACEHOLDER, TRADE FOR THE ACTUAL VARIABLE
-
-	// int i = 0;
-	// for ( ; data[i] != 'C'; i++)
-	// 	;
-	// i++;
-	// data = &data[i];
-
-	// if (!data[i] || (data[i] == ' ' && !data[i + 1]))
-	// {
-	// 	if (old_topic.empty())  // SEND BACK THIS MESSAGE
-	// 		std::cout << "#channel: No topic is set." << std::endl;
-	// 	else 
-	// 		std::cout << "Topic for #channel is: " << old_topic << std::endl;
-	// }
-	// else
-	// {
-	// 	if (index) // SEND BACK THIS MESSAGE
-	// 		std::cout << "#channel: You are not the channel operator" << std::endl;
-	// 	else // BROADCAST THIS MESSAGE TO EVERYONE
-	// 		std::cout << "<nick> has changed the topic to: " << data << std::endl;
-	// }
-	
-	// TODO: update the topic variable of the channel
-//	this->test._topic = data; // How to solve this shit ?
-	// old_topic = data;
-
-	// std::cout << "[" << data << "]" << std::endl;
-
 }
 
 void Server::mode(void)
