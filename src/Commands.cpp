@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/08 19:05:53 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/09 15:50:30 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ void Server::exec_cmd(std::string line, int index)
 			invite(av, index);
 			break;
 		case 2:
-			topic(line, index);
+			topic(av, index);
 			break;
 		case 3:
 			mode();
@@ -128,19 +128,19 @@ void Server::join(std::vector<std::string>& av, int index)
 	_channels[x].addUser(_users[index].getNickname(), 1);
 
 
-	std::string response1 = ":" + _users[index].getNickname() + " JOIN " + av[1] + "\r\n";
+	std::string response1 = ":chaud!vini@10.12.3.12 JOIN " + av[1] + "\r\n";
 	send(_fds[index].fd, response1.c_str(), response1.size() + 1, 0);
 
-	std::string response2 = "332 " + _users[index].getNickname() + " " + av[1] + " :Hello world\r\n";
-	send(_fds[index].fd, response2.c_str(), response2.size() + 1, 0);
+	// std::string response2 = ":10.12.3.12 332 " + _users[index].getNickname() + " " + av[1] + " :Hello world\r\n";
+	// send(_fds[index].fd, response2.c_str(), response2.size() + 1, 0);
 
-	std::string response3 = "353 " + _users[index].getNickname() + " = " + av[1] + " :@" + _users[index].getNickname() + "\r\n";
+	std::string response3 = ":ft_irc 353 " + _users[index].getNickname() + " = " + av[1] + " :@" + _users[index].getNickname() + "\r\n";
 	send(_fds[index].fd, response3.c_str(), response3.size() + 1, 0);
 
-	std::string response4 = "366 " + _users[index].getNickname() + " " + av[1] + " :End of /NAMES list\r\n"; 
+	std::string response4 = ":ft_irc 366 " + _users[index].getNickname() + " " + av[1] + " :End of /NAMES list\r\n"; 
 	send(_fds[index].fd, response4.c_str(), response4.size() + 1, 0);
 
-	std::cout << "printing responses:\n" << response1 << response2 << response3 + response4 << std::endl;
+	std::cout << "printing responses:\n" << response1 << response3 + response4 << std::endl;
 	// std::string response2 = "Now talking on " + av[1] + "\r\n";
 	// send(_fds[index].fd, response2.c_str(), response2.size() + 1, 0);
 }
@@ -205,8 +205,10 @@ Usage: INVITE <nick> [<channel>], invites someone to a channel, by default the c
 	}
 }
 
-void Server::topic(std::string data, int index)
+void Server::topic(std::vector<std::string>& av, int index)
 {
+	(void)av;
+	(void)index;
 /*
 
 /topic
@@ -224,36 +226,75 @@ Topic for #channel is: <TOPIC HERE>
 	// 	std::cout << INV_USAGE << std::endl;
 	// else
 
-
-
-	std::string old_topic = ""; // THIS IS A PLACEHOLDER, TRADE FOR THE ACTUAL VARIABLE
-
-	int i = 0;
-	for ( ; data[i] != 'C'; i++)
-		;
-	i++;
-	data = &data[i];
-
-	if (!data[i] || (data[i] == ' ' && !data[i + 1]))
+	// kakakakakakaka
+	if (av[1].c_str() == NULL || !isChannel(av[1]))
 	{
-		if (old_topic.empty())  // SEND BACK THIS MESSAGE
-			std::cout << "#channel: No topic is set." << std::endl;
-		else 
-			std::cout << "Topic for #channel is: " << old_topic << std::endl;
+		// TOPIC a
+		// :luna.AfterNET.Org 403 chaudbrush a :No such channel
+
+		
+
+		std::string response1 = ":server 403 " + _users[index].getNickname() + " " + " :No such channel"; // LIKE THIS?
+		std::cout << send(_fds[index].fd, response1.c_str(), response1.size() + 1, 0) << std::endl;
+
+
+		// std::string response = ":server 403 :No such channel"; // LIKE THIS?
+		// std::cout << send(_fds[index].fd, response.c_str(), response.size() + 1, 0) << std::endl;
 	}
-	else
-	{
-		if (index) // SEND BACK THIS MESSAGE
-			std::cout << "#channel: You are not the channel operator" << std::endl;
-		else // BROADCAST THIS MESSAGE TO EVERYONE
-			std::cout << "<nick> has changed the topic to: " << data << std::endl;
-	}
+/*
+
+	:server 482 <nickname> <channel> :You're not channel operator
+	
+
+	Will receive:
+	TOPIC #42,#22 hello there
+
+
+	If av[1] NOT channel
+		SEND SERVER_NAME: No such channel (403)
+
+	If av[1] == true and av[1+] == false
+		SEND av[1++]: No such channel (for each invalid channel name) (403)
+
+	if (client NOT on channel)
+		SEND 442
+
+	if (NOT TOPIC and on channel)
+		SEND 331
+
+	if (TOPIC and on channel)
+		SEND 332
+		SEND 333
+*/
+
+	// std::string old_topic = ""; // THIS IS A PLACEHOLDER, TRADE FOR THE ACTUAL VARIABLE
+
+	// int i = 0;
+	// for ( ; data[i] != 'C'; i++)
+	// 	;
+	// i++;
+	// data = &data[i];
+
+	// if (!data[i] || (data[i] == ' ' && !data[i + 1]))
+	// {
+	// 	if (old_topic.empty())  // SEND BACK THIS MESSAGE
+	// 		std::cout << "#channel: No topic is set." << std::endl;
+	// 	else 
+	// 		std::cout << "Topic for #channel is: " << old_topic << std::endl;
+	// }
+	// else
+	// {
+	// 	if (index) // SEND BACK THIS MESSAGE
+	// 		std::cout << "#channel: You are not the channel operator" << std::endl;
+	// 	else // BROADCAST THIS MESSAGE TO EVERYONE
+	// 		std::cout << "<nick> has changed the topic to: " << data << std::endl;
+	// }
 	
 	// TODO: update the topic variable of the channel
 //	this->test._topic = data; // How to solve this shit ?
-	old_topic = data;
+	// old_topic = data;
 
-	std::cout << "[" << data << "]" << std::endl;
+	// std::cout << "[" << data << "]" << std::endl;
 
 }
 

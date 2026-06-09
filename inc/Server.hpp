@@ -118,7 +118,7 @@ class Server
 
 		const std::vector<Channel> &getChannel(void) const;
 
-
+		void test(int fd, struct sockaddr_in user_socket, socklen_t user_size);
 
 		// CMDS
 		void	exec_cmd(std::string line, int index);
@@ -126,7 +126,7 @@ class Server
 		
 		void	kick(std::vector<std::string>& av, int index);
 		void	invite(std::vector<std::string>& av, int index);
-		void	topic(std::string data, int index);
+		void	topic(std::vector<std::string>& av, int index);
 		void	mode(void);
 		void	join(std::vector<std::string>& av, int index);
 
@@ -134,6 +134,9 @@ class Server
 		void print_everything(void);
 
 		std::string usersPreChannelFormated(std::string name);
+
+
+		bool isChannel(std::string name);
 
 };
 
