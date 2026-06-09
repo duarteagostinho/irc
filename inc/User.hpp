@@ -19,7 +19,6 @@ class User
 	public:
 
 		std::string recvBuf;
-		bool		registered;
 
 		User();
 		User(int fd, std::string nick, std::string user);

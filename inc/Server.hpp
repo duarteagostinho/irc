@@ -36,30 +36,8 @@
 # define INV_USAGE "Usage: INVITE <nick> [<channel>], invites someone to a channel, by default the current channel\r\n"
 # define JOIN_USAGE "Usage: JOIN <channel>, joins the channel\r\n"
 # define NOT_OPERATOR ": You are not the channel operator\r\n"
-
-
-/*                        STRUCTURE FOR SOCKET ADDR
-    struct sockaddr_in {
-        sa_family_t sin_family;         // Address family (AF_INET)
-        in_port_t   sin_port;           // Port number in network byte order
-        struct      in_addr sin_addr;   // IP address (32-bit)
-};
-*/
-
-
-/*                      	   PROGRAM LOGIC
-	Init
-		socket()	  -- Create socket with file descriptor _sockfd
-		bind()		  -- Attach to _port using _addr
-		listen()	  -- Ready to accept connections
-	Run Loop
-		poll()        -- Waits for one of a set of file descriptors to become ready to perform I/O.
-		accept()	  -- Wait for client, get new fd
-		recv()		  -- Read IRC commands
-		send()		  -- Send responses from Server
-	Cleanup
-		close()		  -- Clean up socket
-*/
+# define ERR_PASSWDMISMATCH "Password incorrect\r\n"
+# define ERR_NICKNAMEINUSE "Nickname is already in use\r\n"
 
 class Server
 {
@@ -68,8 +46,7 @@ class Server
 
 		std::string	_nickname;
 		std::string	_username;
-		bool		has_nick;
-		bool		has_user;
+		std::string	_pass;
 	};
 
 	private: 
@@ -97,6 +74,8 @@ class Server
 
         // Operators
         Server &operator=(const Server &src); // Copy Assignment
+		
+		// Server loop
 		bool	init(); // Creates socket, bind, listen
 		void	run();	// Accept clients in a loop;
 		void	newConnection(int fd);
@@ -107,19 +86,18 @@ class Server
 		void	registerUser(int fd);
 		void	closeServer();	// Clean up
 
-
+		// Getters && Setters
 		void	setPassword(char *pass);
-
 		void	setPort(int port);
 		int		getPort(void) const;
-
 		void	getMessage(std::string &line, char *buffer, int i);
 		void	getUserConfig(std::string &line, char *buffer, int i);
-
-
 		const std::vector<Channel> &getChannel(void) const;
-
-
+		
+		// Helpers
+		void	sendError(int fd, int code, const std::string target, const std::string &msg);
+		bool	nickInUse(std::string toCheck);
+		void	welcomeUser(int i);
 
 		// CMDS
 		void	exec_cmd(std::string line, int index);
