@@ -109,7 +109,6 @@ void	Server::run()
 	std::string line;
 	while (true)
 	{
-		line.clear();
 		print_everything();
 		if (poll(&_fds[0], _fds.size(), -1) == -1)
 		{
@@ -217,7 +216,7 @@ void Server::getMessage(std::string &line, char *buffer, int i)
 	{
 		// Do stuff
 //		line.erase(find, 2);
-
+		std::string msg = line.substr(0, find);
 		// parse and execute commands here
 		exec_cmd(line, i);
 		
@@ -234,6 +233,7 @@ void Server::getMessage(std::string &line, char *buffer, int i)
 				send(_fds[j].fd, str.c_str(), str.size() + 1, 0);
 		}
 		// Reset string
+		line.erase(0, find + 2);
 	}
 }
 
