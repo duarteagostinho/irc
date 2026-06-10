@@ -48,7 +48,6 @@ Server &Server::operator=(const Server &src)
 void Server::print_everything(void) // DEL
 {
 	std::cout << "|---------- INFO ----------|" << std::endl;
-
 	if (_channels.size() == 0)
 		std::cout << "No channel yet." << std::endl;
 	for (size_t i = 0; i < _channels.size(); i++)
@@ -56,6 +55,9 @@ void Server::print_everything(void) // DEL
 		std::cout << "channel: " << _channels[i].getName() << std::endl;
 		_channels[i].print_users();
 	}
+ std::cout << "|--------- USERS -----------|";
+ for (size_t j = 0; j < _users.size();j++)
+   std::cout << "User " << j << ": " << _users[j].getNickname() << std::endl;
 	std::cout << std::endl << "|---------- END ----------|" << std::endl;
 }
 
@@ -149,10 +151,7 @@ void	Server::registerUser(int i)
 	if (cmd == "CAP")
 	{
 		if (value == "LS")
-		{
-			send(_fds[i].fd, "CAP * LS :\r\n", 12, 0);
 			return ;
-		}
 		else if (value == "END")
 			return ;
 	}
@@ -229,10 +228,15 @@ void Server::getMessage(std::string &line, char *buffer, int i)
 	if (_users[i].getRegistration() == false)
 	{
 		_users[i].recvBuf.append(buffer);
-		registerUser(i);
+    while (_users[i].getRegistration() == false)
+    {
+      std::string old = _users[i].recvBuf;
+      registerUser(i);
+      if (_users[i].recvBuf == old)
+        break ;
+    }
 		return;
 	}
-	std::cout << std::endl;
 	line.clear();
 	line.append(buffer);
 	size_t find = line.find("\r\n");
