@@ -55,6 +55,7 @@ class Channel
 
 
 		bool				hasInvite(std::string nick);
+		bool				isUserOnChannel(std::string nick);
 
         void print_users(void);
 

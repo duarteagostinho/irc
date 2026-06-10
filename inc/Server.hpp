@@ -120,7 +120,7 @@ class Server
 
 		// CMDS
 		void	exec_cmd(std::string line, int index);
-		int		check_cmd(std::string line, std::vector<std::string>& av);
+		int		check_cmd(std::string &line, std::vector<std::string>& av);
 		
 		void	kick(std::vector<std::string>& av, int index);
 		void	invite(std::vector<std::string>& av, int index);
@@ -135,7 +135,11 @@ class Server
 
 
 		bool isChannel(std::string name);
-		void splitCommas(std::string line, std::vector<std::string>& av);
+		void splitString(std::string line, std::vector<std::string>& av, char delim);
+
+		int getChannelIndex(const std::string name) const;
+		bool doesUserExist(const std::string name) const;
+		std::string craftStringSpaces(const std::string str);
 
 };
 

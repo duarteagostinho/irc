@@ -135,17 +135,16 @@ void	Server::run()
 					// newConnection(user_fd, user_socket, user_size);
 					newConnection(user_fd);
 
-					test(user_fd, user_socket, user_size);
 
 
 
 // 					// THIS WHOLE PACKAGE NEEDS TO BE IN THE USER REGISTRATION !!
-// 					std::ostringstream ss;
-// 					ss << user_fd;
-// 					std::string new_nick = "USER#" + ss.str();
-// //					User usr(user_fd, new_nick, new_nick);
-// 					User usr(user_fd, "chaud", "chaud");
-// 					_users.push_back(usr);
+					std::ostringstream ss;
+					ss << user_fd;
+					std::string new_nick = "USER#" + ss.str();
+//					User usr(user_fd, new_nick, new_nick);
+					User usr(user_fd, "chaud", "chaud");
+					_users.push_back(usr);
 					// THIS WHOLE PACKAGE NEEDS TO BE IN THE USER REGISTRATION !!
 				}
 				else // Existing user message 
@@ -259,24 +258,31 @@ std::string Server::usersPreChannelFormated(std::string name)
 	return ("");
 }
 
-void Server::test(int fd, struct sockaddr_in user_socket, socklen_t user_size)
-{
-	(void)user_socket;
-	(void)user_size;
-
-	User usr(fd, "chaud", "chaud");
-	_users.push_back(usr);
-
-
-
-
-}
-
 bool Server::isChannel(std::string name)
 {
 	for (size_t i = 0; i < _channels.size(); i++)
 	{
 		if (_channels[i].getName() == name)
+			return (true);
+	}
+	return (false);
+}
+
+int Server::getChannelIndex(const std::string name) const
+{
+	for (size_t i = 0; i < _channels.size(); i ++)
+	{
+		if (_channels[i].getName() == name)
+			return (i);
+	}
+	return (-1);
+}
+
+bool Server::doesUserExist(const std::string name) const
+{
+	for (size_t i = 0; i < _users.size(); i ++)
+	{
+		if (_users[i].getNickname() == name)
 			return (true);
 	}
 	return (false);
