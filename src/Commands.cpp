@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/09 22:29:49 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/10 09:48:10 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,64 +210,51 @@ void Server::topic(std::vector<std::string>& av, int index)
 	(void)av;
 	(void)index;
 
-/*
-	av[0] = TOPIC
-	
-	av[1] = <channel> 
-	if (!av[1])
-		:server 461 <nickname> TOPIC :Not enough parameters
-	else
-		if (find(av[1], ',')) // NEED TO SPLIT INTO MULTIPLE CHANNELS
-	
-	for each channel, try whats below
-		
-	if (!channel_name)
-		:server 403 <nickname> <av[1]> :No such channel
+	std::vector<std::string> channels;
 
-	av[2] = <parameters>
-	if !av[2]
-		print topic
-
-	(if we get here, check if <nickname> is operator on channel)
-	if (!operator)
-		:server 482 <nickname> <av[1]> :You're not channel operator
-	else
-		if av[2][0] == ':'
-			merge all avs left into a string, string = new_topic
-		else
-			new_topic == last av[i]
-
-*/
-
-
-	if (av[1].c_str() == NULL)
+	std::cout << "av size: " << av.size() << std::endl;
+	if (av.size() == 1) // Missing arguments
 	{
 		std::string response = ":server 461 <nickname> TOPIC :Not enough parameters\r\n";
 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		return ;
 	}
-	else
+	// Split the channels argument and loop through them to check every channel received
+	splitCommas(av[1], channels);
+	for (size_t i = 0; i < channels.size(); i++)
 	{
-		// why dont I always split this?
-		if (av[1].find(",") != std::string::npos)
+		std::cout << "channel name: " << channels[i] << std::endl;
+		
+		if (!isChannel(channels[i]))
 		{
-			// NEED to split this, in the "," args;
-
-
+			std::string response = ":server 403 <nickname> <channels[i]> :No such channel\r\n";
+			send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		}
+		else if (av.size() == 2) // Print topic
+		{
+			if (!topic)
+				std::cout << ":server 331 <nickname> <channels[i]> :No topic is set\r\n" << std::endl;
+			else
+			{
+				std::cout << ":server 332 <nickname> <channels[i]> :<topic>\r\n" << std::endl;
+				std::cout << ":server 333 <nickname> <channels[i]> <nick!user@ip> <timestamp>\r\n" << std::endl; // timestamp ex: 1781075528				
+			}
+		}
+		else if (!channels[i].isOperator(_users[index].getNickname()))
+		{
+			std::cout << ":server 482 <nickname> <channels[i]> :You're not channel operator\r\n" << std::endl;
+		}
+		else
+		{
+				// 	if av[2][0] == ':'
+				// 		merge all avs left into a string, string = new_topic
+				// 	else
+				// 		new_topic == last av[i]			
 
 		}
-		
-
-
 	}
+}
 
-
-
-	
-	if (!isChannel(av[1]))
-	{
-		std::string response = ":server 403 <nickname> <av[1]> :No such channel\r\n";
-		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
-	}
 
 
 /*
@@ -299,18 +286,35 @@ void Server::topic(std::vector<std::string>& av, int index)
 
 */
 
-	// kakakakakakaka
-	if (av[1].c_str() == NULL || !isChannel(av[1]))
-	{
-		// TOPIC a
-		// :luna.AfterNET.Org 403 chaudbrush a :No such channel
-
+/*
+	av[0] = TOPIC
+	
+	av[1] = <channel> 
+	if (!av[1])
+		:server 461 <nickname> TOPIC :Not enough parameters
+	else
+		if (find(av[1], ',')) // NEED TO SPLIT INTO MULTIPLE CHANNELS
+	
+	for each channel, try whats below
 		
+	if (!channel_name)
+		:server 403 <nickname> <av[1]> :No such channel
 
-		std::string response1 = ":server 403 " + _users[index].getNickname() + " " + " :No such channel"; // LIKE THIS?
-		std::cout << send(_fds[index].fd, response1.c_str(), response1.size() + 1, 0) << std::endl;
+	av[2] = <parameters>
+	if !av[2]
+		print topic
 
-	}
+	(if we get here, check if <nickname> is operator on channel)
+	if (!operator)
+		:server 482 <nickname> <av[1]> :You're not channel operator
+	else
+		if av[2][0] == ':'
+			merge all avs left into a string, string = new_topic
+		else
+			new_topic == last av[i]
+
+*/
+
 /*
 
 	
@@ -336,7 +340,6 @@ void Server::topic(std::vector<std::string>& av, int index)
 		SEND 332
 		SEND 333
 */
-}
 
 void Server::mode(void)
 {
@@ -360,16 +363,24 @@ void Server::mode(void)
 }
 
 
-/*
 
-about the server message
 
-'*' indicates the message is from the server
-	otherwise it has the nickname before it
+void Server::splitCommas(std::string line, std::vector<std::string>& av)
+{	
+	// Create an argv from the line
+	std::stringstream split(line);
+	std::string token;
+	while (std::getline(split, token, ','))
+		av.push_back(token);
+}
 
-maybe could use a flag to indicate
-1- send the mesage back to the sender
-2- send the message back to everyone BUT the sender
-3- broadcast the message
+void Server::mergeString(std::string &line)
+{
+	std::string tmp = line;
 
-*/
+	
+
+
+
+
+}

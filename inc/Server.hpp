@@ -118,8 +118,6 @@ class Server
 
 		const std::vector<Channel> &getChannel(void) const;
 
-		void test(int fd, struct sockaddr_in user_socket, socklen_t user_size);
-
 		// CMDS
 		void	exec_cmd(std::string line, int index);
 		int		check_cmd(std::string line, std::vector<std::string>& av);
@@ -137,6 +135,7 @@ class Server
 
 
 		bool isChannel(std::string name);
+		void splitCommas(std::string line, std::vector<std::string>& av);
 
 };
 
