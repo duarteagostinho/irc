@@ -55,7 +55,7 @@ void Server::print_everything(void) // DEL
 		std::cout << "channel: " << _channels[i].getName() << std::endl;
 		_channels[i].print_users();
 	}
- std::cout << "|--------- USERS -----------|";
+ std::cout << "|--------- USERS -----------|" << std::endl;
  for (size_t j = 0; j < _users.size();j++)
    std::cout << "User " << j << ": " << _users[j].getNickname() << std::endl;
 	std::cout << std::endl << "|---------- END ----------|" << std::endl;
@@ -163,7 +163,7 @@ void	Server::registerUser(int i)
 	{
 		if (value != _password)
 		{
-			sendError(i, 464, "*", ERR_PASSWDMISMATCH);
+			sendError(_fds[i].fd, 464, "*", ERR_PASSWDMISMATCH);
 			disconnect(i);
 			return ;
 		}
@@ -176,7 +176,7 @@ void	Server::registerUser(int i)
 	{
 		if (nickInUse(value) == true)
 		{
-			sendError(i, 433, value, ERR_NICKNAMEINUSE);
+			sendError(_fds[i].fd, 433, value, ERR_NICKNAMEINUSE);
 			return;
 		}
 		_reg[i]._nickname = value;
@@ -196,10 +196,10 @@ void	Server::registerUser(int i)
 
 void	Server::welcomeUser(int i)
 {
-		std::string welcome1 = ":server 001 " + _reg[i]._nickname + " :Welcome to ft_irc\r\n";
+		std::string welcome1 = ":server 001 " + _reg[i]._nickname + " :Welcome to ircserv\r\n";
 		std::string welcome2 = ":server 002 " + _reg[i]._nickname + " :Your host is server\r\n";
-		std::string welcome3 = ":server 003 " + _reg[i]._nickname + " :This server was created 2026\r\n";
-		std::string welcome4 = ":server 004 " + _reg[i]._nickname + " server 1.0 o o\r\n";
+		std::string welcome3 = ":server 003 " + _reg[i]._nickname + " :This server was created in 2026\r\n";
+		std::string welcome4 = ":server 004 " + _reg[i]._nickname + " server 1.0 0 0\r\n";
 
 		send(_fds[i].fd, welcome1.c_str(), welcome1.size(), 0);
 		send(_fds[i].fd, welcome2.c_str(), welcome2.size(), 0);
@@ -210,12 +210,10 @@ void	Server::welcomeUser(int i)
 void	Server::disconnect(int i)
 {
 	std::cout << "[DISCONECT] fd = "<< _fds[i].fd << std::endl;
-//	if (_users.find(_fds[i].fd) != _users.end())
-//	{
 	std::cout << "nick=" << _users[i].getNickname() << std::endl;
-//		_users.erase(_fds[i].fd);
-	_users.erase(_users.begin() + i);
-//	}
+	//		_users.erase(_fds[i].fd);	
+	if ((_users.begin() + i) != _users.end())
+		_users.erase(_users.begin() + i);
 	// else
 	// 	_pending.erase(_fds[i].fd);
 	close(_fds[i].fd);
@@ -229,13 +227,13 @@ void Server::getMessage(std::string &line, char *buffer, int i)
 	if (_users[i].getRegistration() == false)
 	{
 		_users[i].recvBuf.append(buffer);
-    while (_users[i].getRegistration() == false)
-    {
-      std::string old = _users[i].recvBuf;
-      registerUser(i);
-      if (_users[i].recvBuf == old)
-        break ;
-    }
+		while (_users[i].getRegistration() == false)
+		{
+			std::string old = _users[i].recvBuf;
+			registerUser(i);
+			if ((size_t)i >= _users.size() || _users[i].recvBuf == old)
+				break ;
+		}
 		return;
 	}
 	line.clear();
@@ -325,6 +323,8 @@ void	Server::run()
 					buf[bytes] = 0;
 					std::cout << "raw buf: " << buf << ", bytes: " << bytes << std::endl;
 					getMessage(line, buf, i);
+					if (i >= _fds.size())
+						continue;
 				}
 			}
 		}
