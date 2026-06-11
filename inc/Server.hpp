@@ -138,8 +138,10 @@ class Server
 		void splitString(std::string line, std::vector<std::string>& av, char delim);
 
 		int getChannelIndex(const std::string name) const;
+		int getUserIndex(const std::string name) const;
 		bool doesUserExist(const std::string name) const;
 		std::string craftStringSpaces(const std::string str);
+		std::string getClientInfo(int index);
 
 };
 

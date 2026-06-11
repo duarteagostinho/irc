@@ -135,15 +135,12 @@ void	Server::run()
 					// newConnection(user_fd, user_socket, user_size);
 					newConnection(user_fd);
 
-
-
-
 // 					// THIS WHOLE PACKAGE NEEDS TO BE IN THE USER REGISTRATION !!
 					std::ostringstream ss;
 					ss << user_fd;
 					std::string new_nick = "USER#" + ss.str();
 //					User usr(user_fd, new_nick, new_nick);
-					User usr(user_fd, "chaud", "chaud");
+					User usr(user_fd, "chaud", "chaud", user_socket, user_size);
 					_users.push_back(usr);
 					// THIS WHOLE PACKAGE NEEDS TO BE IN THE USER REGISTRATION !!
 				}
@@ -273,6 +270,16 @@ int Server::getChannelIndex(const std::string name) const
 	for (size_t i = 0; i < _channels.size(); i ++)
 	{
 		if (_channels[i].getName() == name)
+			return (i);
+	}
+	return (-1);
+}
+
+int Server::getUserIndex(const std::string name) const
+{
+	for (size_t i = 0; i < _users.size(); i ++)
+	{
+		if (_users[i].getNickname() == name)
 			return (i);
 	}
 	return (-1);
