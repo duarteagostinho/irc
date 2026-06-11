@@ -110,7 +110,7 @@ void	Server::run()
 	while (true)
 	{
 		line.clear();
-		print_everything();
+		 print_everything();
 		if (poll(&_fds[0], _fds.size(), -1) == -1)
 		{
 			std::cerr << "-error: poll failure\n";
@@ -138,9 +138,9 @@ void	Server::run()
 // 					// THIS WHOLE PACKAGE NEEDS TO BE IN THE USER REGISTRATION !!
 					std::ostringstream ss;
 					ss << user_fd;
-					std::string new_nick = "USER#" + ss.str();
+					std::string new_nick = "user_" + ss.str();
 //					User usr(user_fd, new_nick, new_nick);
-					User usr(user_fd, "chaud", "chaud", user_socket, user_size);
+					User usr(user_fd, new_nick, new_nick, user_socket, user_size);
 					_users.push_back(usr);
 					// THIS WHOLE PACKAGE NEEDS TO BE IN THE USER REGISTRATION !!
 				}

@@ -61,8 +61,10 @@ const std::string Channel::getName() const
     return _name;
 }
 
-bool Channel::isOperator(std::string name) const
+bool Channel::isOperator(const std::string name) const
 {
+
+    std::cout << "SIZE: " << opFlag_users.size() << "\n\n";
     for (size_t i = 0; i < opFlag_users.size(); i++)
     {
         if (opFlag_users[i].second == name && opFlag_users[i].first == true)
@@ -128,13 +130,22 @@ void Channel::setTopic(std::string topic) {_topic = topic;}
 // void Channel::setUserLmit(int limit) {_userLimit = limit;}
 
 
-bool Channel::isUserOnChannel(std::string nick)
+bool Channel::isUserOnChannel(const std::string nick) const
 {
+    (void)nick;
+    std::cout << "size: " << opFlag_users.size() << std::endl << std::endl;
 	for (size_t i = 0; i < opFlag_users.size(); i++)
 	{
 		if (opFlag_users[i].second == nick)
 			return (true);
 	}
+
+    // for (operator_user_pair::iterator it = opFlag_users.begin(); it != opFlag_users.end(); it++){
+
+    //     std::cout << "FIRST: " << it->first << std::endl << "SECOND: " << it->second << std::endl;
+    //     if (it->second == nick)
+    //         return true;
+    // }
 	return (false);
 }
 
