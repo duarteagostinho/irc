@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/11 18:28:36 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/11 22:21:20 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -328,7 +328,7 @@ void Server::invite(std::vector<std::string>& av, int index)
 	// av[0] = whole line
 	// av[1] = nickname
 	// av[2] = channel
-	std::cout << "INDEX: " << index << std::endl << "NICKNAME: " << _users[index].getNickname() << "\n\n" << _channels[0].opFlag_users.size() << "\n\n";
+//	std::cout << "INDEX: " << index << std::endl << "NICKNAME: " << _users[index].getNickname() << "\n\n" << _channels[0].opFlag_users.size() << "\n\n";
 	if (av.size() == 1) // Missing arguments
 	{
 		std::string response = ":server 337 " + _users[index].getNickname() + " :End of Invite List\r\n";
@@ -339,12 +339,12 @@ void Server::invite(std::vector<std::string>& av, int index)
 		std::string response = ":server 461 " + _users[index].getNickname() + " INVITE :Not enough parameters\r\n";
 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 	}
-	else if (doesUserExist(av[1]))
+	else if (!doesUserExist(av[1]))
 	{
 		std::string response = ":server 401 " + _users[index].getNickname() + " " + av[2] +  " :No such nick\r\n";
 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 	}
-	else if (isChannel(av[2]))
+	else if (!isChannel(av[2]))
 	{
 		std::string response = ":server 403 " + _users[index].getNickname() + " " + av[2] + " :No such channel\r\n";
 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
@@ -364,7 +364,7 @@ void Server::invite(std::vector<std::string>& av, int index)
 	else
 	{
 		// :Aurora.AfterNET.Org 341 alo chaud #a // SENDER GETS THIS
-		std::string sender_response = ":server 341" + _users[index].getNickname() + " " + av[1] + " " + av[2] + "\r\n";
+		std::string sender_response = ":server 341 " + _users[index].getNickname() + " " + av[1] + " " + av[2] + "\r\n";
 		send(_fds[index].fd, sender_response.c_str(), sender_response.size() + 1, 0);
 
 		// :chaud2!vloureir@81C240:F52884:7D2707:482FF6:IP INVITE vini #42 // RECEIVER GETS THIS

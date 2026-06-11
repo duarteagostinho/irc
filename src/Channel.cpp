@@ -2,20 +2,34 @@
 
 // DEL
 
+// void Channel::print_users(void)
+// {
+//     std::cout << "user size: " << opFlag_users.size() << std::endl;
+
+//     for (size_t i = 0; i < opFlag_users.size(); i++)
+//     {
+//         std::cout << "user: " << opFlag_users[i].second;
+//         std::cout << ", op: ";
+//         if (opFlag_users[i].first)
+//             std::cout << "true";
+//         else
+//             std::cout << "false";
+//         std::cout << std::endl;
+//     }
+// }
+
 void Channel::print_users(void)
 {
-    std::cout << "user size: " << opFlag_users.size() << std::endl;
-
-    for (size_t i = 0; i < opFlag_users.size(); i++)
-    {
-        std::cout << "user: " << opFlag_users[i].second;
+	for (std::map<std::string, bool>::iterator it = _users_op.begin(); it != _users_op.end(); it++)
+	{
+		std::cout << "user: " << it->first;
         std::cout << ", op: ";
-        if (opFlag_users[i].first)
+        if (it->second)
             std::cout << "true";
         else
             std::cout << "false";
         std::cout << std::endl;
-    }
+	}
 }
 
 // Orthodox Cannonical Form
@@ -50,6 +64,7 @@ Channel &Channel::operator=(const Channel &other)
         _topic = other._topic;
 		_pass = other._pass;
         opFlag_users = other.opFlag_users;
+		_users_op = other._users_op;
         _invited = other._invited;
     }
     return *this;
@@ -61,17 +76,74 @@ const std::string Channel::getName() const
     return _name;
 }
 
-bool Channel::isOperator(const std::string name) const
-{
+// bool Channel::isOperator(const std::string name) const
+// {
 
-    std::cout << "SIZE: " << opFlag_users.size() << "\n\n";
-    for (size_t i = 0; i < opFlag_users.size(); i++)
-    {
-        if (opFlag_users[i].second == name && opFlag_users[i].first == true)
-            return (true);
-    }
-    return (false);
+//     std::cout << "SIZE: " << opFlag_users.size() << "\n\n";
+//     for (size_t i = 0; i < opFlag_users.size(); i++)
+//     {
+//         if (opFlag_users[i].second == name && opFlag_users[i].first == true)
+//             return (true);
+//     }
+//     return (false);
+// }
+
+
+
+
+
+
+
+
+
+bool Channel::isOperator(const std::string nick) const
+{
+	std::map<std::string, bool>::const_iterator it = _users_op.find(nick);
+
+	if (it != _users_op.end() && it->second == true)
+		return (true);
+	return (false);
 }
+
+bool Channel::isUserOnChannel(const std::string nick) const
+{
+	std::cout << "WTF IS GOING ON??" << std::endl;
+	std::cout << nick << std::endl;
+
+	if (_users_op.find(nick) != _users_op.end())
+		return (true);
+	return (false);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+std::string Channel::usersFormated(void)
+{
+	std::string ret;
+
+	for (std::map<std::string, bool>::const_iterator it = _users_op.begin(); it != _users_op.end(); it++)
+	{
+		if (it->second)
+            ret += '@';
+		ret += it->first + ' ';
+	}
+	return (ret);
+}
+
+
+
+
+
+
 
 bool Channel::hasInvite(std::string nick)
 {
@@ -130,77 +202,59 @@ void Channel::setTopic(std::string topic) {_topic = topic;}
 // void Channel::setUserLmit(int limit) {_userLimit = limit;}
 
 
-bool Channel::isUserOnChannel(const std::string nick) const
-{
-    (void)nick;
-    std::cout << "size: " << opFlag_users.size() << std::endl << std::endl;
-	for (size_t i = 0; i < opFlag_users.size(); i++)
-	{
-		if (opFlag_users[i].second == nick)
-			return (true);
-	}
+// bool Channel::isUserOnChannel(const std::string nick) const
+// {
+//     (void)nick;
+//     std::cout << "size: " << opFlag_users.size() << std::endl << std::endl;
+// 	for (size_t i = 0; i < opFlag_users.size(); i++)
+// 	{
+// 		if (opFlag_users[i].second == nick)
+// 			return (true);
+// 	}
 
-    // for (operator_user_pair::iterator it = opFlag_users.begin(); it != opFlag_users.end(); it++){
+//     // for (operator_user_pair::iterator it = opFlag_users.begin(); it != opFlag_users.end(); it++){
 
-    //     std::cout << "FIRST: " << it->first << std::endl << "SECOND: " << it->second << std::endl;
-    //     if (it->second == nick)
-    //         return true;
-    // }
-	return (false);
-}
+//     //     std::cout << "FIRST: " << it->first << std::endl << "SECOND: " << it->second << std::endl;
+//     //     if (it->second == nick)
+//     //         return true;
+//     // }
+// 	return (false);
+// }
 
 // What was this for? Print users name list no?
-std::string Channel::usersFormated(void)
-{
-    std::string ret;
 
-    for (size_t i = 0; i < opFlag_users.size(); i++)
-    {
-        
-    }
-    return (ret);
-}
 
 void Channel::rmUser(std::string& nick)
 {
-    size_t i = 0;
-    for ( ; i < opFlag_users.size(); i++)
-    {
-        if (opFlag_users[i].second == nick)
-            break ;
-    }
-    opFlag_users.erase(opFlag_users.begin() + i);
     std::cout << "User removed from " << _name << std::endl; // BROADCAST TO CHANNEL !!!
+
+	// std::map<std::string, bool>::const_iterator it = _users_op.find(nick);
+
+	// if (_users_op.find(nick) != _users_op.end())
+	// 	_users_op.erase(it);
+	_users_op.erase(nick);
 }
 
-void Channel::addUser(const std::string& nick, int flag)
+void Channel::addUser(const std::string& nick, bool flag)
 {
-    std::pair<int, std::string> new_user;
-
-    for (size_t i = 0; i < opFlag_users.size(); i++)
-    {
-        if (opFlag_users[i].second == nick)
-            return ;
-    }
-    new_user.first = flag;
-    new_user.second = nick;
-    opFlag_users.push_back(new_user);
+	if (_users_op.find(nick) != _users_op.end())
+		return ;
+	_users_op.insert(std::make_pair(nick, flag));
 }
 
 void Channel::addOperator(std::string& nick)
 {
-    for (size_t i = 0; i < opFlag_users.size(); i++)
-    {
-        if (opFlag_users[i].second == nick)
-            opFlag_users[i].first = 1;
-    }
+	std::map<std::string, bool>::iterator it = _users_op.find(nick);
+
+	if (_users_op.find(nick) != _users_op.end())
+		it->second = true;
+
 }
 
 void Channel::rmOperator(std::string &nick)
 {
-    for (size_t i = 0; i < opFlag_users.size(); i++)
-    {
-        if (opFlag_users[i].second == nick)
-            opFlag_users[i].first = 0;
-    }
+	std::map<std::string, bool>::iterator it = _users_op.find(nick);
+
+	if (_users_op.find(nick) != _users_op.end())
+		it->second = false;
 }
