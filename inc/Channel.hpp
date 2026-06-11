@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <map>
 
-typedef std::vector<std::pair<int, std::string> > operator_user_pair;
+typedef std::vector<std::pair<bool, std::string> > operator_user_pair;
 
 class Channel
 {
@@ -16,13 +16,13 @@ class Channel
         std::string                 _name;
         std::string                 _topic;
 		std::string                 _pass;
-        operator_user_pair          opFlag_users;
-
+        
         // Add any invited user to this vector, once it joins the channel, remove from here
         std::vector<std::string>    _invited;
-
-
-    public:
+        
+        
+        public:
+        operator_user_pair          opFlag_users;
         Channel();
         Channel(std::string name);
         Channel(const Channel &other);
@@ -40,10 +40,10 @@ class Channel
         const std::vector<std::string>  getUsers() const;
 
 
-
+        std::string         usersFormated(void);
 
         const std::string   getName() const;
-        bool                isOperator(std::string name) const;
+        bool                isOperator(const std::string name) const;
 
         void                addOperator(std::string& nick);
         void                rmOperator(std::string& nick);
@@ -55,6 +55,7 @@ class Channel
 
 
 		bool				hasInvite(std::string nick);
+		bool				isUserOnChannel(const std::string nick) const;
 
         void print_users(void);
 

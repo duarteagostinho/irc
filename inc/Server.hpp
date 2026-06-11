@@ -86,7 +86,6 @@ class Server
 
 		std::vector<struct pollfd>	_fds;
 		std::vector<Channel>		_channels;
-//		std::vector<std::string>	_nick; // Change this to be the User
 		std::vector<User>			_users;
 
 	public:
@@ -119,22 +118,30 @@ class Server
 
 		const std::vector<Channel> &getChannel(void) const;
 
-
-
 		// CMDS
 		void	exec_cmd(std::string line, int index);
-		int		check_cmd(std::string line, std::vector<std::string>& av);
+		int		check_cmd(std::string &line, std::vector<std::string>& av);
 		
 		void	kick(std::vector<std::string>& av, int index);
 		void	invite(std::vector<std::string>& av, int index);
-		void	topic(std::string data, int index);
+		void	topic(std::vector<std::string>& av, int index);
 		void	mode(void);
 		void	join(std::vector<std::string>& av, int index);
 
 		// DEL
 		void print_everything(void);
 
+		std::string usersPreChannelFormated(std::string name);
 
+
+		bool isChannel(std::string name);
+		void splitString(std::string line, std::vector<std::string>& av, char delim);
+
+		int getChannelIndex(const std::string name) const;
+		int getUserIndex(const std::string name) const;
+		bool doesUserExist(const std::string name) const;
+		std::string craftStringSpaces(const std::string str);
+		std::string getClientInfo(int index);
 
 };
 
