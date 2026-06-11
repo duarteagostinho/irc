@@ -112,7 +112,9 @@ int		Server::getPort(void) const
 {
 	return (_port); 
 }
-
+ /*
+ 	Creates new client_fd and default user, adds them to the respective vectors.
+ */  
 void	Server::newConnection(int fd)
 {
 	struct pollfd client;
@@ -126,7 +128,9 @@ void	Server::newConnection(int fd)
 	std::cout << "[CONNECT] fd = "<< fd << std::endl;
 	return ;
 }
-
+/*
+	Uses the data, stored in user buffer, to parse the login credentials. Uses RFC protocol to also register user in Hexchat Client format.
+*/
 void	Server::registerUser(int i)
 {
 	std::string	cmdline = _users[i].recvBuf;
@@ -157,7 +161,6 @@ void	Server::registerUser(int i)
 	}
 	if (cmd == "PASS")
 	{
-		std::cout << "[DEBUG] fd=" << i << ", cmd=" << cmd << ", value=" << value << std::endl;
 		if (value != _password)
 		{
 			sendError(i, 464, "*", ERR_PASSWDMISMATCH);
@@ -171,7 +174,6 @@ void	Server::registerUser(int i)
 		return ;
 	if (cmd == "NICK")
 	{
-		std::cout << "[DEBUG] fd=" << i << ", cmd=" << cmd << ", value=" << value << std::endl;
 		if (nickInUse(value) == true)
 		{
 			sendError(i, 433, value, ERR_NICKNAMEINUSE);
@@ -180,10 +182,7 @@ void	Server::registerUser(int i)
 		_reg[i]._nickname = value;
 	}
 	if (cmd == "USER")
-	{
-		std::cout << "[DEBUG] fd=" << i << ", cmd=" << cmd << ", value=" << value << std::endl;
 		_reg[i]._username = value;
-	}
 	if (!_reg[i]._pass.empty() && !_reg[i]._username.empty() && !_reg[i]._nickname.empty())
 	{
 		_users[i] = User(_fds[i].fd, _reg[i]._nickname, _reg[i]._username);
@@ -222,7 +221,9 @@ void	Server::disconnect(int i)
 	close(_fds[i].fd);
 	_fds.erase(_fds.begin() + i);
 }
-
+/*
+	Parses every message sent on the server. Checks for unregistered users before parsing what command has to be executed.
+*/
 void Server::getMessage(std::string &line, char *buffer, int i)
 {
 	if (_users[i].getRegistration() == false)
@@ -305,8 +306,6 @@ void	Server::run()
 						perror("accept()");
 						continue;
 					}
-					// Create user inside, after gathering the nick and username
-					// newConnection(user_fd, user_socket, user_size);
 					newConnection(user_fd);
 				}
 				else // Existing user message 
@@ -325,7 +324,6 @@ void	Server::run()
 					}
 					buf[bytes] = 0;
 					std::cout << "raw buf: " << buf << ", bytes: " << bytes << std::endl;
-//					userMessage(_fds[i].fd, buf, bytes);
 					getMessage(line, buf, i);
 				}
 			}
