@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/12 19:54:45 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/12 22:33:27 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,7 +119,7 @@ void Server::join(std::vector<std::string>& av, int index)
 				broadcastMessage(_channels[i], response3, index, 1);
 //				send(_fds[index].fd, response3.c_str(), response3.size(), 0);
 
-				std::string response4 = ":irc_server 366 " + _users[index].getNickname() + " " + av[1] + ":End of /NAMES list\r\n"; 
+				std::string response4 = ":irc_server 366 " + _users[index].getNickname() + " " + av[1] + " :End of /NAMES list\r\n"; 
 				broadcastMessage(_channels[i], response4, index, 1);
 //				send(_fds[index].fd, response4.c_str(), response4.size(), 0);
 				
@@ -259,7 +259,7 @@ void Server::kick(std::vector<std::string>& av, int index)
 	}
 	else
 	{
-		std::string response = getClientInfo(index) + " KICK " + av[1] + " :" + craftStringSpaces(av[0], 3);
+		std::string response = getClientInfo(index) + " KICK " + av[1] + " " + av[2]  + " :" + craftStringSpaces(av[0], 3) + "\r\n";
 		broadcastMessage(_channels[getChannelIndex(av[1])], response, index, 1);
 //		send(_fds[index].fd, response.c_str(), response.size(), 0);
 		_channels[getChannelIndex(av[1])].rmUser(av[2]);
@@ -441,13 +441,13 @@ std::string Server::getClientInfo(int index)
 */
 void Server::broadcastMessage(Channel &channel, std::string message, int index, int flag)
 {
+	if (flag)
+		send(_fds[index].fd, message.c_str(), message.size(), 0);
 	for (size_t i = 1; i < _fds.size(); i++)
 	{
 		if (_fds[i].fd != _fds[index].fd && channel.isUserOnChannel(_users[i].getNickname())) // Send to every fd that is not mine
 				send(_fds[i].fd, message.c_str(), message.size(), 0);
 	}
-	if (flag)
-		send(_fds[index].fd, message.c_str(), message.size(), 0);
 }
 
 
@@ -565,7 +565,7 @@ void	Server::privmsg(std::vector<std::string>& av, int index)
 			else
 			{
 				std::cout << "aaaaa" << std::endl;
-				std::string response = craftStringSpaces(av[0], 2);
+				std::string response = craftStringSpaces(av[0], 2) + "\r\n";
 				if (channel == true)
 					broadcastMessage(_channels[getChannelIndex(targets[i])], response, index, 0);
 				else
