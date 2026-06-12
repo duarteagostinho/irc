@@ -120,8 +120,9 @@ class Server
 		int getChannelIndex(const std::string name) const;
 		int getUserIndex(const std::string name) const;
 		bool doesUserExist(const std::string name) const;
-		std::string craftStringSpaces(const std::string str);
+		std::string craftStringSpaces(const std::string str, int times);
 		std::string getClientInfo(int index);
+		void broadcastMessage(std::string message, int index, int flag);
 
 };
 

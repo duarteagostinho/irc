@@ -322,37 +322,42 @@ void	Server::run()
 	}
 }
 
-bool	Server::isChannel(std::string name)
-{
-	return (!name.empty() && name[0] == '#');
-}
-
-int	Server::getChannelIndex(const std::string name) const
+bool Server::isChannel(std::string name)
 {
 	for (size_t i = 0; i < _channels.size(); i++)
 	{
 		if (_channels[i].getName() == name)
-			return i;
+			return (true);
 	}
-	return -1;
+	return (false);
 }
 
-int	Server::getUserIndex(const std::string name) const
+int Server::getChannelIndex(const std::string name) const
 {
-	for (size_t i = 0; i < _users.size(); i++)
+	for (size_t i = 0; i < _channels.size(); i ++)
 	{
-		if (_users[i].getNickname() == name)
-			return i;
+		if (_channels[i].getName() == name)
+			return (i);
 	}
-	return -1;
+	return (-1);
 }
 
-bool	Server::doesUserExist(const std::string name) const
+int Server::getUserIndex(const std::string name) const
 {
-	for (size_t i = 0; i < _users.size(); i++)
+	for (size_t i = 0; i < _users.size(); i ++)
 	{
 		if (_users[i].getNickname() == name)
-			return true;
+			return (i);
 	}
-	return false;
+	return (-1);
+}
+
+bool Server::doesUserExist(const std::string name) const
+{
+	for (size_t i = 0; i < _users.size(); i ++)
+	{
+		if (_users[i].getNickname() == name)
+			return (true);
+	}
+	return (false);
 }
