@@ -122,8 +122,8 @@ class Server
 		bool doesUserExist(const std::string name) const;
 		std::string craftStringSpaces(const std::string str, int times);
 		std::string getClientInfo(int index);
-		void broadcastMessage(std::string message, int index, int flag);
 
+		void broadcastMessage(Channel &channel, std::string message, int index, int flag);
 };
 
 // Stream Operator Overload
