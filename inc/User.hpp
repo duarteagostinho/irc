@@ -5,6 +5,7 @@
 # include <string>
 # include <sys/socket.h>
 # include <netinet/in.h>
+# include <arpa/inet.h>
 
 class User
 {
@@ -21,7 +22,8 @@ class User
 		std::string recvBuf;
 
 		User();
-		User(int fd, std::string nick, std::string user);
+		User(int fd, std::string nick, std::string name);
+		User(int fd, std::string nick, std::string user, struct sockaddr_in	addr, socklen_t size);
 		User(User const & src);
 		~User();
 		User &operator=(const User &src);
@@ -33,6 +35,8 @@ class User
 		
 		void	Register(void);
 		bool	getRegistration(void) const;
+
+		std::string getAddress(void);
 
 };
 

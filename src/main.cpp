@@ -48,8 +48,12 @@ int main(int argc, char **argv)
 	server.setPassword(argv[2]);
 	
     if (!server.init())
-        return 1;
+	{	
+		return 1;
+	}  
+	server.run();
+
 	// create a signal handler for ctrl c ?
-    server.run();
+    
     return 0;
 }

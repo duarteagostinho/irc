@@ -283,7 +283,7 @@ void	Server::run()
 	while (true)
 	{
 		line.clear();
-		print_everything();
+		 print_everything();
 		if (poll(&_fds[0], _fds.size(), -1) == -1)
 		{
 			std::cerr << "-error: poll failure\n";
@@ -331,3 +331,75 @@ void	Server::run()
 	}
 }
 
+void	Server::setPort(int port)
+{
+	_port = port;
+}
+
+int		Server::getPort(void) const
+{
+	return (_port); 
+}
+
+void	Server::newConnection(int fd)
+{
+	struct pollfd client;
+	client.fd = fd;
+	client.events = POLLIN;
+	client.revents = 0;
+	_fds.push_back(client);
+
+	std::cout << "[CONNECT] fd = "<< fd << std::endl;
+	return ;
+}
+
+void	Server::disconnect(int i)
+{
+	std::cout << "[DISCONECT] fd = "<< _fds[i].fd << std::endl;
+//	if (_users.find(_fds[i].fd) != _users.end())
+//	{
+	std::cout << "nick=" << _users[i].getNickname() << std::endl;
+//		_users.erase(_fds[i].fd);
+	_users.erase(_users.begin() + i);
+//	}
+	// else
+	// 	_pending.erase(_fds[i].fd);
+	close(_fds[i].fd);
+	_fds.erase(_fds.begin() + i);
+}
+
+void Server::getMessage(std::string &line, char *buffer, int i)
+{
+	std::cout << std::endl;
+	// for (size_t i = 0; i < line.size(); i++)
+	// 	std::cout << "line in: " << (int)line[i] << std::endl;
+	line.append(buffer);
+	size_t find = line.find("\r\n");
+	if (find != std::string::npos)
+	{
+		// Do stuff
+//		line.erase(find, 2);
+
+		// parse and execute commands here
+		exec_cmd(line, i);
+		
+
+		// THIS LOOP IS JUST SENDING THE MESSAGE AND NICK BACK TO EACH OTHER CLIENT
+		for (size_t j = 1; j < _fds.size(); j++) // start at 1 to always ignore the listening socket
+		{
+			std::ostringstream ss;
+			std::string str;
+			ss << _users[i].getNickname() << ": " << line << "\r\n";
+			str = ss.str();
+
+			if (_fds[i].fd != _fds[j].fd) // Send to every fd that is not mine
+				send(_fds[j].fd, str.c_str(), str.size() + 1, 0);
+		}
+		// Reset string
+	}
+}
+
+void	Server::setPassword(char *pass)
+{
+	_password = pass;
+}

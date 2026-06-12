@@ -26,6 +26,14 @@ const std::string&	User::getUsername() const
 	return _username;
 }
 
+
+std::string User::getAddress(void)
+{
+	char *str = inet_ntoa(_address.sin_addr);
+	return (str);
+}
+
+
 // Orthodox Cannonical Form
 User::User()
 : _fd(-1), _nickname(""), _username(""), _registered(false)
@@ -34,15 +42,20 @@ User::User()
 }
 
 User::User(int fd, std::string nick, std::string name)
-: _fd(fd), _nickname(nick), _username(name), _registered(false)
+: _fd(fd), _nickname(nick), _username(name),_registered(false)
+{
+
+}
+
+User::User(int fd, std::string nick, std::string name, struct sockaddr_in	addr, socklen_t size)
+: _fd(fd), _nickname(nick), _username(name), _address(addr), _addr_size(size), _registered(false)
 {
 
 }
 
 User::User(const User &other)
-: _fd(other._fd), _nickname(other._nickname), _username(other._username), _registered(other._registered)
 {
-
+	*this = other;
 }
 
 User::~User()
@@ -61,5 +74,4 @@ User &User::operator=(const User &src) {
     }
     return *this;
 }
-
 
