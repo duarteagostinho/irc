@@ -22,8 +22,9 @@
 #include <cerrno>
 #include <stdio.h>
 #include <sstream>
-# include <fcntl.h>
-# include "User.hpp"
+#include <fcntl.h>
+#include <signal.h>
+#include "User.hpp"
 
 // NEW
 # include <poll.h>
@@ -61,6 +62,9 @@
 		close()		  -- Clean up socket
 */
 
+
+
+
 class Server
 {
 
@@ -89,6 +93,8 @@ class Server
 		std::vector<User>			_users;
 
 	public:
+		volatile sig_atomic_t		_exit_status;
+
         // Constructors & Destructor
         Server();									// Default
         Server(const Server &src);					// Copy
@@ -143,9 +149,16 @@ class Server
 		std::string craftStringSpaces(const std::string str);
 		std::string getClientInfo(int index);
 
+	//SIGNAL Handler
+		// static void handler(int sig);
+
+	//FD cleanup after SIGNAL
+		void cleanup(void);
 };
 
 // Stream Operator Overload
 std::ostream &operator<<(std::ostream &o, const Server &i);
+
+
 
 #endif

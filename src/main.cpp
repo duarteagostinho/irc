@@ -40,6 +40,7 @@ void args_check(Server &server, int argc, char **argv)
 	}
 }
 
+
 int main(int argc, char **argv)
 {
 	Server server;
@@ -50,10 +51,11 @@ int main(int argc, char **argv)
     if (!server.init())
 	{	
 		return 1;
-	}  
+	}
 	server.run();
-
-	// create a signal handler for ctrl c ?
-    
     return 0;
 }
+
+//pode se user write, _exit 
+
+//nao se pode user close, read, print, new delete
