@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Commands.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
+/*   By: duandrad <duandrad@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/12 07:52:25 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/12 17:01:29 by duandrad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,13 +78,13 @@ void Server::join(std::vector<std::string>& av, int index)
 	if (av.size() == 1) // Missing arguments
 	{
 		std::string response = JOIN_USAGE;
-		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
 		return ;
 	}
 	else if (av[1][0] != '#') // Missing correct server name format
 	{
 		std::string response = "** - " + av[1] + ": No such channel\r\n";
-		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
 		return ;
 	}
 	for (size_t i = 0; i < _channels.size(); i++) // Seeing if the channel already exists
@@ -95,28 +95,28 @@ void Server::join(std::vector<std::string>& av, int index)
 			if (!_channels[i].hasInvite(_users[index].getNickname()) && "" != _channels[i].getPass() && av[2] != _channels[i].getPass())
 			{
 				std::string response = "Cannot join " + av[1] + " (Requires keyword)\r\n";
-				send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+				send(_fds[index].fd, response.c_str(), response.size(), 0);
 			}
 			else // If invited, no pass or pass was correct, enter channel
 			{
 				_channels[i].addUser(_users[index].getNickname(), 0);
 
 				std::string response1 = ":" + _users[index].getNickname() + " JOIN " + av[1] + "\r\n";
-				send(_fds[index].fd, response1.c_str(), response1.size() + 1, 0);
+				send(_fds[index].fd, response1.c_str(), response1.size(), 0);
 
 				if (_channels[i].getTopic() != "")
 				{
 					std::string response2 = ":server 332 " + _users[index].getNickname() + " " + av[1] + " :" + _channels[i].getTopic() + "\r\n";
-					send(_fds[index].fd, response2.c_str(), response2.size() + 1, 0);
+					send(_fds[index].fd, response2.c_str(), response2.size(), 0);
 
 					response2 = ":server 333 " + _users[index].getNickname() + " " + av[1] + " " + getClientInfo(index) + " 0\r\n"; // timestamp ex: 1781075528
-					send(_fds[index].fd, response2.c_str(), response2.size() + 1, 0);
+					send(_fds[index].fd, response2.c_str(), response2.size(), 0);
 				}
 				std::string response3 = ":server 353 " + _users[index].getNickname() + " = " + av[1] + " :" + _channels[i].usersFormated() + "\r\n";
-				send(_fds[index].fd, response3.c_str(), response3.size() + 1, 0);
+				send(_fds[index].fd, response3.c_str(), response3.size(), 0);
 
 				std::string response4 = ":server 366 " + _users[index].getNickname() + " " + av[1] + ":End of /NAMES list\r\n"; 
-				send(_fds[index].fd, response4.c_str(), response4.size() + 1, 0);
+				send(_fds[index].fd, response4.c_str(), response4.size(), 0);
 
 			}
 			return ; // If there was a channel with that name, we either fail to enter or enter it
@@ -128,13 +128,13 @@ void Server::join(std::vector<std::string>& av, int index)
 	_channels[x].addUser(_users[index].getNickname(), 1);
 
 	std::string response1 = getClientInfo(index) + " JOIN " + av[1] + "\r\n";
-	send(_fds[index].fd, response1.c_str(), response1.size() + 1, 0);
+	send(_fds[index].fd, response1.c_str(), response1.size(), 0);
 
 	std::string response3 = ":server 353 " + _users[index].getNickname() + " = " + av[1] + " :@" + _users[index].getNickname() + "\r\n";
-	send(_fds[index].fd, response3.c_str(), response3.size() + 1, 0);
+	send(_fds[index].fd, response3.c_str(), response3.size(), 0);
 
 	std::string response4 = ":server 366 " + _users[index].getNickname() + " " + av[1] + " :End of /NAMES list\r\n"; 
-	send(_fds[index].fd, response4.c_str(), response4.size() + 1, 0);
+	send(_fds[index].fd, response4.c_str(), response4.size(), 0);
 }
 
 // void Server::join(std::vector<std::string>& av, int index)
@@ -142,13 +142,13 @@ void Server::join(std::vector<std::string>& av, int index)
 // 	if (av.size() == 1) // Missing arguments
 // 	{
 // 		std::string response = ":server 461 <nickname> JOIN :Not enough parameters\r\n";
-// 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+// 		send(_fds[index].fd, response.c_str(), response.size(), 0);
 // 		return ;
 // 	}
 // 	else if (av[1][0] != '#') // Missing correct server name format
 // 	{
 // 		std::string response = ":server 403 <nickname> av[1] :No such channel\r\n";
-// 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+// 		send(_fds[index].fd, response.c_str(), response.size(), 0);
 // 		return ;
 // 	}
 // 	else
@@ -175,27 +175,27 @@ void Server::join(std::vector<std::string>& av, int index)
 // 			if (!_channels[i].hasInvite(_users[index].getNickname()) && "" != _channels[i].getPass() && av[2] != _channels[i].getPass())
 // 			{
 // 				std::string response = "Cannot join " + av[1] + " (Requires keyword)\r\n";
-// 				send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+// 				send(_fds[index].fd, response.c_str(), response.size(), 0);
 // 			}
 // 			else // If invited, no pass or pass was correct, enter channel
 // 			{
 // 				_channels[i].addUser(_users[index].getNickname(), 0);
 // 				std::string response1 = ":" + _users[index].getNickname() + " JOIN " + av[1] + "\r\n";
-// 				send(_fds[index].fd, response1.c_str(), response1.size() + 1, 0);
+// 				send(_fds[index].fd, response1.c_str(), response1.size(), 0);
 
 // 				std::string response2 = "332 " + _users[index].getNickname() + " " + av[1] + " :Hello world\r\n";
-// 				send(_fds[index].fd, response2.c_str(), response2.size() + 1, 0);
+// 				send(_fds[index].fd, response2.c_str(), response2.size(), 0);
 
 // 				std::string response3 = "353 " + _users[index].getNickname() + " = " + av[1] + ":+o" + _users[index].getNickname() + "\r\n";
-// 				send(_fds[index].fd, response3.c_str(), response3.size() + 1, 0);
+// 				send(_fds[index].fd, response3.c_str(), response3.size(), 0);
 
 // 				std::string response4 = "366 " + _users[index].getNickname() + " " + av[1] + ":End of /NAMES list\r\n"; 
-// 				send(_fds[index].fd, response4.c_str(), response4.size() + 1, 0);
+// 				send(_fds[index].fd, response4.c_str(), response4.size(), 0);
 
 // 				// std::string response = "Now talking on " + av[1] + "\r\n";
 // 				// if (_channels[i].getTopic() != "")
-// 				// 	send(_fds[index].fd, _channels[i].printTopic().c_str(), _channels[i].printTopic().size() + 1, 0);
-// 				// send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+// 				// 	send(_fds[index].fd, _channels[i].printTopic().c_str(), _channels[i].printTopic().size(), 0);
+// 				// send(_fds[index].fd, response.c_str(), response.size(), 0);
 // 			}
 // 			return ; // If there was a channel with that name, we either fail to enter or enter it
 // 		}
@@ -207,20 +207,20 @@ void Server::join(std::vector<std::string>& av, int index)
 
 
 // 	std::string response1 = ":chaud!vini@10.12.3.12 JOIN " + av[1] + "\r\n";
-// 	send(_fds[index].fd, response1.c_str(), response1.size() + 1, 0);
+// 	send(_fds[index].fd, response1.c_str(), response1.size(), 0);
 
 // 	// std::string response2 = ":10.12.3.12 332 " + _users[index].getNickname() + " " + av[1] + " :Hello world\r\n";
-// 	// send(_fds[index].fd, response2.c_str(), response2.size() + 1, 0);
+// 	// send(_fds[index].fd, response2.c_str(), response2.size(), 0);
 
 // 	std::string response3 = ":ft_irc 353 " + _users[index].getNickname() + " = " + av[1] + " :@" + _users[index].getNickname() + "\r\n";
-// 	send(_fds[index].fd, response3.c_str(), response3.size() + 1, 0);
+// 	send(_fds[index].fd, response3.c_str(), response3.size(), 0);
 
 // 	std::string response4 = ":ft_irc 366 " + _users[index].getNickname() + " " + av[1] + " :End of /NAMES list\r\n"; 
-// 	send(_fds[index].fd, response4.c_str(), response4.size() + 1, 0);
+// 	send(_fds[index].fd, response4.c_str(), response4.size(), 0);
 
 // 	std::cout << "printing responses:\n" << response1 << response3 + response4 << std::endl;
 // 	// std::string response2 = "Now talking on " + av[1] + "\r\n";
-// 	// send(_fds[index].fd, response2.c_str(), response2.size() + 1, 0);
+// 	// send(_fds[index].fd, response2.c_str(), response2.size(), 0);
 // }
 
 
@@ -234,27 +234,27 @@ void Server::kick(std::vector<std::string>& av, int index)
 	if (av.size() < 3) // Missing arguments
 	{
 		std::string response = ":server 461 <nickname> KICK :Not enough parameters\r\n";
-		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else if (!isChannel(av[1]))
 	{
 		std::string response = ":server 403 <nickname> av[1] :No such channel\r\n";
-		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else if (!_channels[getChannelIndex(av[1])].isOperator(_users[index].getNickname()))
 	{
 		std::string response = ":server 482 <nickname> av[1] :You're not channel operator\r\n";
-		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else if (!_channels[getChannelIndex(av[1])].isUserOnChannel(av[2]))
 	{
 		std::string response = ":server 401 <nickname> av[2] :No such nick\r\n";
-		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else
 	{
 		std::string response = getClientInfo(index) + " KICK " + av[1] + " :" + craftStringSpaces(av[0]);
-		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
 		_channels[getChannelIndex(av[1])].rmUser(av[2]);
 		_channels[getChannelIndex(av[1])].rmOperator(av[2]);
 		// BROADCAST TO THE WHOLE CHANNEL THE NEW TOPIC
@@ -272,7 +272,7 @@ void Server::topic(std::vector<std::string>& av, int index)
 	if (av.size() == 1) // Missing arguments
 	{
 		std::string response = ":server 461 " + _users[index].getNickname() + " TOPIC :Not enough parameters\r\n";
-		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
 		return ;
 	}
 	// Split the channels argument and loop through them to check every channel received
@@ -282,28 +282,28 @@ void Server::topic(std::vector<std::string>& av, int index)
 		if (!isChannel(channels[i]))
 		{
 			std::string response = ":server 403 " + _users[index].getNickname() + " " + channels[i] + " :No such channel\r\n";
-			send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+			send(_fds[index].fd, response.c_str(), response.size(), 0);
 		}
 		else if (av.size() == 2) // Print topic
 		{
 			if (_channels[getChannelIndex(channels[i])].getTopic() == "")
 			{
 				std::string response =":server 331 " + _users[index].getNickname() + " " + channels[i] + " :No topic is set\r\n";
-				send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+				send(_fds[index].fd, response.c_str(), response.size(), 0);
 			}
 			else
 			{
 				std::string response = ":server 332 " + _users[index].getNickname() + " " + channels[i] + " :" + _channels[getChannelIndex(channels[i])].getTopic() + "\r\n";
-				send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+				send(_fds[index].fd, response.c_str(), response.size(), 0);
 				
 				response = ":server 333 " + _users[index].getNickname() + " " + channels[i] + " " + getClientInfo(index) + " 0\r\n"; // timestamp ex: 1781075528	
-				send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+				send(_fds[index].fd, response.c_str(), response.size(), 0);
 			}
 		}
 		else if (!_channels[getChannelIndex(channels[i])].isOperator(_users[index].getNickname()))
 		{
 			std::string response = ":server 482 " + _users[index].getNickname() + " " + channels[i] + " :You're not channel operator\r\n";
-			send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+			send(_fds[index].fd, response.c_str(), response.size(), 0);
 		}
 		else
 		{
@@ -312,7 +312,7 @@ void Server::topic(std::vector<std::string>& av, int index)
 //			std::cout << new_topic << std::endl;
 			// BROADCAST TO THE WHOLE CHANNEL THE NEW TOPIC
 			std::string response = getClientInfo(index) + " TOPIC " + av[1] + " :" + new_topic + "\r\n";
-			send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+			send(_fds[index].fd, response.c_str(), response.size(), 0);
 		}
 	}
 }
@@ -326,44 +326,44 @@ void Server::invite(std::vector<std::string>& av, int index)
 	if (av.size() == 1) // Missing arguments
 	{
 		std::string response = ":server 337 " + _users[index].getNickname() + " :End of Invite List\r\n";
-		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else if (av.size() < 3)
 	{
 		std::string response = ":server 461 " + _users[index].getNickname() + " INVITE :Not enough parameters\r\n";
-		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else if (!doesUserExist(av[1]))
 	{
 		std::string response = ":server 401 " + _users[index].getNickname() + " " + av[2] +  " :No such nick\r\n";
-		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else if (!isChannel(av[2]))
 	{
 		std::string response = ":server 403 " + _users[index].getNickname() + " " + av[2] + " :No such channel\r\n";
-		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	// CHECK IF USER IS ALREADY ON CHANNEL
 	else if (_channels[getChannelIndex(av[2])].isUserOnChannel(av[1]))
 	{
 		// :luna.AfterNET.Org 443 jinx vini #42 :is already on channel
 		std::string response = ":server 443 " + _users[index].getNickname() + " " + av[1] + " " + av[2] + " :is already on channel\r\n";
-		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else if (!_channels[getChannelIndex(av[2])].isOperator(_users[index].getNickname()))
 	{
 		std::string response = ":server 482 " + _users[index].getNickname() + " " + av[2] + " :You're not channel operator\r\n";
-		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else
 	{
 		// :Aurora.AfterNET.Org 341 alo chaud #a // SENDER GETS THIS
 		std::string sender_response = ":server 341 " + _users[index].getNickname() + " " + av[1] + " " + av[2] + "\r\n";
-		send(_fds[index].fd, sender_response.c_str(), sender_response.size() + 1, 0);
+		send(_fds[index].fd, sender_response.c_str(), sender_response.size(), 0);
 
 		// :chaud2!vloureir@81C240:F52884:7D2707:482FF6:IP INVITE vini #42 // RECEIVER GETS THIS
 		std::string client_response = getClientInfo(index) + " INVITE " + av[1] + " " + av[2] + "\r\n";
-		send(_fds[getUserIndex(av[1])].fd, client_response.c_str(), client_response.size() + 1, 0);
+		send(_fds[getUserIndex(av[1])].fd, client_response.c_str(), client_response.size(), 0);
 	}
 }
 
@@ -433,7 +433,7 @@ void	Server::privmsg(std::vector<std::string>& av, int index)
 	if (av.size() == 1) // Missing arguments
 	{
 		std::string response = ":server 411 " + _users[index].getNickname() + " :No recipient given (PRIVMSG)\r\n";
-		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
 		return ;
 	}
 	// Split the channels argument and loop through them to check every channel received
@@ -443,43 +443,42 @@ void	Server::privmsg(std::vector<std::string>& av, int index)
 		if (!isChannel(targets[i]))
 		{
 			std::string response = ":server 403 " + _users[index].getNickname() + " " + targets[i] + " :No such channel\r\n";
-			send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+			send(_fds[index].fd, response.c_str(), response.size(), 0);
 		}
 		else if (av.size() == 2) // Print topic
 		{
 			if (_channels[getChannelIndex(targets[i])].getTopic() == "")
 			{
 				std::string response =":server 331 " + _users[index].getNickname() + " " + targets[i] + " :No topic is set\r\n";
-				send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+				send(_fds[index].fd, response.c_str(), response.size(), 0);
 			}
 			else
 			{
 				std::string response = ":server 332 " + _users[index].getNickname() + " " + targets[i] + " :" + _channels[getChannelIndex(targets[i])].getTopic() + "\r\n";
-				send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+				send(_fds[index].fd, response.c_str(), response.size(), 0);
 				
 				response = ":server 333 " + _users[index].getNickname() + " " + targets[i] + " " + getClientInfo(index) + " 0\r\n"; // timestamp ex: 1781075528	
-				send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+				send(_fds[index].fd, response.c_str(), response.size(), 0);
 			}
-		}
-		else if (!_channels[getChannelIndex(targets[i])].isOperator(_users[index].getNickname()))
-		{
-			std::string response = ":server 482 " + _users[index].getNickname() + " " + targets[i] + " :You're not channel operator\r\n";
-			send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 		}
 		else
 		{
-			std::string new_topic = craftStringSpaces(av[0]);
-			_channels[getChannelIndex(targets[i])].setTopic(new_topic);
+			std::string msg = craftStringSpaces(av[0]);
 //			std::cout << new_topic << std::endl;
 			// BROADCAST TO THE WHOLE CHANNEL THE NEW TOPIC
-			std::string response = getClientInfo(index) + " TOPIC " + av[1] + " :" + new_topic + "\r\n";
-			send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+			int ch_id = getChannelIndex(av[1]);
+			for (size_t u = 0; u < _users.size(); u++)
+			{
+				if (_users[u].getNickname() == _users[index].getNickname())
+					continue;
+				if (_channels[ch_id].isUserOnChannel(_users[u].getNickname()))
+				{
+					std::string response = getClientInfo(index) + " PRIVMSG " + av[1] + " :" + msg + "\r\n";
+					send(_fds[u].fd, response.c_str(), response.size(), 0);
+				}
+			}
 		}
 	}
-
-
-
-
 
 }
 

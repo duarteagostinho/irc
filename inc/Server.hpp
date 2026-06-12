@@ -77,7 +77,7 @@ class Server
 		// Server loop
 		bool	init(); // Creates socket, bind, listen
 		void	run();	// Accept clients in a loop;
-		void	newConnection(int fd);
+		void	newConnection(int fd, struct sockaddr_in address, socklen_t addr_size);
 		void	userMessage(int fd, const std::string &msg, ssize_t bytes);
 		void	disconnect(int fd);
 		void	parseMessage(int fd);
@@ -95,7 +95,6 @@ class Server
 		
 		// Helpers
 		void	sendError(int fd, int code, const std::string target, const std::string &msg);
-		bool	nickInUse(std::string toCheck);
 		void	welcomeUser(int i);
 
 		// CMDS

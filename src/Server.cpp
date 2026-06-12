@@ -115,14 +115,14 @@ int		Server::getPort(void) const
  /*
  	Creates new client_fd and default user, adds them to the respective vectors.
  */  
-void	Server::newConnection(int fd)
+void	Server::newConnection(int fd, struct sockaddr_in address, socklen_t addr_size)
 {
 	struct pollfd client;
 	client.fd = fd;
 	client.events = POLLIN;
 	client.revents = 0;
 	_fds.push_back(client);
-	User user(fd, "", "");
+	User user(fd, "", "", address, addr_size);
 	_users.push_back(user);
 
 	std::cout << "[CONNECT] fd = "<< fd << std::endl;
@@ -174,7 +174,7 @@ void	Server::registerUser(int i)
 		return ;
 	if (cmd == "NICK")
 	{
-		if (nickInUse(value) == true)
+		if (doesUserExist(value) == true)
 		{
 			sendError(_fds[i].fd, 433, value, ERR_NICKNAMEINUSE);
 			return;
@@ -185,7 +185,8 @@ void	Server::registerUser(int i)
 		_reg[i]._username = value;
 	if (!_reg[i]._pass.empty() && !_reg[i]._username.empty() && !_reg[i]._nickname.empty())
 	{
-		_users[i] = User(_fds[i].fd, _reg[i]._nickname, _reg[i]._username);
+		_users[i].setUsername(_reg[i]._username);
+		_users[i].setNickname(_reg[i]._nickname);
 		_users[i].Register();
 		welcomeUser(i);
 		_reg.erase(i);
@@ -260,16 +261,6 @@ void	Server::sendError(int fd, int code, const std::string target, const std::st
 	send(fd, ss.str().c_str(), ss.str().size(), 0);
 }
 
-bool	Server::nickInUse(std::string toCheck)
-{
-	for (size_t i = 0; i < _users.size(); i++)
-	{
-		if (_users[i].getUsername() == toCheck)
-			return true;
-	}
-	return false;
-}
-
 void	Server::run()
 {
 	struct pollfd server;
@@ -304,7 +295,7 @@ void	Server::run()
 						perror("accept()");
 						continue;
 					}
-					newConnection(user_fd);
+					newConnection(user_fd, user_socket, user_size);
 				}
 				else // Existing user message 
 				{
@@ -331,75 +322,37 @@ void	Server::run()
 	}
 }
 
-void	Server::setPort(int port)
+bool	Server::isChannel(std::string name)
 {
-	_port = port;
+	return (!name.empty() && name[0] == '#');
 }
 
-int		Server::getPort(void) const
+int	Server::getChannelIndex(const std::string name) const
 {
-	return (_port); 
-}
-
-void	Server::newConnection(int fd)
-{
-	struct pollfd client;
-	client.fd = fd;
-	client.events = POLLIN;
-	client.revents = 0;
-	_fds.push_back(client);
-
-	std::cout << "[CONNECT] fd = "<< fd << std::endl;
-	return ;
-}
-
-void	Server::disconnect(int i)
-{
-	std::cout << "[DISCONECT] fd = "<< _fds[i].fd << std::endl;
-//	if (_users.find(_fds[i].fd) != _users.end())
-//	{
-	std::cout << "nick=" << _users[i].getNickname() << std::endl;
-//		_users.erase(_fds[i].fd);
-	_users.erase(_users.begin() + i);
-//	}
-	// else
-	// 	_pending.erase(_fds[i].fd);
-	close(_fds[i].fd);
-	_fds.erase(_fds.begin() + i);
-}
-
-void Server::getMessage(std::string &line, char *buffer, int i)
-{
-	std::cout << std::endl;
-	// for (size_t i = 0; i < line.size(); i++)
-	// 	std::cout << "line in: " << (int)line[i] << std::endl;
-	line.append(buffer);
-	size_t find = line.find("\r\n");
-	if (find != std::string::npos)
+	for (size_t i = 0; i < _channels.size(); i++)
 	{
-		// Do stuff
-//		line.erase(find, 2);
-
-		// parse and execute commands here
-		exec_cmd(line, i);
-		
-
-		// THIS LOOP IS JUST SENDING THE MESSAGE AND NICK BACK TO EACH OTHER CLIENT
-		for (size_t j = 1; j < _fds.size(); j++) // start at 1 to always ignore the listening socket
-		{
-			std::ostringstream ss;
-			std::string str;
-			ss << _users[i].getNickname() << ": " << line << "\r\n";
-			str = ss.str();
-
-			if (_fds[i].fd != _fds[j].fd) // Send to every fd that is not mine
-				send(_fds[j].fd, str.c_str(), str.size() + 1, 0);
-		}
-		// Reset string
+		if (_channels[i].getName() == name)
+			return i;
 	}
+	return -1;
 }
 
-void	Server::setPassword(char *pass)
+int	Server::getUserIndex(const std::string name) const
 {
-	_password = pass;
+	for (size_t i = 0; i < _users.size(); i++)
+	{
+		if (_users[i].getNickname() == name)
+			return i;
+	}
+	return -1;
+}
+
+bool	Server::doesUserExist(const std::string name) const
+{
+	for (size_t i = 0; i < _users.size(); i++)
+	{
+		if (_users[i].getNickname() == name)
+			return true;
+	}
+	return false;
 }

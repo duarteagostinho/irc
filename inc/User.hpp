@@ -32,7 +32,8 @@ class User
 		int			getFd() const;
 		const std::string&	getNickname() const;
 		const std::string&	getUsername() const;
-		
+		void	setNickname(std::string nick);
+		void	setUsername(std::string user);
 		void	Register(void);
 		bool	getRegistration(void) const;
 
