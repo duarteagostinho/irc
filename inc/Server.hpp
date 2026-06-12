@@ -127,6 +127,7 @@ class Server
 		void	topic(std::vector<std::string>& av, int index);
 		void	mode(void);
 		void	join(std::vector<std::string>& av, int index);
+		void	privmsg(std::vector<std::string>& av, int index);
 
 		// DEL
 		void print_everything(void);
