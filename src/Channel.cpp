@@ -258,3 +258,76 @@ void Channel::rmOperator(std::string &nick)
 	if (_users_op.find(nick) != _users_op.end())
 		it->second = false;
 }
+
+// void Channel::addUser(std::string& nick)
+// {
+//     if (std::find(_users.begin(), _users.end(), nick) != _users.end())
+//     {
+//         if (_userLimit == -1)
+//         {
+//             _users.push_back(nick);
+//             std::cout << "User added to " << _name << std::endl;
+//         }
+//         else if (_userLimit > _users.size())
+//         {
+//             _users.push_back(nick);
+//             std::cout << "User added to " << _name << std::endl;
+//         }
+//         else
+//         {
+//             std::cout << "No space on the channel" << std::endl;
+//             return ;
+//         }
+//     }
+//     else
+//         return ;
+// }
+
+// void Channel::rmUser(std::string& nick)
+// {   
+//     if (std::find(_users.begin(), _users.end(), nick) != _users.end())
+//     {
+//         if (*(std::find(_users.begin(), _users.end(), nick)) == _creator)
+//         {
+//             std::cout << "That User can't be removed from the channel " << _name << " has he is the creator" << std::endl;
+//             return ;
+//         }
+//         else
+//         {
+//             _users.erase(_users.begin() + pos);
+//             std::cout << "User removed from " << _name << std::endl;
+//             return ;
+//         }
+//     }
+// }
+
+// void Channel::addOperator(std::string& nick)
+// {
+//   size_t pos = opFlag_users.find(nick);
+//    std::find(opFlag_users.begin(), opFlag_users.end(), nick);
+//    auto it = std::find(opFlag_users.begin(), opFlag_users.end(), [&nick]());
+//     if (() != std::string::npos)
+//     {
+//         _operators.push_back(nick);
+//         std::cout << "User added has an operator to " << _name << std::endl;
+//     }
+//     else
+//         return ;
+// }
+
+// void Channel::rmOperator(std::string &nick)
+// {
+//     if (nick == _creator)
+//     {
+//         std::cout << "That User can't be removed from operator status has he is the creator of the channel " << _name << std::endl;
+//         return ;
+//     }
+//     if ((size_t pos = _operators.find(nick)) != std::string::npos)
+//     {
+//         _operators.erase(_operators.begin() + pos);
+//         std::cout << "User removed has an operator from " << _name << std::endl;
+//         return ;
+//     }
+//     else
+//         return ;
+// }

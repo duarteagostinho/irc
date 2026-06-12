@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/12 07:52:25 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/12 17:46:24 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,16 +106,16 @@ void Server::join(std::vector<std::string>& av, int index)
 
 				if (_channels[i].getTopic() != "")
 				{
-					std::string response2 = ":server 332 " + _users[index].getNickname() + " " + av[1] + " :" + _channels[i].getTopic() + "\r\n";
+					std::string response2 = ":irc_server 332 " + _users[index].getNickname() + " " + av[1] + " :" + _channels[i].getTopic() + "\r\n";
 					send(_fds[index].fd, response2.c_str(), response2.size() + 1, 0);
 
-					response2 = ":server 333 " + _users[index].getNickname() + " " + av[1] + " " + getClientInfo(index) + " 0\r\n"; // timestamp ex: 1781075528
+					response2 = ":irc_server 333 " + _users[index].getNickname() + " " + av[1] + " " + getClientInfo(index) + " 0\r\n"; // timestamp ex: 1781075528
 					send(_fds[index].fd, response2.c_str(), response2.size() + 1, 0);
 				}
-				std::string response3 = ":server 353 " + _users[index].getNickname() + " = " + av[1] + " :" + _channels[i].usersFormated() + "\r\n";
+				std::string response3 = ":irc_server 353 " + _users[index].getNickname() + " = " + av[1] + " :" + _channels[i].usersFormated() + "\r\n";
 				send(_fds[index].fd, response3.c_str(), response3.size() + 1, 0);
 
-				std::string response4 = ":server 366 " + _users[index].getNickname() + " " + av[1] + ":End of /NAMES list\r\n"; 
+				std::string response4 = ":irc_server 366 " + _users[index].getNickname() + " " + av[1] + ":End of /NAMES list\r\n"; 
 				send(_fds[index].fd, response4.c_str(), response4.size() + 1, 0);
 
 			}
@@ -130,10 +130,10 @@ void Server::join(std::vector<std::string>& av, int index)
 	std::string response1 = getClientInfo(index) + " JOIN " + av[1] + "\r\n";
 	send(_fds[index].fd, response1.c_str(), response1.size() + 1, 0);
 
-	std::string response3 = ":server 353 " + _users[index].getNickname() + " = " + av[1] + " :@" + _users[index].getNickname() + "\r\n";
+	std::string response3 = ":irc_server 353 " + _users[index].getNickname() + " = " + av[1] + " :@" + _users[index].getNickname() + "\r\n";
 	send(_fds[index].fd, response3.c_str(), response3.size() + 1, 0);
 
-	std::string response4 = ":server 366 " + _users[index].getNickname() + " " + av[1] + " :End of /NAMES list\r\n"; 
+	std::string response4 = ":irc_server 366 " + _users[index].getNickname() + " " + av[1] + " :End of /NAMES list\r\n"; 
 	send(_fds[index].fd, response4.c_str(), response4.size() + 1, 0);
 }
 
@@ -141,13 +141,13 @@ void Server::join(std::vector<std::string>& av, int index)
 // {
 // 	if (av.size() == 1) // Missing arguments
 // 	{
-// 		std::string response = ":server 461 <nickname> JOIN :Not enough parameters\r\n";
+// 		std::string response = ":irc_server 461 <nickname> JOIN :Not enough parameters\r\n";
 // 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 // 		return ;
 // 	}
 // 	else if (av[1][0] != '#') // Missing correct server name format
 // 	{
-// 		std::string response = ":server 403 <nickname> av[1] :No such channel\r\n";
+// 		std::string response = ":irc_server 403 <nickname> av[1] :No such channel\r\n";
 // 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 // 		return ;
 // 	}
@@ -230,30 +230,31 @@ void Server::kick(std::vector<std::string>& av, int index)
 	// av[0] = whole line
 	// av[1] = channel
 	// av[2] = target
+	// av[3] = reason
 	
 	if (av.size() < 3) // Missing arguments
 	{
-		std::string response = ":server 461 <nickname> KICK :Not enough parameters\r\n";
+		std::string response = ":irc_server 461 " + _users[index].getNickname() + " KICK :Not enough parameters\r\n";
 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 	}
 	else if (!isChannel(av[1]))
 	{
-		std::string response = ":server 403 <nickname> av[1] :No such channel\r\n";
+		std::string response = ":irc_server 403 " + _users[index].getNickname() + " " + av[1] + " :No such channel\r\n";
 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 	}
 	else if (!_channels[getChannelIndex(av[1])].isOperator(_users[index].getNickname()))
 	{
-		std::string response = ":server 482 <nickname> av[1] :You're not channel operator\r\n";
+		std::string response = ":irc_server 482 " + _users[index].getNickname() + " " + av[1] + " :You're not channel operator\r\n";
 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 	}
 	else if (!_channels[getChannelIndex(av[1])].isUserOnChannel(av[2]))
 	{
-		std::string response = ":server 401 <nickname> av[2] :No such nick\r\n";
+		std::string response = ":irc_server 401 " + _users[index].getNickname() + " " + av[2] + " :No such nick\r\n";
 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 	}
 	else
 	{
-		std::string response = getClientInfo(index) + " KICK " + av[1] + " :" + craftStringSpaces(av[0]);
+		std::string response = getClientInfo(index) + " KICK " + av[1] + " :" + craftStringSpaces(av[0], 3);
 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 		_channels[getChannelIndex(av[1])].rmUser(av[2]);
 		_channels[getChannelIndex(av[1])].rmOperator(av[2]);
@@ -271,7 +272,7 @@ void Server::topic(std::vector<std::string>& av, int index)
 
 	if (av.size() == 1) // Missing arguments
 	{
-		std::string response = ":server 461 " + _users[index].getNickname() + " TOPIC :Not enough parameters\r\n";
+		std::string response = ":irc_server 461 " + _users[index].getNickname() + " TOPIC :Not enough parameters\r\n";
 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 		return ;
 	}
@@ -281,33 +282,33 @@ void Server::topic(std::vector<std::string>& av, int index)
 	{
 		if (!isChannel(channels[i]))
 		{
-			std::string response = ":server 403 " + _users[index].getNickname() + " " + channels[i] + " :No such channel\r\n";
+			std::string response = ":irc_server 403 " + _users[index].getNickname() + " " + channels[i] + " :No such channel\r\n";
 			send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 		}
 		else if (av.size() == 2) // Print topic
 		{
 			if (_channels[getChannelIndex(channels[i])].getTopic() == "")
 			{
-				std::string response =":server 331 " + _users[index].getNickname() + " " + channels[i] + " :No topic is set\r\n";
+				std::string response =":irc_server 331 " + _users[index].getNickname() + " " + channels[i] + " :No topic is set\r\n";
 				send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 			}
 			else
 			{
-				std::string response = ":server 332 " + _users[index].getNickname() + " " + channels[i] + " :" + _channels[getChannelIndex(channels[i])].getTopic() + "\r\n";
+				std::string response = ":irc_server 332 " + _users[index].getNickname() + " " + channels[i] + " :" + _channels[getChannelIndex(channels[i])].getTopic() + "\r\n";
 				send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 				
-				response = ":server 333 " + _users[index].getNickname() + " " + channels[i] + " " + getClientInfo(index) + " 0\r\n"; // timestamp ex: 1781075528	
+				response = ":irc_server 333 " + _users[index].getNickname() + " " + channels[i] + " " + getClientInfo(index) + " 0\r\n"; // timestamp ex: 1781075528	
 				send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 			}
 		}
 		else if (!_channels[getChannelIndex(channels[i])].isOperator(_users[index].getNickname()))
 		{
-			std::string response = ":server 482 " + _users[index].getNickname() + " " + channels[i] + " :You're not channel operator\r\n";
+			std::string response = ":irc_server 482 " + _users[index].getNickname() + " " + channels[i] + " :You're not channel operator\r\n";
 			send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 		}
 		else
 		{
-			std::string new_topic = craftStringSpaces(av[0]);
+			std::string new_topic = craftStringSpaces(av[0], 2);
 			_channels[getChannelIndex(channels[i])].setTopic(new_topic);
 //			std::cout << new_topic << std::endl;
 			// BROADCAST TO THE WHOLE CHANNEL THE NEW TOPIC
@@ -325,40 +326,40 @@ void Server::invite(std::vector<std::string>& av, int index)
 	
 	if (av.size() == 1) // Missing arguments
 	{
-		std::string response = ":server 337 " + _users[index].getNickname() + " :End of Invite List\r\n";
+		std::string response = ":irc_server 337 " + _users[index].getNickname() + " :End of Invite List\r\n";
 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 	}
 	else if (av.size() < 3)
 	{
-		std::string response = ":server 461 " + _users[index].getNickname() + " INVITE :Not enough parameters\r\n";
+		std::string response = ":irc_server 461 " + _users[index].getNickname() + " INVITE :Not enough parameters\r\n";
 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 	}
 	else if (!doesUserExist(av[1]))
 	{
-		std::string response = ":server 401 " + _users[index].getNickname() + " " + av[2] +  " :No such nick\r\n";
+		std::string response = ":irc_server 401 " + _users[index].getNickname() + " " + av[2] +  " :No such nick\r\n";
 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 	}
 	else if (!isChannel(av[2]))
 	{
-		std::string response = ":server 403 " + _users[index].getNickname() + " " + av[2] + " :No such channel\r\n";
+		std::string response = ":irc_server 403 " + _users[index].getNickname() + " " + av[2] + " :No such channel\r\n";
 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 	}
 	// CHECK IF USER IS ALREADY ON CHANNEL
 	else if (_channels[getChannelIndex(av[2])].isUserOnChannel(av[1]))
 	{
 		// :luna.AfterNET.Org 443 jinx vini #42 :is already on channel
-		std::string response = ":server 443 " + _users[index].getNickname() + " " + av[1] + " " + av[2] + " :is already on channel\r\n";
+		std::string response = ":irc_server 443 " + _users[index].getNickname() + " " + av[1] + " " + av[2] + " :is already on channel\r\n";
 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 	}
 	else if (!_channels[getChannelIndex(av[2])].isOperator(_users[index].getNickname()))
 	{
-		std::string response = ":server 482 " + _users[index].getNickname() + " " + av[2] + " :You're not channel operator\r\n";
+		std::string response = ":irc_server 482 " + _users[index].getNickname() + " " + av[2] + " :You're not channel operator\r\n";
 		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 	}
 	else
 	{
 		// :Aurora.AfterNET.Org 341 alo chaud #a // SENDER GETS THIS
-		std::string sender_response = ":server 341 " + _users[index].getNickname() + " " + av[1] + " " + av[2] + "\r\n";
+		std::string sender_response = ":irc_server 341 " + _users[index].getNickname() + " " + av[1] + " " + av[2] + "\r\n";
 		send(_fds[index].fd, sender_response.c_str(), sender_response.size() + 1, 0);
 
 		// :chaud2!vloureir@81C240:F52884:7D2707:482FF6:IP INVITE vini #42 // RECEIVER GETS THIS
@@ -391,12 +392,13 @@ void Server::splitString(std::string line, std::vector<std::string>& av, char de
 		av.push_back(token);
 }
 
-std::string Server::craftStringSpaces(std::string str)
+std::string Server::craftStringSpaces(std::string str, int times)
 {
 	std::stringstream ss(str);
 	std::string ret;
 
-	ss >> ret >> ret;
+	for (int i = 0; i < times; i++)
+		ss >> ret;
 	getline(ss >> std::ws, ret);
 	if (ret[0] == ':')
 		return (&ret[1]);
@@ -417,7 +419,34 @@ std::string Server::getClientInfo(int index)
 	return (ret);
 }
 
+void Server::broadcastMessage(std::string message, int index, int flag)
+{
+	(void)flag;
+	(void)index;
+	(void)message;
+	
+//	Need channel name as well or pass the channel variable
+	for (size_t i = 0; i < _fds.size(); i++)
+	{
+	//	if (_fds[i].fd != _fds[j].fd) // Send to every fd that is not mine
+		// 		send(_fds[j].fd, str.c_str(), str.size() + 1, 0);
 
+
+	}
+//	send()
+
+	// for (size_t j = 1; j < _fds.size(); j++) // start at 1 to always ignore the listening socket
+	// {
+	// 	std::ostringstream ss;
+	// 	std::string str;
+	// 	ss << _users[i].getNickname() << ": " << line << "\r\n";
+	// 	str = ss.str();
+
+	// 	if (_fds[i].fd != _fds[j].fd) // Send to every fd that is not mine
+	// 		send(_fds[j].fd, str.c_str(), str.size() + 1, 0);
+	// }
+
+}
 
 void	Server::privmsg(std::vector<std::string>& av, int index)
 {
@@ -433,7 +462,7 @@ void	Server::privmsg(std::vector<std::string>& av, int index)
 	if (av.size() == 1) // Missing arguments
 	{
 		std::string response = ":server 411 " + _users[index].getNickname() + " :No recipient given (PRIVMSG)\r\n";
-		send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
 		return ;
 	}
 	// Split the channels argument and loop through them to check every channel received
@@ -443,46 +472,107 @@ void	Server::privmsg(std::vector<std::string>& av, int index)
 		if (!isChannel(targets[i]))
 		{
 			std::string response = ":server 403 " + _users[index].getNickname() + " " + targets[i] + " :No such channel\r\n";
-			send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+			send(_fds[index].fd, response.c_str(), response.size(), 0);
 		}
 		else if (av.size() == 2) // Print topic
 		{
 			if (_channels[getChannelIndex(targets[i])].getTopic() == "")
 			{
 				std::string response =":server 331 " + _users[index].getNickname() + " " + targets[i] + " :No topic is set\r\n";
-				send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+				send(_fds[index].fd, response.c_str(), response.size(), 0);
 			}
 			else
 			{
 				std::string response = ":server 332 " + _users[index].getNickname() + " " + targets[i] + " :" + _channels[getChannelIndex(targets[i])].getTopic() + "\r\n";
-				send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+				send(_fds[index].fd, response.c_str(), response.size(), 0);
 				
 				response = ":server 333 " + _users[index].getNickname() + " " + targets[i] + " " + getClientInfo(index) + " 0\r\n"; // timestamp ex: 1781075528	
-				send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+				send(_fds[index].fd, response.c_str(), response.size(), 0);
 			}
-		}
-		else if (!_channels[getChannelIndex(targets[i])].isOperator(_users[index].getNickname()))
-		{
-			std::string response = ":server 482 " + _users[index].getNickname() + " " + targets[i] + " :You're not channel operator\r\n";
-			send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
 		}
 		else
 		{
-			std::string new_topic = craftStringSpaces(av[0]);
-			_channels[getChannelIndex(targets[i])].setTopic(new_topic);
+			std::string msg = craftStringSpaces(av[0], 2);
 //			std::cout << new_topic << std::endl;
 			// BROADCAST TO THE WHOLE CHANNEL THE NEW TOPIC
-			std::string response = getClientInfo(index) + " TOPIC " + av[1] + " :" + new_topic + "\r\n";
-			send(_fds[index].fd, response.c_str(), response.size() + 1, 0);
+			int ch_id = getChannelIndex(av[1]);
+			for (size_t u = 0; u < _users.size(); u++)
+			{
+				if (_users[u].getNickname() == _users[index].getNickname())
+					continue;
+				if (_channels[ch_id].isUserOnChannel(_users[u].getNickname()))
+				{
+					std::string response = getClientInfo(index) + " PRIVMSG " + av[1] + " :" + msg + "\r\n";
+					send(_fds[u].fd, response.c_str(), response.size(), 0);
+				}
+			}
 		}
 	}
 
-
-
-
-
 }
 
+
+// void	Server::privmsg(std::vector<std::string>& av, int index)
+// {
+// 	(void)av;
+// 	(void)index;
+
+// 	// av[0] = whole line
+// 	// av[1] = target,{target}
+// 	// av[2+] = rest of the message (NOT USED)
+
+// 	std::vector<std::string> targets;
+
+// 	if (av.size() == 1) // Missing arguments
+// 	{
+// 		std::string response = ":server 411 " + _users[index].getNickname() + " :No recipient given (PRIVMSG)\r\n";
+// 		send(_fds[index].fd, response.c_str(), response.size(), 0);
+// 		return ;
+// 	}
+// 	// Split the channels argument and loop through them to check every channel received
+// 	splitString(av[1], targets, ',');
+// 	for (size_t i = 0; i < targets.size(); i++)
+// 	{
+// 		if (!isChannel(targets[i]))
+// 		{
+// 			std::string response = ":server 403 " + _users[index].getNickname() + " " + targets[i] + " :No such channel\r\n";
+// 			send(_fds[index].fd, response.c_str(), response.size(), 0);
+// 		}
+// 		else if (av.size() == 2) // Print topic
+// 		{
+// 			if (_channels[getChannelIndex(targets[i])].getTopic() == "")
+// 			{
+// 				std::string response =":server 331 " + _users[index].getNickname() + " " + targets[i] + " :No topic is set\r\n";
+// 				send(_fds[index].fd, response.c_str(), response.size(), 0);
+// 			}
+// 			else
+// 			{
+// 				std::string response = ":server 332 " + _users[index].getNickname() + " " + targets[i] + " :" + _channels[getChannelIndex(targets[i])].getTopic() + "\r\n";
+// 				send(_fds[index].fd, response.c_str(), response.size(), 0);
+				
+// 				response = ":server 333 " + _users[index].getNickname() + " " + targets[i] + " " + getClientInfo(index) + " 0\r\n"; // timestamp ex: 1781075528	
+// 				send(_fds[index].fd, response.c_str(), response.size(), 0);
+// 			}
+// 		}
+// 		else
+// 		{
+// 			std::string msg = craftStringSpaces(av[0], 2);
+// //			std::cout << new_topic << std::endl;
+// 			// BROADCAST TO THE WHOLE CHANNEL THE NEW TOPIC
+// 			int ch_id = getChannelIndex(av[1]);
+// 			for (size_t u = 0; u < _users.size(); u++)
+// 			{
+// 				if (_users[u].getNickname() == _users[index].getNickname())
+// 					continue;
+// 				if (_channels[ch_id].isUserOnChannel(_users[u].getNickname()))
+// 				{
+// 					std::string response = getClientInfo(index) + " PRIVMSG " + av[1] + " :" + msg + "\r\n";
+// 					send(_fds[u].fd, response.c_str(), response.size(), 0);
+// 				}
+// 			}
+// 		}
+// 	}
+// }
 
 /*
 	std::vector<std::string> targets;
@@ -558,6 +648,11 @@ NICK vini
 PING :1778091801
 PONG 1778091801
 NOTICE * :*** Checking your client version (sorry..)
+
+PRIVMSG <nick> :VERSION
+001 <nick> 
+
+
 :luna.AfterNET.Org PRIVMSG vini :VERSION
 :luna.AfterNET.Org 001 vini :Welcome to the AfterNET IRC Network, vini
 :luna.AfterNET.Org 002 vini :Your host is luna.AfterNET.Org, running version u2.10.12.14+Nefarious(2.0.0)
@@ -566,6 +661,9 @@ NOTICE * :*** Checking your client version (sorry..)
 :luna.AfterNET.Org 005 vini WHOX WALLCHOPS WALLHOPS WALLVOICES USERIP CPRIVMSG CNOTICE NAMESX UHNAMES SILENCE=25 WATCH=128 MODES=6 MAXCHANNELS=50 :are supported by this server
 :luna.AfterNET.Org 005 vini MAXBANS=50 NICKLEN=30 MAXNICKLEN=30 TOPICLEN=250 AWAYLEN=250 KICKLEN=250 CHANNELLEN=100 MAXCHANNELLEN=200 CHANTYPES=# PREFIX=(ohv)@%+ STATUSMSG=@%+ BOT=B CHANMODES=be,k,Ll,aCcDdiMmNnOpQRrSsTtZz :are supported by this server
 :luna.AfterNET.Org 005 vini CASEMAPPING=rfc1459 NETWORK=AfterNET MAXLIST=b:50,e:45 ELIST=CT EXCEPTS=e MAXEXCEPTS=45 EXTBANS=~,acjnqrmM :are supported by this server
+
+
+
 :luna.AfterNET.Org 251 vini :There are 212 users and 93 invisible on 9 servers
 :luna.AfterNET.Org 252 vini 23 :operator(s) online
 :luna.AfterNET.Org 254 vini 181 :channels formed
