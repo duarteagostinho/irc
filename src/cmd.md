@@ -328,3 +328,40 @@ PRIVMSG #42,user_5,user_66 hello there
 :luna.AfterNET.Org 404 vini #42 :Cannot send to channel
 
 */
+
+	/*
+		priv alo hi
+			no such nick
+		priv #alo hi
+			no such channel
+		
+		is channel OR user
+		
+		response = func();
+		if (user)
+			send
+		else if (target > 1)
+			cannot send to channel
+		else
+			broadcast
+			
+	
+	*/
+
+	// splitString(av[1], targets, ',');
+
+	// for (size_t i = 0; i < targets.size(); i++)
+	// {
+	// 	bool channel = isChannel(targets[i];
+
+	// 	if ((targets.size() > 1 && channel == true) || not on channel)
+	// 		404 chaud #42 :Cannot send to channel
+	// 	else if (targets[i] dont exists)
+	// 		401 chaud user_1 :No such nick
+	// 	else if (channel == false)
+	// 		403 chaud #42 :No such channel
+	// 	else
+	// 		:user_5!user_5@1C72DB:D17C90:7D2707:482FF6:IP PRIVMSG chaud :hi hi // RECEIVER GETS THIS
+
+
+///////////////////////////////////////////////////			MODES		///////////////////////////////////////////////////

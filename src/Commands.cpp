@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/12 22:33:27 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/13 11:09:39 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,9 @@ int Server::check_cmd(std::string &line, std::vector<std::string>& av)
 	return (-1);
 }
 
+
+// MISSING:   MODE, WHO, PART, INVITE
+
 void Server::exec_cmd(std::string line, int index)
 {
 	std::vector<std::string> av;
@@ -67,8 +70,10 @@ void Server::exec_cmd(std::string line, int index)
 		case 5:
 			privmsg(av, index);
 			break;
-		default:
-			std::cout << "Invalid Command" << std::endl; // 421 chaud  :Unknown command
+		default: // HEXCHAT SENDS MODE <CHANNEL> AND WHO <CHANNEL> HANDLE IT
+			std::string response = ":irc_server 421 " + _users[index].getNickname() + " :Unknown command\r\n";
+//			send(_fds[index].fd, response.c_str(), response.size(), 0);
+//			std::cout << "Invalid Command" << std::endl; // 421 chaud  :Unknown command
 	}
 	line.clear();
 }
@@ -259,12 +264,11 @@ void Server::kick(std::vector<std::string>& av, int index)
 	}
 	else
 	{
+		// Reason is not working correctly if there is no reason
 		std::string response = getClientInfo(index) + " KICK " + av[1] + " " + av[2]  + " :" + craftStringSpaces(av[0], 3) + "\r\n";
 		broadcastMessage(_channels[getChannelIndex(av[1])], response, index, 1);
-//		send(_fds[index].fd, response.c_str(), response.size(), 0);
 		_channels[getChannelIndex(av[1])].rmUser(av[2]);
 		_channels[getChannelIndex(av[1])].rmOperator(av[2]);
-		// BROADCAST TO THE WHOLE CHANNEL THE NEW TOPIC
 	}
 }
 
@@ -293,7 +297,7 @@ void Server::topic(std::vector<std::string>& av, int index)
 		}
 		else if (av.size() == 2) // Print topic
 		{
-			if (_channels[getChannelIndex(channels[i])].getTopic() == "")
+			if (_channels[getChannelIndex(channels[i])].getTopic() == "") // If Topic is not set
 			{
 				std::string response =":irc_server 331 " + _users[index].getNickname() + " " + channels[i] + " :No topic is set\r\n";
 				send(_fds[index].fd, response.c_str(), response.size(), 0);
@@ -314,13 +318,11 @@ void Server::topic(std::vector<std::string>& av, int index)
 		}
 		else
 		{
+			// Need to store the time it happens here
 			std::string new_topic = craftStringSpaces(av[0], 2);
 			_channels[getChannelIndex(channels[i])].setTopic(new_topic);
-//			std::cout << new_topic << std::endl;
-			// BROADCAST TO THE WHOLE CHANNEL THE NEW TOPIC	
 			std::string response = getClientInfo(index) + " TOPIC " + av[1] + " :" + new_topic + "\r\n";
 			broadcastMessage(_channels[getChannelIndex(channels[i])], response, index, 1);
-//			send(_fds[index].fd, response.c_str(), response.size(), 0);
 		}
 	}
 }
@@ -375,19 +377,53 @@ void Server::invite(std::vector<std::string>& av, int index)
 	}
 }
 
-void Server::mode(void)
+void	Server::privmsg(std::vector<std::string>& av, int index)
 {
+	// av[0] = whole line
+	// av[1] = target,{target}
+	// av[2+] = rest of the message (NOT USED)
+	
+	std::vector<std::string> targets;
 
-/*
-/mode
-	 Channel #channel modes: +tink * (prints current modes)
-/mode i
-	IF (!operator)
-		#channel :You're not channel operator
-	ELSE
-		<operator> sets mode +i on #channel
-*/
-	std::cout << "mode called\n";
+	if (av.size() < 3) // Missing arguments
+	{
+		std::string response;
+		if (av.size() == 1)
+			response = ":server 411 " + _users[index].getNickname() + " :No recipient given (PRIVMSG)\r\n";
+		else
+			response = ":server 412 " + _users[index].getNickname() + " :No text to send\r\n";
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
+		return ;
+	}
+	
+	std::string response;
+	splitString(av[1], targets, ',');
+	for (size_t i = 0; i < targets.size(); i++)
+	{ 
+		bool channel = isChannel(targets[i]);
+		bool user = doesUserExist(targets[i]);
+		
+		if (!channel && !user)  // Error for sure
+		{
+			if (targets[i][0] == '#')
+				response = ":server 403 " + _users[index].getNickname() + " " + targets[i] + " :No such channel\r\n";
+			else
+				response = ":server 401 " + _users[index].getNickname() + " " + targets[i] + " :No such nick\r\n";
+			send(_users[index].getFd(), response.c_str(), response.size(), 0);
+			continue ;
+		}
+		response = getClientInfo(index) + " PRIVMSG " + targets[i] + " :" + craftStringSpaces(av[0], 2) + "\r\n";
+		if (user)
+			send(_users[getUserIndex(targets[i])].getFd(), response.c_str(), response.size(), 0);		
+		else if (targets.size() > 1 || !_channels[getChannelIndex(targets[i])].isUserOnChannel(_users[index].getNickname()))
+		{	
+			// Check if sender is in the channel or if there are multiple args
+			response = ":server 404 " + _users[index].getNickname() + " " + targets[i] + " :Cannot send to channel\r\n";
+			send(_users[index].getFd(), response.c_str(), response.size(), 0);
+		}
+		else
+			broadcastMessage(_channels[getChannelIndex(targets[i])], response, index, 0);
+	}
 }
 
 
@@ -396,7 +432,6 @@ void Server::mode(void)
 */
 void Server::splitString(std::string line, std::vector<std::string>& av, char delim)
 {
-	// Create an argv from the line
 	std::stringstream split(line);
 	std::string token;
 	while (std::getline(split, token, delim))
@@ -437,7 +472,7 @@ std::string Server::getClientInfo(int index)
 }
 
 /*
-	Broadcast the message to all channels, also sends it back to the sender if flag is on.
+	Broadcast the message to all users on the channel, also sends it back to the sender if flag is on.
 */
 void Server::broadcastMessage(Channel &channel, std::string message, int index, int flag)
 {
@@ -445,157 +480,22 @@ void Server::broadcastMessage(Channel &channel, std::string message, int index, 
 		send(_fds[index].fd, message.c_str(), message.size(), 0);
 	for (size_t i = 1; i < _fds.size(); i++)
 	{
-		if (_fds[i].fd != _fds[index].fd && channel.isUserOnChannel(_users[i].getNickname())) // Send to every fd that is not mine
+		if (_fds[i].fd != _fds[index].fd && channel.isUserOnChannel(_users[i].getNickname()))
 				send(_fds[i].fd, message.c_str(), message.size(), 0);
 	}
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// void	Server::privmsg(std::vector<std::string>& av, int index)
-// {
-// 	(void)av;
-// 	(void)index;
-
-// 	// av[0] = whole line
-// 	// av[1] = target,{target}
-// 	// av[2+] = rest of the message (NOT USED)
-
-// 	std::vector<std::string> targets;
-
-// 	if (av.size() == 1) // Missing arguments
-// 	{
-// 		std::string response = ":server 411 " + _users[index].getNickname() + " :No recipient given (PRIVMSG)\r\n";
-// 		send(_fds[index].fd, response.c_str(), response.size(), 0);
-// 		return ;
-// 	}
-// 	// Split the channels argument and loop through them to check every channel received
-// 	splitString(av[1], targets, ',');
-// 	for (size_t i = 0; i < targets.size(); i++)
-// 	{
-// 		if (!isChannel(targets[i]))
-// 		{
-// 			std::string response = ":server 403 " + _users[index].getNickname() + " " + targets[i] + " :No such channel\r\n";
-// 			send(_fds[index].fd, response.c_str(), response.size(), 0);
-// 		}
-// 		else if (av.size() == 2) // Print topic
-// 		{
-// 			if (_channels[getChannelIndex(targets[i])].getTopic() == "")
-// 			{
-// 				std::string response =":server 331 " + _users[index].getNickname() + " " + targets[i] + " :No topic is set\r\n";
-// 				send(_fds[index].fd, response.c_str(), response.size(), 0);
-// 			}
-// 			else
-// 			{
-// 				std::string response = ":server 332 " + _users[index].getNickname() + " " + targets[i] + " :" + _channels[getChannelIndex(targets[i])].getTopic() + "\r\n";
-// 				send(_fds[index].fd, response.c_str(), response.size(), 0);
-				
-// 				response = ":server 333 " + _users[index].getNickname() + " " + targets[i] + " " + getClientInfo(index) + " 0\r\n"; // timestamp ex: 1781075528	
-// 				send(_fds[index].fd, response.c_str(), response.size(), 0);
-// 			}
-// 		}
-// 		else
-// 		{
-// 			std::string msg = craftStringSpaces(av[0], 2);
-// //			std::cout << new_topic << std::endl;
-// 			// BROADCAST TO THE WHOLE CHANNEL THE NEW TOPIC
-// 			int ch_id = getChannelIndex(av[1]);
-// 			for (size_t u = 0; u < _users.size(); u++)
-// 			{
-// 				if (_users[u].getNickname() == _users[index].getNickname())
-// 					continue;
-// 				if (_channels[ch_id].isUserOnChannel(_users[u].getNickname()))
-// 				{
-// 					std::string response = getClientInfo(index) + " PRIVMSG " + av[1] + " :" + msg + "\r\n";
-// 					send(_fds[u].fd, response.c_str(), response.size(), 0);
-// 				}
-// 			}
-// 		}
-// 	}
-
-// }
-
-
-void	Server::privmsg(std::vector<std::string>& av, int index)
+void Server::mode(void)
 {
-	// av[0] = whole line
-	// av[1] = target,{target}
-	// av[2+] = rest of the message (NOT USED)
-	
-	std::vector<std::string> targets;
 
-	if (av.size() < 3) // Missing arguments
-	{
-		std::string response;
-		if (av.size() == 1)
-			response = ":server 411 " + _users[index].getNickname() + " :No recipient given (PRIVMSG)\r\n";
-		else
-			response = ":server 412 " + _users[index].getNickname() + " :No text to send\r\n";
-		send(_fds[index].fd, response.c_str(), response.size(), 0);
-		return ;
-	}
-	
-	splitString(av[1], targets, ',');
-	std::string response;
-	for (size_t i = 0; i < targets.size(); i++)
-	{
-		bool channel = isChannel(targets[i]);
-		if ((targets.size() > 1 && channel == true)
-			|| !_channels[getChannelIndex(targets[i])].isUserOnChannel(_users[index].getNickname()))
-				response = ":server 404 " + _users[index].getNickname() + " " + targets[i] + " :Cannot send to channel\r\n";
-//				404 chaud #42 :Cannot send to channel
-			else if (!doesUserExist(targets[i]))
-				response = ":server 401 " + _users[index].getNickname() + " " + targets[i] + " :No such nick\r\n";
-//				401 chaud user_1 :No such nick
-			else if (channel == false)
-				response = ":server 403 " + _users[index].getNickname() + " " + targets[i] + " :No such channel\r\n";
-//				403 chaud #42 :No such channel
-			else
-			{
-				std::cout << "aaaaa" << std::endl;
-				std::string response = craftStringSpaces(av[0], 2) + "\r\n";
-				if (channel == true)
-					broadcastMessage(_channels[getChannelIndex(targets[i])], response, index, 0);
-				else
-					send(_users[getUserIndex(targets[i])].getFd(), response.c_str(), response.size(), 0);
-				// This logic is wrong, I'm sending always to a channel, need a logic that separates if its for a channel or for a user
-			}		
-	}
-	// 	if (size == 1)
-	// 	411 chaud :No recipient given (PRIVMSG)
-	// else if (size == 2)
-	// 	412 chaud :No text to send
- 
-
-	// splitString(av[1], targets, ',');
-
-	// for (size_t i = 0; i < targets.size(); i++)
-	// {
-	// 	bool channel = isChannel(targets[i];
-
-	// 	if ((targets.size() > 1 && channel == true) || not on channel)
-	// 		404 chaud #42 :Cannot send to channel
-	// 	else if (targets[i] dont exists)
-	// 		401 chaud user_1 :No such nick
-	// 	else if (channel == false)
-	// 		403 chaud #42 :No such channel
-	// 	else
-	// 		:user_5!user_5@1C72DB:D17C90:7D2707:482FF6:IP PRIVMSG chaud :hi hi // RECEIVER GETS THIS
-
-
-	
-
-	
+/*
+/mode
+	 Channel #channel modes: +tink * (prints current modes)
+/mode i
+	IF (!operator)
+		#channel :You're not channel operator
+	ELSE
+		<operator> sets mode +i on #channel
+*/
+	std::cout << "mode called\n";
 }
