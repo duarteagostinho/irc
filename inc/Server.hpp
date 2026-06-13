@@ -99,14 +99,14 @@ class Server
 
 		// CMDS
 		void	exec_cmd(std::string line, int index);
-		int		check_cmd(std::string &line, std::vector<std::string>& av);
-		
 		void	kick(std::vector<std::string>& av, int index);
-		void	invite(std::vector<std::string>& av, int index);
-		void	topic(std::vector<std::string>& av, int index);
-		void	mode(void);
+		void	mode(std::vector<std::string>& av, int index);
 		void	join(std::vector<std::string>& av, int index);
+		void	part(std::vector<std::string>& av, int index);		
+		void	topic(std::vector<std::string>& av, int index);
+		void	invite(std::vector<std::string>& av, int index);
 		void	privmsg(std::vector<std::string>& av, int index);
+		int		check_cmd(std::string &line, std::vector<std::string>& av);
 
 		// DEL
 		void print_everything(void);

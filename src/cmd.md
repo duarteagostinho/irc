@@ -1,3 +1,22 @@
+///////////////////////////////////////////////////			JOIN		///////////////////////////////////////////////////
+
+
+			/*
+				if (channel)
+					if (channel key mode && pass != channel pass)
+						475 gui #42 :Cannot join channel (+k)
+						continue;
+					if (channel invite mode && user not invited)
+						473 gui #42 :Cannot join channel (+i)
+					else
+						JOIN channel
+				else
+					CREATE channel
+			*/
+
+
+///////////////////////////////////////////////////			PART		///////////////////////////////////////////////////
+
 
 PART #a
 :vini!vini@740E9B.95C97E.C247D8.AE513.IP PART :#a

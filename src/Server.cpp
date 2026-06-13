@@ -197,10 +197,10 @@ void	Server::registerUser(int i)
 
 void	Server::welcomeUser(int i)
 {
-		std::string welcome1 = ":server 001 " + _reg[i]._nickname + " :Welcome to ircserv\r\n";
-		std::string welcome2 = ":server 002 " + _reg[i]._nickname + " :Your host is server\r\n";
-		std::string welcome3 = ":server 003 " + _reg[i]._nickname + " :This server was created in 2026\r\n";
-		std::string welcome4 = ":server 004 " + _reg[i]._nickname + " server 1.0 0 0\r\n";
+		std::string welcome1 = ":irc.server 001 " + _reg[i]._nickname + " :Welcome to ircserv, " + _reg[i]._nickname + "\r\n";
+		std::string welcome2 = ":irc.server 002 " + _reg[i]._nickname + " :Your host is irc.server\r\n";
+		std::string welcome3 = ":irc.server 003 " + _reg[i]._nickname + " :This server was created in 2026\r\n";
+		std::string welcome4 = ":irc.server 004 " + _reg[i]._nickname + " irc.server v1.0 itkl o\r\n";
 
 		send(_fds[i].fd, welcome1.c_str(), welcome1.size(), 0);
 		send(_fds[i].fd, welcome2.c_str(), welcome2.size(), 0);
