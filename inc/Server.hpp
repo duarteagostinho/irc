@@ -24,6 +24,7 @@
 #include <sstream>
 # include <fcntl.h>
 # include "User.hpp"
+# include <signal.h>
 
 // NEW
 # include <poll.h>
@@ -64,6 +65,8 @@ class Server
 		std::vector<struct pollfd>	_fds;
 		std::vector<Channel>		_channels;
 		std::vector<User>			_users;
+
+		static bool					_signal;
 
 	public:
         // Constructors & Destructor
@@ -124,6 +127,10 @@ class Server
 		std::string getClientInfo(int index);
 
 		void broadcastMessage(Channel &channel, std::string message, int index, int flag);
+
+
+		static int getSignal(void);
+		static void setSignal(int signal);
 };
 
 // Stream Operator Overload

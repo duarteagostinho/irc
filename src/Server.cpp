@@ -4,6 +4,8 @@
 #include <sys/socket.h>
 #include <vector>
 
+bool Server::_signal = false;
+
 /*
 ** ------------------------------- CONSTRUCTORS --------------------------------
 */
@@ -263,6 +265,7 @@ void	Server::sendError(int fd, int code, const std::string target, const std::st
 
 void	Server::run()
 {
+	signal(SIGINT, Server::setSignal);
 	struct pollfd server;
 
 	server.fd = _sockfd;
@@ -271,16 +274,19 @@ void	Server::run()
 	_fds.push_back(server);
 
 	std::string line;
-	while (true)
+	while (Server::getSignal() == false)
 	{
+//		bool it = Server::getSignal();
+//		std::cout << it << std::endl;
+//		std::cout << Server::getSignal << std::endl;
 		line.clear();
-		 print_everything();
+		print_everything();
 		if (poll(&_fds[0], _fds.size(), -1) == -1)
 		{
 			std::cerr << "-error: poll failure\n";
-			exit (10);
+//			exit (10);
+			break ;
 		}
-
 		for (size_t i = 0; i < _fds.size() ;++i)
 		{
 			if (_fds[i].revents & POLLIN)
@@ -320,6 +326,8 @@ void	Server::run()
 			}
 		}
 	}
+	for (size_t i = 0; i < _fds.size(); i++)
+		close(_fds[i].fd);
 }
 
 bool Server::isChannel(std::string name)
@@ -360,4 +368,15 @@ bool Server::doesUserExist(const std::string name) const
 			return (true);
 	}
 	return (false);
+}
+
+int Server::getSignal(void)
+{
+	return _signal;
+}
+
+void Server::setSignal(int signal)
+{ 
+	(void)signal;
+	_signal = true;
 }
