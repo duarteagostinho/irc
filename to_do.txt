@@ -1,2 +1,10 @@
-implementar pass no user registration
-implementar general channel
+Implementar checks no USER e NICK:
+- Não aceitar algo como #user
+- USER deve seguir o formato <user> 0 * :<realname>
+
+Implementar MODE
+
+Implementar limites no servidor
+- Max Channel
+- Max Users on server
+- Max nick length
