@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/14 07:57:49 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/14 18:11:13 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -539,7 +539,24 @@ void Server::mode(std::vector<std::string>& av, int index)
 
 	char c;
 	std::string response;
+
+	class Modes
+	{
+	public:
+		std::pair<int, char> modes;
+
+		
+		std::string	op;
+		std::string	pass;
+		int 		limit;
+		
+	};
 	
+	// char getSign(std::string str) // Once a sign is found, advances the string while it's sign, returns last sign found
+	
+	// void 
+
+
 	if (av.size() < 3) // Missing arguments or Print info
 	{
 		if (av.size() == 1)
@@ -550,16 +567,26 @@ void Server::mode(std::vector<std::string>& av, int index)
 		else // size == 2
 		{
 			if (!doesUserExist(av[1]))
-				response = ":irc.server 502 vivi :Cant change mode for other users\r\n";
+				response = ":irc.server 502 " + _users[index].getNickname() + " :Cant change mode for other users\r\n";
 			else if (isChannel(av[1]))
 			{
-				response = 	":irc.server 324 vivi #b +tn";
-				response += ":irc.server 329 vivi #b 1781365780";
+				response = 	":irc.server 324 " + _users[index].getNickname() + " " + av[1] + " <ch_modes> <limit> <pass> ";
+				response += ":irc.server 329 " + _users[index].getNickname() + " " + av[1] + " <timestamp channel creation>";
 			}
 			else // Not a user nor a channel
-				response = 	":irc.server 403 vivi #v :No such channel";
+				response = 	":irc.server 403 " + _users[index].getNickname() + " " + av[1] + " :No such channel";
 		}
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
+		return ;
 	}
+
+	
+
+
+
+
+
+
 
 	// if l OR k OR o
 

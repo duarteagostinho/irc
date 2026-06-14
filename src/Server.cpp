@@ -12,14 +12,14 @@ bool Server::_signal = false;
 
 Server::Server() : _sockfd(-1), _port(0)
 {
-    std::cout << "Default Constructor called" << std::endl;
+//   std::cout << "Default Constructor called" << std::endl;
 	User server(_sockfd,"server", "server");
 	_users.push_back(server);
 }
 
 Server::Server(const Server &src)
 {
-    std::cout << "Copy Constructor called" << std::endl;
+//   std::cout << "Copy Constructor called" << std::endl;
     *this = src;
 }
 
@@ -27,8 +27,9 @@ Server::Server(const Server &src)
 ** -------------------------------- DESTRUCTOR --------------------------------
 */
 
-Server::~Server() {
-    std::cout << "Destructor called" << std::endl;
+Server::~Server() 
+{
+//   std::cout << "Destructor called" << std::endl;
 }
 
 /*
@@ -283,8 +284,8 @@ void	Server::run()
 		print_everything();
 		if (poll(&_fds[0], _fds.size(), -1) == -1)
 		{
-			std::cerr << "-error: poll failure\n";
-//			exit (10);
+			if (Server::getSignal() == false)
+				std::cerr << "-error: poll failure\n";
 			break ;
 		}
 		for (size_t i = 0; i < _fds.size() ;++i)
@@ -299,6 +300,11 @@ void	Server::run()
 					if (user_fd < 0)
 					{
 						perror("accept()");
+						continue;
+					}
+					if (fcntl(user_fd, F_SETFL, O_NONBLOCK) < 0)
+					{
+						perror("fcntl()");
 						continue;
 					}
 					newConnection(user_fd, user_socket, user_size);
@@ -378,5 +384,6 @@ int Server::getSignal(void)
 void Server::setSignal(int signal)
 { 
 	(void)signal;
+	std::cout << std::endl;
 	_signal = true;
 }
