@@ -131,6 +131,10 @@ class Server
 
 		static int getSignal(void);
 		static void setSignal(int signal);
+
+
+		void handleInv(std::vector<std::string>& av, int index, int inv);
+
 };
 
 // Stream Operator Overload

@@ -49,14 +49,20 @@ class Channel
         // void    setPassOnly(bool state);
         void    setTopic(const std::string topic);
 
+		void							setLimMode(bool mode);
+		void							setKeyMode(bool mode);
+		void                      		setInvMode(bool mode);
+		void							setOptrMode(bool mode);
+		void							setTopcMode(bool mode);
+
 
 
 	//Utils
 		std::string         usersFormated(void);
-        void                rmUser(std::string& nick);
-		bool				hasInvite(std::string nick);
-		void                rmOperator(std::string& nick);
-		void                addOperator(std::string& nick);
+        void                rmUser(const std::string& nick);
+		bool				hasInvite(const std::string nick);
+		void                rmOperator(const std::string& nick);
+		void                addOperator(const std::string& nick);
 		bool                isOperator(const std::string nick) const;
 		void                addUser(const std::string& nick, bool flag);
 		bool				isUserOnChannel(const std::string nick) const;

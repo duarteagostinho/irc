@@ -45,7 +45,7 @@ std::string Channel::usersFormated(void)
 	return (ret);
 }
 
-bool Channel::hasInvite(std::string nick)
+bool Channel::hasInvite(const std::string nick)
 {
 	std::vector<std::string>::iterator it = std::find(_invited.begin(), _invited.end(), nick);
 	if (it != _invited.end())
@@ -56,7 +56,7 @@ bool Channel::hasInvite(std::string nick)
 	return (false);
 }
 
-void Channel::rmUser(std::string& nick)
+void Channel::rmUser(const std::string& nick)
 {
 	_users_op.erase(nick);
 }
@@ -68,7 +68,7 @@ void Channel::addUser(const std::string& nick, bool flag)
 	_users_op.insert(std::make_pair(nick, flag));
 }
 
-void Channel::addOperator(std::string& nick)
+void Channel::addOperator(const std::string& nick)
 {
 	std::map<std::string, bool>::iterator it = _users_op.find(nick);
 
@@ -77,7 +77,7 @@ void Channel::addOperator(std::string& nick)
 }
 
 
-void Channel::rmOperator(std::string &nick)
+void Channel::rmOperator(const std::string &nick)
 {
 	std::map<std::string, bool>::iterator it = _users_op.find(nick);
 
@@ -148,7 +148,7 @@ const std::string Channel::getName() const
 
 bool Channel::getInvMode() const
 {
-	return _topc_flag;
+	return _inv_flag;
 }
 
 bool Channel::getTopcMode() const
@@ -198,6 +198,31 @@ const std::string Channel::getPass() const
 void Channel::setTopic(const std::string topic)
 {
 	_topic = topic;
+}
+
+void Channel::setInvMode(bool mode)
+{
+	_inv_flag = mode;
+}
+
+void Channel::setTopcMode(bool mode)
+{
+	_topc_flag = mode;
+}
+
+void Channel::setKeyMode(bool mode)
+{
+	_key_flag = mode;
+}
+
+void Channel::setOptrMode(bool mode)
+{
+	_optr_flag = mode;
+}
+
+void Channel::setLimMode(bool mode)
+{
+	_lim_flag = mode;
 }
 
 // void Channel::setPass(std::string pass) {_pass = pass;}

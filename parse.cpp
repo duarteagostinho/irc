@@ -1,6 +1,93 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cstdlib>
+
+// FAKE CHANNEL FUNC
+
+bool channel_invMode(int flag)
+{
+	if (flag)
+		return (true);
+	return (false);
+}
+
+bool channel_topicMode(int flag)
+{
+	if (flag)
+		return (true);
+	return (false);
+}
+
+void find_key(std::vector<std::string> &av, int index, int &flag)
+{
+	if (flag)
+		return;
+
+	if (index + 1 > av.size())
+		return ;
+
+
+
+
+
+
+	flag = 1;	
+}
+
+void rmLimit(std::vector<std::string> &av, int &index, int &flag)
+{
+	if (flag)
+		return;
+
+//	channel.limMode() = false;
+
+
+
+
+
+	flag = 1;
+}
+
+void addLimit(std::vector<std::string> &av, int &index, int &flag)
+{
+	int result;
+	char *end;
+
+	if (flag)
+		return;
+
+
+	if (index + 1 > av.size())
+		// :luna.AfterNET.Org 461 vivi MODE +l :Not enough parameters
+		// return ;
+
+	result = strtol(av[index + 1].c_str(), &end, 10);
+	if (result > INT32_MAX || result < 0 || *end);
+		// :luna.AfterNET.Org 461 vivi MODE +l :Invalid parameters
+
+	// store the limit at the Channel variable
+	index++;
+
+	/*
+		Type A: Modes that add or remove an address to or from a list. These modes MUST always have a parameter when sent from the server to a client. A client MAY issue this type of mode without an argument to obtain the current contents of the list. The numerics used to retrieve contents of Type A modes depends on the specific mode. Also see the EXTBAN parameter.
+			NONE
+		
+		Type B: Modes that change a setting on a channel. These modes MUST always have a parameter.
+			o AND k
+		
+		Type C: Modes that change a setting on a channel. These modes MUST have a parameter when being set, and MUST NOT have a parameter when being unset.
+			l
+		
+		Type D: Modes that change a setting on a channel. These modes MUST NOT have a parameter.
+			i AND t
+	
+	*/
+
+
+	flag = 1;
+}
+
 
 char getSign(std::string line)
 {
@@ -51,6 +138,8 @@ void parse(std::vector<std::string> av)
 	int	key = 0;
 	int op = 0;
 
+	
+
 	for (size_t i = 2; i < av.size(); i++) // at least size 3
 	{
 		for (size_t j = 0; av[i][j]; j++)
@@ -96,15 +185,27 @@ void parse(std::vector<std::string> av)
 		// CHECK IN THE NEXT ARGS FOR THE CORRECT ARGUMENT
 
 	}
-	if (inv > 0 && channel.invMode() == false)
-		channel.invMode() == true;
-	else if (inv < 0 && channel.invMode() == true)
-		channel.invMode() == false;
-
-	if (topic > 0 && channel.topicMode() == false)
-		channel.topicMode() == true;
-	else if (topic < 0 && channel.topicMode() == true)
-		channel.topicMode() == false;
+	if (inv > 0 && channel_invMode(0) == false)
+	{
+//		channel_invMode(1) == true;
+		std::cout << "inv mode added" << std::endl;
+	}
+	else if (inv < 0 && channel_invMode(0) == true)
+	{
+//		channel_invMode(0) == false;
+		std::cout << "inv mode removed" << std::endl;
+	}
+	if (topic > 0 && channel_topicMode(0) == false)
+	{
+//		channel_topicMode(1) == true;
+		std::cout << "topic  mode added" << std::endl;
+	}
+	else if (topic < 0 && channel_topicMode(0) == true)
+	{
+//		channel_topicMode(0) == false;
+		std::cout << "topic  mode removed" << std::endl;
+	}
+		
 
 	// +i -i, +t -t, +o <nick> -o <nick>
 
