@@ -134,6 +134,8 @@ class Server
 
 
 		void handleInv(std::vector<std::string>& av, int index, int inv);
+		void handleTopic(std::vector<std::string>& av, int index, int inv);
+
 
 };
 

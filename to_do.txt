@@ -8,3 +8,4 @@ Implementar limites no servidor
 - Max Channel
 - Max Users on server
 - Max nick length
+

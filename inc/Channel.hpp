@@ -41,7 +41,7 @@ class Channel
 		bool							getKeyMode() const;
 		bool                      		getInvMode() const;
 		bool							getOptrMode() const;
-		bool							getTopcMode() const;
+		bool							getTopicMode() const;
 	
 
 	//Setters
@@ -53,7 +53,7 @@ class Channel
 		void							setKeyMode(bool mode);
 		void                      		setInvMode(bool mode);
 		void							setOptrMode(bool mode);
-		void							setTopcMode(bool mode);
+		void							setTopicMode(bool mode);
 
 
 
@@ -69,6 +69,8 @@ class Channel
 
 		void				addInvite(const std::string& nick);
 		void				rmInvite(const std::string& nick);
+
+		std::string			printMode(void);
 
 		// DEL
         void print_users(void);

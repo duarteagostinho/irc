@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/15 15:34:22 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/15 17:50:37 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -266,8 +266,6 @@ void Server::kick(std::vector<std::string>& av, int index)
 	}
 	else
 	{
-		// Reason is not working correctly if there is no reason
-		// Trying this
 		std::string reason;
 		if (av.size() > 3) // there is reason
 			reason = craftStringSpaces(av[0], 3);
@@ -321,7 +319,8 @@ void Server::topic(std::vector<std::string>& av, int index)
 				send(_fds[index].fd, response.c_str(), response.size(), 0);
 			}
 		}
-		else if (!_channels[getChannelIndex(ch_av[i])].isOperator(_users[index].getNickname()))
+		else if (!_channels[getChannelIndex(ch_av[i])].isOperator(_users[index].getNickname())
+				&& _channels[getChannelIndex(ch_av[i])].getTopicMode() == true)
 		{
 			response = ":irc.server 482 " + _users[index].getNickname() + " " + ch_av[i] + " :You're not channel operator\r\n";
 			send(_fds[index].fd, response.c_str(), response.size(), 0);
@@ -562,19 +561,35 @@ void Server::handleInv(std::vector<std::string>& av, int index, int inv)
 	if (inv > 0 && _channels[ch].getInvMode() == false)
 	{
 		_channels[ch].setInvMode(true);
-		response = "";
+		response = getClientInfo(index) + " MODE " + av[1] + " +i\r\n";
 		broadcastMessage(_channels[ch], response, index, 1);
-		std::cout << "inv mode added" << std::endl;
 	}
 	else if (inv < 0 && _channels[ch].getInvMode() == true)
 	{
 		_channels[ch].setInvMode(false);
-		response = "";
+		response = getClientInfo(index) + " MODE " + av[1] + " -i\r\n";
 		broadcastMessage(_channels[ch], response, index, 1);
-		std::cout << "inv mode removed" << std::endl;
 	}
 }
 
+void Server::handleTopic(std::vector<std::string>& av, int index, int topic)
+{
+	int ch = getChannelIndex(av[1]);
+	std::string response;
+	
+	if (topic > 0 && _channels[ch].getTopicMode() == false)
+	{
+		_channels[ch].setTopicMode(true);
+		response = getClientInfo(index) + " MODE " + av[1] + " +t\r\n";
+		broadcastMessage(_channels[ch], response, index, 1);
+	}
+	else if (topic < 0 && _channels[ch].getTopicMode() == true)
+	{
+		_channels[ch].setTopicMode(false);
+		response = getClientInfo(index) + " MODE " + av[1] + " -t\r\n";
+		broadcastMessage(_channels[ch], response, index, 1);
+	}
+}
 
 void Server::mode(std::vector<std::string>& av, int index)
 {
@@ -585,29 +600,29 @@ void Server::mode(std::vector<std::string>& av, int index)
 
 	std::string response;
 
-	// if (av.size() < 3) // Missing arguments or Print info
-	// {
-	// 	if (av.size() == 1)
-	// 	{
-	// 		response = ":irc.server 461 " + _users[index].getNickname() + " MODE :Not enough parameters\r\n";
-	// 		send(_fds[index].fd, response.c_str(), response.size(), 0);
-	// 	}
-	// 	else // size == 2
-	// 	{
-	// 		if (!doesUserExist(av[1]))
-	// 			response = ":irc.server 502 " + _users[index].getNickname() + " :Cant change mode for other users\r\n";
-	// 		else if (isChannel(av[1]))
-	// 		{
-	// 			response = 	":irc.server 324 " + _users[index].getNickname() + " " + av[1] + " <ch_modes> <limit> <pass> ";
-	// 			response += ":irc.server 329 " + _users[index].getNickname() + " " + av[1] + " <timestamp channel creation>";
-	// 		}
-	// 		else // Not a user nor a channel
-	// 			response = 	":irc.server 403 " + _users[index].getNickname() + " " + av[1] + " :No such channel";
-	// 	}
-	// 	send(_fds[index].fd, response.c_str(), response.size(), 0);
-	// 	return ;
-	// }
-
+	if (av.size() < 3) // Missing arguments or Print info
+	{
+		if (av.size() == 1)
+		{
+			response = ":irc.server 461 " + _users[index].getNickname() + " MODE :Not enough parameters\r\n";
+			send(_fds[index].fd, response.c_str(), response.size(), 0);
+		}
+		else // size == 2
+		{
+			if (doesUserExist(av[1]))
+				response = ":irc.server 502 " + _users[index].getNickname() + " :Cant change mode for other users\r\n";
+			else if (isChannel(av[1]))
+			{
+				// get the timestamp for the channel creation !!!!
+				response = 	":irc.server 324 " + _users[index].getNickname() + " " + av[1] + " " + _channels[getChannelIndex(av[1])].printMode() + "\r\n";
+				response += ":irc.server 329 " + _users[index].getNickname() + " " + av[1] + " 0\r\n";
+			}
+			else // Not a user nor a channel
+				response = 	":irc.server 403 " + _users[index].getNickname() + " " + av[1] + " :No such channel";
+		}
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
+		return ;
+	}
 	if (isChannel(av[1]) == false)
 	{
 		response = 	":irc.server 403 " + _users[index].getNickname() + " " + av[1] + " :No such channel";
@@ -616,7 +631,7 @@ void Server::mode(std::vector<std::string>& av, int index)
 	}
 //	int ch = getChannelIndex(av[1]);
 	
-	int sign = 0;
+	int sign = 1;
 	int inv = 0;
 	int topic = 0;
 	int	limit = 0;
@@ -669,11 +684,11 @@ void Server::mode(std::vector<std::string>& av, int index)
 		// CHECK IN THE NEXT ARGS FOR THE CORRECT ARGUMENT
 
 	}
-	// if (inv)
-	// 	handleInv(av, index, inv);
+	if (inv)
+		handleInv(av, index, inv);
 
-	// if (topic)
-
+	if (topic)
+		handleTopic(av, index, topic);
 
 	// if (op)
 

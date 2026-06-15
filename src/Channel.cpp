@@ -104,15 +104,47 @@ void Channel::rmInvite(const std::string& nick)
 	}
 }
 
+std::string Channel::printMode(void)
+{
+	// char cmds[6] = {};
+
+	// cmds[0] = '+';
+	// if (getTopicMode() == true)
+	// 	cmds[1];
+	// // +tilk
+
+	// // limite
+
+	// // key
+
+
+	// THIS IS SOOO TRASH
+	std::string str = "+";
+
+	if (getTopicMode() == true)
+		str += "t";
+	if (getInvMode() == true)
+		str += "i";
+	if (getLimMode() == true)
+		str += "l";
+	if (getKeyMode() == true)
+		str += "k";
+	// if (getLimMode() == true)
+	// 	str += " " + getLimit();
+	// if (getKeyMode() == true)
+	// 	str += " " + getKey();
+	return (str);
+}
+
 // Orthodox Cannonical Form
 Channel::Channel()
-: _name(""), _topic(""), _pass("")
+: _name(""), _topic(""), _pass(""), _inv_flag(false), _topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false)
 {
 
 }
 
 Channel::Channel(std::string name)
-: _name(name), _topic(""), _pass("")
+: _name(name), _topic(""), _pass(""), _inv_flag(false), _topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false)
 {
 
 }
@@ -136,6 +168,11 @@ Channel &Channel::operator=(const Channel &other)
 		_pass = other._pass;
 		_users_op = other._users_op;
         _invited = other._invited;
+		_inv_flag = other._inv_flag;
+		_topc_flag = other._topc_flag;
+		_key_flag = other._key_flag;
+		_optr_flag = other._optr_flag;
+		_lim_flag = other._lim_flag;
     }
     return *this;
 }
@@ -151,7 +188,7 @@ bool Channel::getInvMode() const
 	return _inv_flag;
 }
 
-bool Channel::getTopcMode() const
+bool Channel::getTopicMode() const
 {
 	return _topc_flag;
 }
@@ -205,7 +242,7 @@ void Channel::setInvMode(bool mode)
 	_inv_flag = mode;
 }
 
-void Channel::setTopcMode(bool mode)
+void Channel::setTopicMode(bool mode)
 {
 	_topc_flag = mode;
 }
