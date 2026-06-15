@@ -138,13 +138,13 @@ std::string Channel::printMode(void)
 
 // Orthodox Cannonical Form
 Channel::Channel()
-: _name(""), _topic(""), _pass(""), _inv_flag(false), _topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false)
+: _name(""), _topic(""), _pass(""), _creation(0), _new_topic(0), _inv_flag(false), _topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false)
 {
 
 }
 
 Channel::Channel(std::string name)
-: _name(name), _topic(""), _pass(""), _inv_flag(false), _topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false)
+: _name(name), _topic(""), _pass(""), _creation(0), _new_topic(0), _inv_flag(false), _topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false)
 {
 
 }
@@ -173,6 +173,7 @@ Channel &Channel::operator=(const Channel &other)
 		_key_flag = other._key_flag;
 		_optr_flag = other._optr_flag;
 		_lim_flag = other._lim_flag;
+		_creation = other._creation;
     }
     return *this;
 }
@@ -180,42 +181,65 @@ Channel &Channel::operator=(const Channel &other)
 //Getters
 const std::string Channel::getName() const 
 {
-    return _name;
+    return (_name);
 }
 
 bool Channel::getInvMode() const
 {
-	return _inv_flag;
+	return (_inv_flag);
 }
 
 bool Channel::getTopicMode() const
 {
-	return _topc_flag;
+	return (_topc_flag);
 }
 
 bool Channel::getKeyMode() const
 {
-	return _key_flag;
+	return (_key_flag);
 }
 
 bool Channel::getOptrMode() const
 {
-	return _optr_flag;
+	return (_optr_flag);
 }
 
 bool Channel::getLimMode() const
 {
-	return _lim_flag;
+	return (_lim_flag);
 }
 
 const std::string Channel::getTopic() const
 {
-    return _topic;
+    return (_topic);
 }
 
 const std::string Channel::getPass() const
 {
-    return _pass;
+    return (_pass);
+}
+
+std::string Channel::getChannelTime(void) const
+{
+	std::stringstream ss;
+
+	ss << _creation;
+//	return (std::to_string(_creation));
+	return (ss.str());
+}
+
+std::string Channel::getTopicTime(void) const
+{
+	std::stringstream ss;
+
+	ss << _new_topic;
+	return (ss.str());
+}
+
+
+std::string Channel::getTopicMaker(void) const
+{
+	return (_topic_creator);
 }
 
 // const int Channel::getUserLimit() const {return _userLimit;}
@@ -261,6 +285,23 @@ void Channel::setLimMode(bool mode)
 {
 	_lim_flag = mode;
 }
+
+
+void Channel::setChannelTime(void)
+{
+	_creation = time(NULL);
+}
+
+void Channel::setTopicTime(void)
+{
+	_new_topic = time(NULL);
+}
+
+void Channel::setTopicMaker(const std::string &str)
+{
+	_topic_creator = str;
+}
+
 
 // void Channel::setPass(std::string pass) {_pass = pass;}
 

@@ -9,3 +9,7 @@ Implementar limites no servidor
 - Max Users on server
 - Max nick length
 
+Hunt a segfault
+-Joined channel, one with nc, one with hexchat,
+crtl C on nc, crtl c on server
+segfault on channel destructor? why?

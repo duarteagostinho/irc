@@ -288,7 +288,7 @@ void	Server::run()
 				std::cerr << "-error: poll failure\n";
 			break ;
 		}
-		for (size_t i = 0; i < _fds.size() ;++i)
+		for (size_t i = 0; i < _fds.size();++i)
 		{
 			if (_fds[i].revents & POLLIN)
 			{
