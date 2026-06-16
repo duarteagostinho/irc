@@ -203,7 +203,7 @@ void	Server::welcomeUser(int i)
 		std::string welcome1 = ":irc.server 001 " + _reg[i]._nickname + " :Welcome to ircserv, " + _reg[i]._nickname + "\r\n";
 		std::string welcome2 = ":irc.server 002 " + _reg[i]._nickname + " :Your host is irc.server\r\n";
 		std::string welcome3 = ":irc.server 003 " + _reg[i]._nickname + " :This server was created in 2026\r\n";
-		std::string welcome4 = ":irc.server 004 " + _reg[i]._nickname + " irc.server v1.0 itkl o\r\n";
+		std::string welcome4 = ":irc.server 004 " + _reg[i]._nickname + " irc.server v1.0 tilk o\r\n";
 
 		send(_fds[i].fd, welcome1.c_str(), welcome1.size(), 0);
 		send(_fds[i].fd, welcome2.c_str(), welcome2.size(), 0);
@@ -215,7 +215,7 @@ void	Server::disconnect(int i)
 {
 	std::cout << "[DISCONECT] fd = "<< _fds[i].fd << std::endl;
 	std::cout << "nick=" << _users[i].getNickname() << std::endl;
-	//		_users.erase(_fds[i].fd);	
+	//		_users.erase(_fds[i].fd);
 	if ((_users.begin() + i) != _users.end())
 		_users.erase(_users.begin() + i);
 	// else
@@ -223,6 +223,7 @@ void	Server::disconnect(int i)
 	close(_fds[i].fd);
 	_fds.erase(_fds.begin() + i);
 }
+
 /*
 	Parses every message sent on the server. Checks for unregistered users before parsing what command has to be executed.
 */
@@ -245,7 +246,7 @@ void Server::getMessage(std::string &line, char *buffer, int i)
 	size_t find = line.find("\r\n");
 	if (find != std::string::npos)
 	{
-		std::string cmd_line = line.substr(0, find);	
+		std::string cmd_line = line.substr(0, find);
 		exec_cmd(line, i);
 		line.erase(0, find + 2);
 		find = line.find("\r\n");
@@ -260,7 +261,7 @@ void	Server::setPassword(char *pass)
 void	Server::sendError(int fd, int code, const std::string target, const std::string &msg)
 {
 	std::ostringstream ss;
-	ss << ":server " << code << " " << target << " :" << msg << "\r\n";
+	ss << ":irc.server " << code << " " << target << " :" << msg << "\r\n";
 	send(fd, ss.str().c_str(), ss.str().size(), 0);
 }
 
@@ -280,7 +281,7 @@ void	Server::run()
 //		bool it = Server::getSignal();
 //		std::cout << it << std::endl;
 //		std::cout << Server::getSignal << std::endl;
-		line.clear();
+//		line.clear();
 		print_everything();
 		if (poll(&_fds[0], _fds.size(), -1) == -1)
 		{
@@ -326,7 +327,7 @@ void	Server::run()
 					buf[bytes] = 0;
 					std::cout << "raw buf: " << buf << ", bytes: " << bytes << std::endl;
 					getMessage(line, buf, i);
-					if (i >= _fds.size())
+					if (i >= _fds.size()) // Why is this here??
 						continue;
 				}
 			}

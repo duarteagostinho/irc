@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/15 20:47:35 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/16 09:03:13 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -465,6 +465,15 @@ void Server::broadcastMessage(Channel &channel, std::string message, int index, 
 	}
 }
 
+
+
+
+
+/////////////////////////// MODE ///////////////////////////////
+
+
+
+
 static int adv_peek(std::string str, size_t &j)
 {
 	size_t valid_j;
@@ -541,7 +550,6 @@ void Server::mode(std::vector<std::string>& av, int index)
 				response = ":irc.server 502 " + _users[index].getNickname() + " :Cant change mode for other users\r\n";
 			else if (isChannel(av[1]))
 			{
-				// get the timestamp for the channel creation !!!!
 				response = 	":irc.server 324 " + _users[index].getNickname() + " " + av[1] + " " + _channels[ch_i].printMode() + "\r\n";
 				response += ":irc.server 329 " + _users[index].getNickname() + " " + av[1] + " " + _channels[ch_i].getChannelTime() + "\r\n";
 			}
@@ -562,12 +570,20 @@ void Server::mode(std::vector<std::string>& av, int index)
 	int sign = 1;
 	int inv = 0;
 	int topic = 0;
+
+	// might not need those
 	int	limit = 0;
 	int	key = 0;
 	int op = 0;
 
 	for (size_t i = 2; i < av.size(); i++) // at least size 3
 	{
+		// everytime I start a new string, I set the offset to 1 
+		// because if I find l, k or o. The next string is the arg im looking for
+		// everytime I parse one of those, I increase the offset
+		// expect to find the arg at av[i + offset] !
+		// int offset = 1;
+		
 		for (size_t j = 0; av[i][j]; j++)
 		{	
 			std::cout << av[i][j] << std::endl;
