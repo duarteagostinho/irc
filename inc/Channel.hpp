@@ -21,6 +21,7 @@ class Channel
 		time_t						_creation;
 		time_t						_new_topic;
 		std::string					_topic_creator;
+		
 
 		bool	_inv_flag;	// set/remove invite only
 		bool	_topc_flag;	// set/remove topic restriction on operators
@@ -28,7 +29,7 @@ class Channel
 		bool	_optr_flag;	// set/remove operator
 		bool	_lim_flag;	// set/remove user limit to channel
 
-
+		int							_max_users;
         
         public:
         
@@ -42,14 +43,15 @@ class Channel
 		const std::string				getName() const;
         const std::string               getPass() const;
 		const std::string               getTopic() const;
-		bool							getLimMode() const;
+		bool							getLimitMode() const;
 		bool							getKeyMode() const;
-		bool                      		getInvMode() const;
-		bool							getOptrMode() const;
+		bool                      		getInviteMode() const;
+		bool							getOperatorMode() const;
 		bool							getTopicMode() const;
 		std::string						getChannelTime(void) const;
 		std::string						getTopicTime(void) const;
 		std::string						getTopicMaker(void) const;
+		int								getMaxUsers(void) const;
 
 	//Setters
         // void    setInvite(bool state);
@@ -58,12 +60,15 @@ class Channel
 
 		void							setTopicTime(void);
 		void							setChannelTime(void);
-		void							setLimMode(bool mode);
+		void							setLimitMode(bool mode);
 		void							setKeyMode(bool mode);
-		void                      		setInvMode(bool mode);
-		void							setOptrMode(bool mode);
+		void                      		setInviteMode(bool mode);
+		void							setOperatorMode(bool mode);
 		void							setTopicMode(bool mode);
+		void							setPass(const std::string &str);
 		void							setTopicMaker(const std::string &str);
+
+		void							setMaxUsers(int &num);
 
 
 	//Utils

@@ -16,7 +16,6 @@ char getSign(std::string line)
 	return (0);
 }
 
-
 int adv_peek(std::string str, size_t &j)
 {
 	size_t valid_j;
@@ -36,24 +35,27 @@ void handleInvite(int flag)
 {
 	if (flag > 0)
 	{
-		std::cout << "Invite  mode added" << std::endl;
+		std::cout << "getUserInfo() MODE <channel> +i" << std::endl;
+		// channel.setInvMode(true);
 	}
 	else if (flag < 0)
 	{
-		std::cout << "Invite  mode removed" << std::endl;
+		std::cout << "getUserInfo() MODE <channel> -i" << std::endl;
+		// channel.setInvMode(false);
 	}
 }
-
 
 void handleTopic(int flag)
 {
 	if (flag > 0)
 	{
-		std::cout << "Topic  mode added" << std::endl;
+		std::cout << "getUserInfo() MODE <channel> +t" << std::endl;
+		// channel.setTopicMode(true);
 	}
 	else if (flag < 0)
 	{
-		std::cout << "Topic  mode removed" << std::endl;
+		std::cout << "getUserInfo() MODE <channel> -t" << std::endl;
+		// channel.setTopicMode(false);
 	}
 }
 
@@ -99,7 +101,7 @@ void handleKey(std::vector<std::string>const &av, const int &index, const int &s
 	if (flag)
 		return;
 
-	std::string channel_key = "hello";
+	std::string channel_key = "lwxxw";
 
 	// int ch_i = getChannelIndex(av[1]);
 	if (index + offset >= av.size())
@@ -114,6 +116,7 @@ void handleKey(std::vector<std::string>const &av, const int &index, const int &s
 			if (av[index + offset] != channel_key) // incorrect password
 			{
 				std::cout << ":irc.server 467 <nick> <channel> :Channel key already set\n";
+				offset++;
 				return ;
 			}
 			std::cout << "getUserInfo() MODE <channel> -k " << av[index + offset] << std::endl; // broadcast
@@ -137,11 +140,11 @@ void parse(std::vector<std::string> av)
 	if (av.size() < 3)
 	{
 		if (av.size() == 1)
-			std::cout << "461 :Not enough parameters\n";
+			std::cout << ":irc.server 461 :Not enough parameters\n";
 		else
 		{
 			if (av[1][0] != '#')
-				std::cout << "502 :No such channel\n";
+				std::cout << ":irc.server 502 :No such channel\n";
 		}
 		return ;
 	}
@@ -150,10 +153,8 @@ void parse(std::vector<std::string> av)
 	int inv = 0;
 	int topic = 0;
 	int	limit_flag = 0;
-
-
-	
 	int	key_flag = 0;
+
 	int op = 0;
 
 	for (size_t i = 2; i < av.size(); ) // at least size 3
@@ -161,8 +162,7 @@ void parse(std::vector<std::string> av)
 		int offset = 1;
 
 		for (size_t j = 0; av[i][j]; j++)
-		{	
-			std::cout << av[i][j] << std::endl;
+		{
 			switch(av[i][j])
 			{
 				case '+':
@@ -189,7 +189,9 @@ void parse(std::vector<std::string> av)
 				case '\0':
 					break ;
 				default:
-					std::cout << "472 :is unknown mode char to me\n";
+					std::cout << ":irc.server 472 <nick> ";
+					std::cout << av[i][j];
+					std::cout << " :is unknown mode char to me\n";
 			}
 // 			std::cout << "sign: " << sign << ", char: " << av[i][j] << std::endl;
 // 			std::cout << "i: " << inv << std::endl;
@@ -213,6 +215,8 @@ void parse(std::vector<std::string> av)
 
 	// +i -i, +t -t, +o <nick> -o <nick>
 
+
+	// HERE I CALL THE FUNCTION THAT PRINT THE MODES OF THE CHANNEL !!!!!
 }
 
 

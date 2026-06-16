@@ -76,7 +76,6 @@ void Channel::addOperator(const std::string& nick)
 		it->second = true;
 }
 
-
 void Channel::rmOperator(const std::string &nick)
 {
 	std::map<std::string, bool>::iterator it = _users_op.find(nick);
@@ -106,45 +105,40 @@ void Channel::rmInvite(const std::string& nick)
 
 std::string Channel::printMode(void)
 {
-	// char cmds[6] = {};
-
-	// cmds[0] = '+';
-	// if (getTopicMode() == true)
-	// 	cmds[1];
-	// // +tilk
-
-	// // limite
-
-	// // key
-
-
 	// THIS IS SOOO TRASH
 	std::string str = "+";
 
 	if (getTopicMode() == true)
 		str += "t";
-	if (getInvMode() == true)
+	if (getInviteMode() == true)
 		str += "i";
-	if (getLimMode() == true)
+	if (getLimitMode() == true)
 		str += "l";
 	if (getKeyMode() == true)
 		str += "k";
-	// if (getLimMode() == true)
-	// 	str += " " + getLimit();
-	// if (getKeyMode() == true)
-	// 	str += " " + getKey();
+	if (getLimitMode() == true)
+	{
+		std::stringstream ss;
+
+		ss << getMaxUsers();
+		str += " " + ss.str();
+	}
+	if (getKeyMode() == true)
+		str += " " + getPass();
 	return (str);
 }
 
 // Orthodox Cannonical Form
 Channel::Channel()
-: _name(""), _topic(""), _pass(""), _creation(0), _new_topic(0), _inv_flag(false), _topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false)
+: _name(""), _topic(""), _pass(""), _creation(0), _new_topic(0), _inv_flag(false),
+_topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false), _max_users(0)
 {
 
 }
 
 Channel::Channel(std::string name)
-: _name(name), _topic(""), _pass(""), _creation(0), _new_topic(0), _inv_flag(false), _topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false)
+: _name(name), _topic(""), _pass(""), _creation(0), _new_topic(0), _inv_flag(false),
+_topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false), _max_users(0)
 {
 
 }
@@ -174,6 +168,7 @@ Channel &Channel::operator=(const Channel &other)
 		_optr_flag = other._optr_flag;
 		_lim_flag = other._lim_flag;
 		_creation = other._creation;
+		_max_users = other._max_users;
     }
     return *this;
 }
@@ -184,7 +179,7 @@ const std::string Channel::getName() const
     return (_name);
 }
 
-bool Channel::getInvMode() const
+bool Channel::getInviteMode() const
 {
 	return (_inv_flag);
 }
@@ -199,12 +194,12 @@ bool Channel::getKeyMode() const
 	return (_key_flag);
 }
 
-bool Channel::getOptrMode() const
+bool Channel::getOperatorMode() const
 {
 	return (_optr_flag);
 }
 
-bool Channel::getLimMode() const
+bool Channel::getLimitMode() const
 {
 	return (_lim_flag);
 }
@@ -224,7 +219,6 @@ std::string Channel::getChannelTime(void) const
 	std::stringstream ss;
 
 	ss << _creation;
-//	return (std::to_string(_creation));
 	return (ss.str());
 }
 
@@ -236,32 +230,23 @@ std::string Channel::getTopicTime(void) const
 	return (ss.str());
 }
 
-
 std::string Channel::getTopicMaker(void) const
 {
 	return (_topic_creator);
 }
 
-// const int Channel::getUserLimit() const {return _userLimit;}
-
-// const std::string Channel::getCreator() const {return _creator;}
-
-// const std::vector<std::string> Channel::getUsers() const {return _users;}
-
-
-
+int Channel::getMaxUsers(void) const
+{
+	return (_max_users);
+}
 
 // //Setters
-// void Channel::setInvite(bool state) {_inviteOnly = state;}
-
-// void Channel::setPassOnly(bool state) {_passOnly = state;}
-
 void Channel::setTopic(const std::string topic)
 {
 	_topic = topic;
 }
 
-void Channel::setInvMode(bool mode)
+void Channel::setInviteMode(bool mode)
 {
 	_inv_flag = mode;
 }
@@ -276,12 +261,12 @@ void Channel::setKeyMode(bool mode)
 	_key_flag = mode;
 }
 
-void Channel::setOptrMode(bool mode)
+void Channel::setOperatorMode(bool mode)
 {
 	_optr_flag = mode;
 }
 
-void Channel::setLimMode(bool mode)
+void Channel::setLimitMode(bool mode)
 {
 	_lim_flag = mode;
 }
@@ -302,9 +287,12 @@ void Channel::setTopicMaker(const std::string &str)
 	_topic_creator = str;
 }
 
+void Channel::setPass(const std::string &str)
+{
+	_pass = str;
+}
 
-// void Channel::setPass(std::string pass) {_pass = pass;}
-
-// void Channel::setUserLmit(int limit) {_userLimit = limit;}
-
-
+void Channel::setMaxUsers(int &num)
+{
+	_max_users = num;
+}

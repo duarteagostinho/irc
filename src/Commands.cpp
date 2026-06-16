@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/16 09:03:13 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/16 16:15:31 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,7 @@ void Server::join(std::vector<std::string>& av, int index)
 				response = ":irc.server 475 " + _users[index].getNickname() + " " + ch_av[i] + " :Cannot join channel (+k)\r\n";
 				send(_fds[index].fd, response.c_str(), response.size(), 0);
 			}
-			else if (!_channels[ch_i].hasInvite(_users[index].getNickname()) && _channels[ch_i].getInvMode())
+			else if (!_channels[ch_i].hasInvite(_users[index].getNickname()) && _channels[ch_i].getInviteMode())
 			{
 				response = ":irc.server 473 " + _users[index].getNickname() + " " + ch_av[i] + " :Cannot join channel (+i)\r\n";
 				send(_fds[index].fd, response.c_str(), response.size(), 0);
@@ -458,6 +458,7 @@ void Server::broadcastMessage(Channel &channel, std::string message, int index, 
 {
 	if (flag)
 		send(_fds[index].fd, message.c_str(), message.size(), 0);
+	std::cout << "\n\n" << _fds.size() << "\n\n";
 	for (size_t i = 1; i < _fds.size(); i++)
 	{
 		if (_fds[i].fd != _fds[index].fd && channel.isUserOnChannel(_users[i].getNickname()))
@@ -494,17 +495,17 @@ void Server::handleInv(std::vector<std::string>& av, int index, int inv)
 	int ch = getChannelIndex(av[1]);
 	std::string response;
 	
-	if (inv > 0 && !_channels[ch].getInvMode())
+	if (inv > 0 && !_channels[ch].getInviteMode())
 	{
-		_channels[ch].setInvMode(true);
+		_channels[ch].setInviteMode(true);
 		response = getClientInfo(index) + " MODE " + av[1] + " +i\r\n";
-		broadcastMessage(_channels[ch], response, index, 1);
+		broadcastMessage(_channels[ch], response, index, 1); // DO IT IN THE END !!!
 	}
-	else if (inv < 0 && _channels[ch].getInvMode())
+	else if (inv < 0 && _channels[ch].getInviteMode())
 	{
-		_channels[ch].setInvMode(false);
+		_channels[ch].setInviteMode(false);
 		response = getClientInfo(index) + " MODE " + av[1] + " -i\r\n";
-		broadcastMessage(_channels[ch], response, index, 1);
+		broadcastMessage(_channels[ch], response, index, 1); // DO IT IN THE END !!!
 	}
 }
 
@@ -517,14 +518,116 @@ void Server::handleTopic(std::vector<std::string>& av, int index, int topic)
 	{
 		_channels[ch].setTopicMode(true);
 		response = getClientInfo(index) + " MODE " + av[1] + " +t\r\n";
-		broadcastMessage(_channels[ch], response, index, 1);
+		broadcastMessage(_channels[ch], response, index, 1); // DO IT IN THE END !!!
 	}
 	else if (topic < 0 && _channels[ch].getTopicMode())
 	{
 		_channels[ch].setTopicMode(false);
 		response = getClientInfo(index) + " MODE " + av[1] + " -t\r\n";
-		broadcastMessage(_channels[ch], response, index, 1);
+		broadcastMessage(_channels[ch], response, index, 1); // DO IT IN THE END !!!
 	}
+}
+
+void Server::handleLimit(std::vector<std::string>const &av, const int &i, const int &sign, int &offset, int &flag, int index)
+{
+	int result;
+	char *end;
+	std::string response;
+
+	if (flag)
+		return;
+	
+	int ch_i = getChannelIndex(av[1]);
+	if (sign < 0 && _channels[ch_i].getLimitMode()) // remove doesn't need arguments
+	{
+		_channels[ch_i].setLimitMode(false);
+		response = getClientInfo(index) + " MODE " + av[1] + " -l\r\n";
+		broadcastMessage(_channels[ch_i], response, index, 1); // DO IT IN THE END !!!
+	}
+	else
+	{
+		if (static_cast<size_t>(i + offset) >= av.size())
+		{
+//			std::cout << ":irc.server 461 <nick> MODE +l :Not enough parameters" << std::endl;
+			response = ":irc.server 461 " + _users[index].getNickname() + " MODE +l :Not enough parameters\r\n";
+			send(_fds[index].fd, response.c_str(), response.size(), 0);
+		}
+		else // valid amount of arguments, check if it's a valid num
+		{
+			result = strtol(av[i + 1].c_str(), &end, 10);
+			if (result > 2147483647 || result < 0 || *end)
+			{
+				response = ":irc.server 461 " + _users[index].getNickname() + " MODE +l :Invalid parameters\r\n";
+				send(_fds[index].fd, response.c_str(), response.size(), 0);
+			}
+			else
+			{
+				std::stringstream ss;
+				
+				ss << result;
+				response = getClientInfo(index) + " MODE " + av[1] + " +l " + ss.str() + "\r\n";
+				broadcastMessage(_channels[ch_i], response, index, 1); // DO IT IN THE END !!!
+//				std::cout << "getUserInfo() MODE <channel> +l " << result << std::endl;
+				_channels[ch_i].setMaxUsers(result);
+				_channels[ch_i].setLimitMode(true);
+			}
+			offset++;
+		}
+	}
+	flag = 1;
+}
+
+
+void Server::handleKey(std::vector<std::string>const &av, const int &i, const int &sign, int &offset, int &flag, int index)
+{
+	std::string c;
+	
+	std::string response;
+
+	
+
+	if (flag)
+		return;
+		
+	int ch_i = getChannelIndex(av[1]);
+	std::cout << "\nOLD PASS: " << _channels[ch_i].getPass() << std::endl << std::endl;
+	if (static_cast<size_t>(i + offset) >= av.size())
+	{
+		(sign < 0) ? c = "-" : c = "+";
+		response = ":irc.server 461 " + _users[index].getNickname() + " MODE " + c + "k :Not enough parameters\r\n";
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
+//		std::cout << ":irc.server 461 " + _users[index].getNickname() + " MODE " + c + "k :Not enough parameters" << std::endl;
+	}
+	else
+	{
+		if (av[i + offset] != _channels[ch_i].getPass() && _channels[ch_i].getKeyMode()) // incorrect password
+		{
+//				std::cout << ":irc.server 467 " + _users[index].getNickname() + " " + av[1] + " :Channel key already set\n";
+			response = ":irc.server 467 " + _users[index].getNickname() + " " + av[1] + " :Channel key already set\r\n";
+			send(_fds[index].fd, response.c_str(), response.size(), 0);
+			offset++;
+			return ;
+		}
+		if (sign < 0) // remove password
+		{
+//			std::cout << getClientInfo(index) + " MODE " + av[1] + " -k " + av[index + offset] << std::endl; // broadcast
+			response = getClientInfo(index) + " MODE " + av[1] + " -k " + av[i + offset] + "\r\n";
+			broadcastMessage(_channels[ch_i], response, index, 1); // DO IT IN THE END !!!
+			_channels[ch_i].setKeyMode(false);
+			_channels[ch_i].setPass("");
+		}
+		else // add password
+		{
+			_channels[ch_i].setKeyMode(true);
+			_channels[ch_i].setPass(av[i + offset]);
+			response = getClientInfo(index) + " MODE " + av[1] + " +k " + av[i + offset] + "\r\n";
+			broadcastMessage(_channels[ch_i], response, index, 1); // DO IT IN THE END !!!
+//			std::cout << "getUserInfo() MODE <channel> +k " << av[index + offset] << std::endl; // broadcast
+		}
+		offset++;
+	}
+	flag = 1;
+	std::cout << "\nNEW PASS: " << _channels[ch_i].getPass() << std::endl << std::endl;
 }
 
 void Server::mode(std::vector<std::string>& av, int index)
@@ -570,22 +673,26 @@ void Server::mode(std::vector<std::string>& av, int index)
 	int sign = 1;
 	int inv = 0;
 	int topic = 0;
+	int	limit_flag = 0;
+	int	key_flag = 0;
+
+
 
 	// might not need those
-	int	limit = 0;
-	int	key = 0;
+
 	int op = 0;
 
-	for (size_t i = 2; i < av.size(); i++) // at least size 3
+	for (size_t i = 2; i < av.size(); ) // at least size 3
 	{
 		// everytime I start a new string, I set the offset to 1 
 		// because if I find l, k or o. The next string is the arg im looking for
 		// everytime I parse one of those, I increase the offset
 		// expect to find the arg at av[i + offset] !
 		// int offset = 1;
-		
+		int offset = 1;
 		for (size_t j = 0; av[i][j]; j++)
 		{	
+			
 			std::cout << av[i][j] << std::endl;
 			switch(av[i][j])
 			{
@@ -605,10 +712,10 @@ void Server::mode(std::vector<std::string>& av, int index)
 					op += (sign * av[i][j]);
 					break ;
 				case 'k':
-					key += (sign * av[i][j]);
+					handleKey(av, i, sign, offset, key_flag, index);
 					break ;
 				case 'l':
-					limit += (sign * av[i][j]);
+					handleLimit(av, i, sign, offset, limit_flag, index);
 					break ;
 				case '\0':
 					break ;
@@ -620,14 +727,14 @@ void Server::mode(std::vector<std::string>& av, int index)
 			std::cout << "sign: " << sign << ", char: " << av[i][j] << std::endl;
 			std::cout << "i: " << inv << std::endl;
 			std::cout << "t: " << topic << std::endl;
-			std::cout << "k: " << key << std::endl;
+//			std::cout << "k: " << key << std::endl;
 			std::cout << "o: " << op << std::endl;
-			std::cout << "l: " << limit << std::endl;
+//			std::cout << "l: " << limit << std::endl;
 		}
 		// HERE I NEED TO CHECK IF LIMIT, OPERATOR OR KEY IS CALLED
 		// ALSO NEED THE ORDER THEY ARE CALLED
 		// CHECK IN THE NEXT ARGS FOR THE CORRECT ARGUMENT
-
+		i += offset;
 	}
 	if (inv)
 		handleInv(av, index, inv);
@@ -642,8 +749,9 @@ void Server::mode(std::vector<std::string>& av, int index)
 		For o, I can create a map, nick = key, + or - = value;
 	*/
 
-	
-	
+	// BROADCAST THIS
+	// NEED TO TRACK IF THERE WERE ANY CHANGE OR NOT. PRINT ONLY IF CHANGES HAPPEN
+	response = 	getClientInfo(index) + " MODE " + av[1] + " " + _channels[ch_i].printMode() + "\r\n";
 }
 
 

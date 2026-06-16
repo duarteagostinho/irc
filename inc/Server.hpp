@@ -8,29 +8,23 @@
 # include <netinet/in.h>
 # include <stdlib.h>
 # include <map>
-#include <cstddef>
-#include <cstdio>
-#include <cstring>
-#include <iostream>
-#include <map>
-#include <netinet/in.h>
-#include <stdexcept>
-#include <string>
-#include <sys/socket.h>
-#include <sys/select.h>
-#include <unistd.h>
-#include <cerrno>
-#include <stdio.h>
-#include <sstream>
+# include <cstddef>
+# include <cstdio>
+# include <cstring>
+# include <stdexcept>
+# include <sys/select.h>
+# include <unistd.h>
+# include <cerrno>
+# include <stdio.h>
+# include <sstream>
 # include <fcntl.h>
 # include "User.hpp"
 # include <signal.h>
+# include <climits>
 
 // NEW
 # include <poll.h>
 # include <vector>
-# include <sstream>
-//# include "Commands.hpp"
 # include "Channel.hpp"
 
 # define KICK_USAGE "Usage: KICK <nick> [reason], kicks the nick from the current channel\r\n"
@@ -135,7 +129,8 @@ class Server
 
 		void handleInv(std::vector<std::string>& av, int index, int inv);
 		void handleTopic(std::vector<std::string>& av, int index, int inv);
-
+		void handleKey(std::vector<std::string>const &av, const int &i, const int &sign, int &offset, int &flag, int index);
+		void handleLimit(std::vector<std::string>const &av, const int &i, const int &sign, int &offset, int &flag, int index);
 
 };
 
