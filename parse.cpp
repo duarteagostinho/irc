@@ -191,11 +191,11 @@ void parse(std::vector<std::string> av)
 				default:
 					std::cout << "472 :is unknown mode char to me\n";
 			}
-			std::cout << "sign: " << sign << ", char: " << av[i][j] << std::endl;
-			std::cout << "i: " << inv << std::endl;
-			std::cout << "t: " << topic << std::endl;
+// 			std::cout << "sign: " << sign << ", char: " << av[i][j] << std::endl;
+// 			std::cout << "i: " << inv << std::endl;
+// 			std::cout << "t: " << topic << std::endl;
 //			std::cout << "k: " << key << std::endl;
-			std::cout << "o: " << op << std::endl;
+// 			std::cout << "o: " << op << std::endl;
 //			std::cout << "l: " << limit << std::endl;
 		}
 		// HERE I NEED TO CHECK IF LIMIT, OPERATOR OR KEY IS CALLED
