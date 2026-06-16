@@ -13,3 +13,8 @@ Hunt a segfault
 -Joined channel, one with nc, one with hexchat,
 crtl C on nc, crtl c on server
 segfault on channel destructor? why?
+
+Modes problems
+-missing message error when non op tries to op someone
+-users not on channel can receive op status
+-its crashing after a few operators

@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/16 17:17:00 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/16 21:42:30 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -630,6 +630,60 @@ void Server::handleKey(std::vector<std::string>const &av, const int &i, const in
 	std::cout << "\nNEW PASS: " << _channels[ch_i].getPass() << std::endl << std::endl;
 }
 
+void Server::getOperatorData(std::map<std::string, int> &operators, std::vector<std::string> av, int i, int sign, int &offset, int index)
+{
+	std::map<std::string, int>::iterator it = operators.find(av[i + offset]);
+	int ch_i = getChannelIndex(av[1]);
+
+	if (static_cast<size_t>(i + offset) >= av.size())
+	{
+		return ;
+	}
+
+	if (_channels[ch_i].isUserOnChannel(av[i + index])) // CHECK IF THE USER AV[I + OFFSET] IS ON THE CHANNEL
+	{
+		std::string response = ":irc.server 401 " + _users[index].getNickname() + " " + av[i + offset] + " :No such nick\r\n";
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
+	}
+	else
+	{
+		if (it != operators.end())
+		{
+			it->second += sign;
+		}
+		else
+		{
+			operators.insert(std::pair<const std::string, int>(av[i + offset], sign));
+		}
+	}
+	offset++;
+}
+
+void Server::handleOperator(std::map<std::string, int> &operators, std::vector<std::string> av, int index)
+{
+	std::string response;
+	int ch_i = getChannelIndex(av[1]);
+	
+	for (std::map<std::string, int>::iterator it = operators.begin(); it != operators.end(); it++)
+	{
+		if (it->second > 0 && !_channels[ch_i].isOperator(it->first))
+		{
+			// ADD USER
+			_channels[ch_i].addOperator(it->first);
+			response = getClientInfo(index) + " MODE " + av[1] + " +o " + it->first + "\r\n";
+			broadcastMessage(_channels[ch_i], response, index, 1); // DO IT IN THE END !!!
+		}
+		else if (it->second < 0 && _channels[ch_i].isOperator(it->first))
+		{
+			// REMOVE USER
+			_channels[ch_i].rmOperator(it->first);
+			response = getClientInfo(index) + " MODE " + av[1] + " -o " + it->first + "\r\n";
+			broadcastMessage(_channels[ch_i], response, index, 1); // DO IT IN THE END !!!
+		}
+		std::cout << "Name: " << it->first << ", op status: " << it->second << std::endl;
+	}
+}
+
 void Server::mode(std::vector<std::string>& av, int index)
 {
 	// av[0] = whole line
@@ -668,6 +722,18 @@ void Server::mode(std::vector<std::string>& av, int index)
 		send(_fds[index].fd, response.c_str(), response.size(), 0);
 		return ;
 	}
+	else if (!_channels[ch_i].isOperator(_users[index].getNickname()))
+	{
+		response = ":irc.server 482 " + _users[index].getNickname() + " " + av[1] + " :You're not channel operator\r\n";
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
+		return ;
+	}
+	else if (!_channels[ch_i].isUserOnChannel(_users[index].getNickname()))
+	{
+		response = ":irc.server 442 " + _users[index].getNickname() + " " + av[1] + " :You're not on that channel\r\n";
+		send(_fds[index].fd, response.c_str(), response.size(), 0);
+		return ;
+	}
 //	int ch_i = getChannelIndex(av[1]);
 	
 	int sign = 1;
@@ -675,7 +741,7 @@ void Server::mode(std::vector<std::string>& av, int index)
 	int topic = 0;
 	int	limit_flag = 0;
 	int	key_flag = 0;
-
+	std::map<std::string, int> operators;
 
 
 	// might not need those
@@ -709,7 +775,7 @@ void Server::mode(std::vector<std::string>& av, int index)
 					inv += (sign * av[i][j]);
 					break ;
 				case 'o':
-					op += (sign * av[i][j]);
+					getOperatorData(operators, av, i, sign, offset, index);
 					break ;
 				case 'k':
 					handleKey(av, i, sign, offset, key_flag, index);
@@ -739,6 +805,7 @@ void Server::mode(std::vector<std::string>& av, int index)
 	if (topic)
 		handleTopic(av, index, topic);
 
+	handleOperator(operators, av, index);
 	// if (op)
 
 

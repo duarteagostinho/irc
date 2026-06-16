@@ -132,6 +132,9 @@ class Server
 		void handleKey(std::vector<std::string>const &av, const int &i, const int &sign, int &offset, int &flag, int index);
 		void handleLimit(std::vector<std::string>const &av, const int &i, const int &sign, int &offset, int &flag, int index);
 
+		void handleOperator(std::map<std::string, int> &operators, std::vector<std::string> av, int index);
+		void getOperatorData(std::map<std::string, int> &operators, std::vector<std::string> av, int i, int sign, int &offset, int index);
+
 };
 
 // Stream Operator Overload
