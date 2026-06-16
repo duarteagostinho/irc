@@ -5,3 +5,48 @@
 
 
 - No implementation of USER, NICK, PASS
+
+
+//testes Andrade
+///1st TEST
+user@user-HP-ENVY-Laptop:~$ nc -C localhost 8080
+PASS sd
+:server 464 * :Password incorrect
+
+PASS 1
+nc: write failed (0/2): Broken pipe
+
+///2nd TEST
+:irc.server 001 user2 :Welcome to ircserv, user2
+:irc.server 002 user2 :Your host is irc.server
+:irc.server 003 user2 :This server was created in 2026
+:irc.server 004 user2 irc.server v1.0 itkl o
+JOIN #1#2#3 
+JOIN #1#2#3
+:user2!user2@127.0.0.1 JOIN #1#2#3
+:irc.server 353 user2 = #1#2#3 :@user2
+:irc.server 366 user2 #1#2#3 :End of /NAMES list
+
+
+///3rd TEST nao sei se e suposto
+JOIN #0
+:user2 JOIN #0
+:irc.server 353 user2 = #0 :@user user2 
+:irc.server 366 user2 #0 :End of /NAMES list
+
+:user!user@127.0.0.1 PRIVMSG #0 :asd
+
+JOIN #0
+:user2 JOIN #0
+:irc.server 353 user2 = #0 :@user user2 
+:irc.server 366 user2 #0 :End of /NAMES list
+
+
+///4th TEST
+
+Now talking on #2
+<user3> alo
+* You have left channel #2 (Leaving)
+
+INVITE user3 #2
+:irc.server 443 user user3 #2 :is already on channel

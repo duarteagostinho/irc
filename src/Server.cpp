@@ -129,7 +129,6 @@ void	Server::run()
 
 	// signal(SIGINT, Server::handler);
 
-	std::string line;
 	while (!_exit_status)
 	{
 		print_everything();
@@ -184,17 +183,13 @@ void	Server::run()
 					buf[bytes] = 0;
 					std::cout << "raw buf: " << buf << ", bytes: " << bytes << std::endl;
 //					userMessage(_fds[i].fd, buf, bytes);
-					getMessage(line, buf, i);
+					getMessage(buf, i);
 				}
 			}
 		}
 	}
 	cleanup();
 }
-//verificar primeiro se o buffer tem "\r\n", depois verificar de que fd veio, e depois juntar a string do fd.user
-//se o buffer tiver "\r\n" limpa se o buffer e a variavel do fd.user
-//se o buffer NAO tiver "\r\n" limpa se apenas o buffer e faz se append na string fd.user
-
 
 void	Server::setPort(int port)
 {
@@ -233,37 +228,97 @@ void	Server::disconnect(int i)
 	_fds.erase(_fds.begin() + i);
 }
 
-void Server::getMessage(std::string &line, char *buffer, int i)
+//verificar primeiro se o buffer tem "\r\n", depois verificar de que fd veio, e depois juntar a string do fd.user
+//se o buffer tiver "\r\n" limpa se o buffer e a variavel do fd.user
+//se o buffer NAO tiver "\r\n" limpa se apenas o buffer e faz se append na string fd.user
+
+//primeiro verificar se o buffer tem "\r\n", se sim, append na string do user, executa se o command e limpa se o buffer e a string do user
+//se o buffer nao tem "\r\n" append na string do user e limpar apenas o buffer
+//PRoblema, como diferenciar de onde vem o buffer, ve se pelo fd e com esse iterador procurar o user
+
+//acho que nao e preciso line ou apenas e preciso para fazer encontrar no buffer o "\r\n" se existir
+
+void Server::getMessage(char *buffer, int i)
 {
 	std::cout << std::endl;
-	// for (size_t i = 0; i < line.size(); i++)
-	// 	std::cout << "line in: " << (int)line[i] << std::endl;
-	line.append(buffer);
-	size_t find = line.find("\r\n");
+	//fazendo append primeiro
+	_users[i].recvBuf.append(buffer);
+
+	std::cout << _users[i].recvBuf << std::endl;
+	std::cout << _users[i].recvBuf.size();
+	std::cout << std::endl;
+
+	size_t find = _users[i].recvBuf.find("\r\n");
 	if (find != std::string::npos)
 	{
-		// Do stuff
-//		line.erase(find, 2);
-		std::string msg = line.substr(0, find);
-		// parse and execute commands here
-		exec_cmd(line, i);
+		// // THIS LOOP IS JUST SENDING THE MESSAGE AND NICK BACK TO EACH OTHER CLIENT
+		// for (size_t j = 1; j < _fds.size(); j++) // start at 1 to always ignore the listening socket
+		// {
+		// 	std::ostringstream ss;
+		// 	std::string str;
+		// 	ss << _users[i].getNickname() << ": " << _users[i].recvBuf << "\r\n";
+		// 	str = ss.str();
+
+		// 	if (_fds[i].fd != _fds[j].fd) // Send to every fd that is not mine
+		// 		send(_fds[j].fd, str.c_str(), str.size() + 1, 0);
+		// }
+		// _users[i].recvBuf.erase(find, 2);
+		exec_cmd(_users[i].recvBuf, i);
+		_users[i].recvBuf.erase();
+	}
+	else
+		return ;
+
+//verificando primeiro se tem "\r\n"
+	// std::string tmp;
+	// tmp.append(buffer);
+	// size_t find = tmp.find("\r\n");
+	// if (find != std::string::npos)//isto significa que encontrou "\r\n"
+	// {
+	// 	//encontar o user pelo fd para dar append do buffer na string
+	// 	_users[i].recvBuf.append(buffer);
+	// 	exec_cmd(_users[i].recvBuf, i);
+	// 	//limpar a string usada para executar
+	// 	_users[i].recvBuf.erase();
+	// }
+	// else
+	// {
+	// 	//apenas dar append do buffer na string do user
+	// 	_users[i].recvBuf.append(buffer);
+	// }
+}
+
+// void Server::getMessage(std::string &line, char *buffer, int i)
+// {
+// 	std::cout << std::endl;
+// 	// for (size_t i = 0; i < line.size(); i++)
+// 	// 	std::cout << "line in: " << (int)line[i] << std::endl;
+// 	line.append(buffer);
+// 	size_t find = line.find("\r\n");
+// 	if (find != std::string::npos)
+// 	{
+// 		// Do stuff
+// //		line.erase(find, 2);
+// 		std::string msg = line.substr(0, find);
+// 		// parse and execute commands here
+// 		exec_cmd(line, i);
 		
 
-		// THIS LOOP IS JUST SENDING THE MESSAGE AND NICK BACK TO EACH OTHER CLIENT
-		for (size_t j = 1; j < _fds.size(); j++) // start at 1 to always ignore the listening socket
-		{
-			std::ostringstream ss;
-			std::string str;
-			ss << _users[i].getNickname() << ": " << line << "\r\n";
-			str = ss.str();
+// 		// THIS LOOP IS JUST SENDING THE MESSAGE AND NICK BACK TO EACH OTHER CLIENT
+// 		for (size_t j = 1; j < _fds.size(); j++) // start at 1 to always ignore the listening socket
+// 		{
+// 			std::ostringstream ss;
+// 			std::string str;
+// 			ss << _users[i].getNickname() << ": " << line << "\r\n";
+// 			str = ss.str();
 
-			if (_fds[i].fd != _fds[j].fd) // Send to every fd that is not mine
-				send(_fds[j].fd, str.c_str(), str.size() + 1, 0);
-		}
-		// Reset string
-		line.erase(0, find + 2);
-	}
-}
+// 			if (_fds[i].fd != _fds[j].fd) // Send to every fd that is not mine
+// 				send(_fds[j].fd, str.c_str(), str.size() + 1, 0);
+// 		}
+// 		// Reset string
+// 		line.erase(0, find + 2);
+// 	}
+// }
 
 void	Server::setPassword(char *pass)
 {
