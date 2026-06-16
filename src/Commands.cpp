@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/16 16:15:31 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/16 17:17:00 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -731,9 +731,6 @@ void Server::mode(std::vector<std::string>& av, int index)
 			std::cout << "o: " << op << std::endl;
 //			std::cout << "l: " << limit << std::endl;
 		}
-		// HERE I NEED TO CHECK IF LIMIT, OPERATOR OR KEY IS CALLED
-		// ALSO NEED THE ORDER THEY ARE CALLED
-		// CHECK IN THE NEXT ARGS FOR THE CORRECT ARGUMENT
 		i += offset;
 	}
 	if (inv)
@@ -746,12 +743,14 @@ void Server::mode(std::vector<std::string>& av, int index)
 
 
 	/*
-		For o, I can create a map, nick = key, + or - = value;
+		For o, I can create a map, nick = key, 1, 0 or -1 = value 1 = add, 0 = nothing, -1 = remove;
 	*/
 
 	// BROADCAST THIS
 	// NEED TO TRACK IF THERE WERE ANY CHANGE OR NOT. PRINT ONLY IF CHANGES HAPPEN
-	response = 	getClientInfo(index) + " MODE " + av[1] + " " + _channels[ch_i].printMode() + "\r\n";
+	// THIS DOESNT WORK !
+	// NEED TO BROADCAST ONLY THE CHANGES
+//	response = 	getClientInfo(index) + " MODE " + av[1] + " " + _channels[ch_i].printMode() + "\r\n";
 }
 
 

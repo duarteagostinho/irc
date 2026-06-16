@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+#include <unordered_map>
 
 // FAKE CHANNEL FUNC
 #define INT_MAX 2147483647
@@ -135,8 +136,44 @@ void handleKey(std::vector<std::string>const &av, const int &index, const int &s
 	flag = 1;
 }
 
+void getOperatorData(std::unordered_map<std::string, int> &operators, std::vector<std::string> av, int i, int sign, int &offset, int index)
+{
+	auto it = operators.find(av[i + offset]);
+
+	if (!index) // CHECK IF THE USER AV[I + OFFSET] IS ON THE CHANNEL
+		return ;
+		// 		std::cout << ":irc.server 401 _users[index].getNickname() av[i + offset] :No such nick\r\n";
+
+		// //		std::string response = ":irc.server 401 " + _users[index].getNickname() + " " + av[i + offset] + " :No such nick\r\n";
+		// //		send(_fds[index].fd, response.c_str(), response.size(), 0);
+	else
+	{
+		if (it != operators.end())
+		{
+			it->second += sign;
+		}
+		else
+		{
+			operators.insert(std::pair<const std::string, int>(av[i + offset], sign));
+			
+		}
+	}
+	offset++;
+}
+
+void handleOperator(std::unordered_map<std::string, int> &operators)
+{
+	for (auto it = operators.begin(); it != operators.end(); it++)
+	{
+		std::cout << "Name: " << it->first << ", op status: " << it->second << std::endl;
+	}
+}
+
 void parse(std::vector<std::string> av)
 {
+	std::unordered_map<std::string, int> operators;
+
+
 	if (av.size() < 3)
 	{
 		if (av.size() == 1)
@@ -149,7 +186,7 @@ void parse(std::vector<std::string> av)
 		return ;
 	}
 
-	int sign = 0;
+	int sign, offset;
 	int inv = 0;
 	int topic = 0;
 	int	limit_flag = 0;
@@ -157,9 +194,11 @@ void parse(std::vector<std::string> av)
 
 	int op = 0;
 
+	int index;
 	for (size_t i = 2; i < av.size(); ) // at least size 3
 	{
-		int offset = 1;
+		offset = 1;
+		sign = 1;
 
 		for (size_t j = 0; av[i][j]; j++)
 		{
@@ -178,7 +217,7 @@ void parse(std::vector<std::string> av)
 					inv += (sign * av[i][j]);
 					break ;
 				case 'o':
-					op += (sign * av[i][j]);
+					getOperatorData(operators, av, i, sign, offset, index);
 					break ;
 				case 'k':
 					handleKey(av, i, sign, offset, key_flag);
@@ -212,6 +251,8 @@ void parse(std::vector<std::string> av)
 
 	if (topic)
 		handleTopic(topic);
+	handleOperator(operators);
+
 
 	// +i -i, +t -t, +o <nick> -o <nick>
 
