@@ -84,7 +84,7 @@ class Channel
 		void				addInvite(const std::string& nick);
 		void				rmInvite(const std::string& nick);
 
-		std::string			printMode(void);
+		std::string			printMode(const std::string &nickname);
 
 		// DEL
         void print_users(void);

@@ -103,10 +103,10 @@ void Channel::rmInvite(const std::string& nick)
 	}
 }
 
-std::string Channel::printMode(void)
+std::string Channel::printMode(const std::string &nickname)
 {
 	// THIS IS SOOO TRASH
-	std::string str = "+";
+	std::string str = "";
 
 	if (getTopicMode() == true)
 		str += "t";
@@ -124,7 +124,14 @@ std::string Channel::printMode(void)
 		str += " " + ss.str();
 	}
 	if (getKeyMode() == true)
-		str += " " + getPass();
+	{
+		if (isOperator(nickname))
+			str += " " + getPass();
+		else
+			str += " *";
+	}
+	if (!str.empty())
+		str = "+" + str;
 	return (str);
 }
 

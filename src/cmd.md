@@ -619,3 +619,183 @@ PRIVMSG #42,user_5,user_66 hello there
 
 
 ///////////////////////////////////////////////////			MODES		///////////////////////////////////////////////////
+
+
+
+// void Server::mode(std::vector<std::string>& av, int index)
+// {	
+// 	// av[0] = whole line
+// 	// av[1] = channel
+// 	// av[2] = mode flags,{mode flags}
+// 	// av[3+] = target / pass
+
+// 	(void)av;
+// 	(void)index;
+
+
+// 	char c = 0;
+// 	std::string response;
+
+// 	class Modes
+// 	{
+// 	public:
+// 		std::pair<int, char> modes;
+
+		
+// 		std::string	op;
+// 		std::string	pass;
+// 		int 		limit;
+		
+// 	};
+// }	
+	// char getSign(std::string str) // Once a sign is found, advances the string while it's sign, returns last sign found
+	
+	// void 
+
+
+	// if (av.size() < 3) // Missing arguments or Print info
+	// {
+	// 	if (av.size() == 1)
+	// 	{
+	// 		response = ":irc.server 461 " + _users[index].getNickname() + " MODE :Not enough parameters\r\n";
+	// 		send(_fds[index].fd, response.c_str(), response.size(), 0);
+	// 	}
+	// 	else // size == 2
+	// 	{
+	// 		if (!doesUserExist(av[1]))
+	// 			response = ":irc.server 502 " + _users[index].getNickname() + " :Cant change mode for other users\r\n";
+	// 		else if (isChannel(av[1]))
+	// 		{
+	// 			response = 	":irc.server 324 " + _users[index].getNickname() + " " + av[1] + " <ch_modes> <limit> <pass> ";
+	// 			response += ":irc.server 329 " + _users[index].getNickname() + " " + av[1] + " <timestamp channel creation>";
+	// 		}
+	// 		else // Not a user nor a channel
+	// 			response = 	":irc.server 403 " + _users[index].getNickname() + " " + av[1] + " :No such channel";
+	// 	}
+	// 	send(_fds[index].fd, response.c_str(), response.size(), 0);
+	// 	return ;
+	// }
+
+	
+
+
+
+
+
+
+
+	// if l OR k OR o
+
+	// can be +i-t+l OR +il-t OR +i -t +l
+
+
+	// if (c != 'i' && c != 't' && c != 'k' && c != 'o' && c != 'l')
+	// {
+	// 	// ERR_UMODEUNKNOWNFLAG (501)
+	// 	// ERR_UNKNOWNMODE (472)
+	// }
+	
+	//	ERR_INVALIDKEY (525)
+	// If someone tries to set an invalid key, send this flag
+
+
+	/*
+		MODE 
+			:luna.AfterNET.Org 461 vivi MODE :Not enough parameters
+
+		MODE #channel
+			:luna.AfterNET.Org 324 vivi #b +tn
+			:luna.AfterNET.Org 329 vivi #b 1781365780
+			
+		MODE !channel
+			:luna.AfterNET.Org 403 vivi #v :No such channel
+
+		MODE vini (EXISTING USER)
+			:luna.AfterNET.Org 502 vivi :Cant change mode for other users
+
+		MODE #42 +o vini
+			:vivi!vini@AN-EA7BE6BE.net.novis.pt MODE #42 +o vini
+
+		
+
+	*/
+	
+/*
+/mode
+	Channel #channel modes: +tink * (prints current modes)
+/mode i
+	IF (!operator)
+		#channel :You're not channel operator
+	ELSE
+		<operator> sets mode +i on #channel
+*/
+
+
+/*
+mode
+	:Aurora.AfterNET.Org 461 vini MODE :Not enough parameters
+
+mode #42
+	:Aurora.AfterNET.Org 324 vini #3 +tnk 12
+	:Aurora.AfterNET.Org 329 vini #3 1781372033
+
+
+mode #42 k 123 (check if key is valid)
+	:vini!vini@AN-EA7BE6BE.net.novis.pt MODE #3 +k 12
+
+mode #42 -k 123
+	:vini!vini@AN-EA7BE6BE.net.novis.pt MODE #3 -k 12
+
+mode #42 -k (ignored)
+	:Aurora.AfterNET.Org 461 vini MODE +k :Not enough parameters
+
+mode #42 l
+	:Aurora.AfterNET.Org 461 vini MODE :Not enough parameters
+
+mode #42 l 2147483647 (max int) ?
+	:vini!vini@AN-EA7BE6BE.net.novis.pt MODE #3 +l 2147483647
+
+mode #42 o (IGNORED)
+
+mode #42 o chuchu
+	:Aurora.AfterNET.Org 401 vini chuchu :No such nick
+	
+mode #42 o vini
+
++o (BROADCAST)
+:vini!vini@AN-EA7BE6BE.net.novis.pt MODE #3 +o vini
+
+-o (BROADCAST)
+:vini!vini@AN-EA7BE6BE.net.novis.pt MODE #3 -o vini
+
+MODE #a +l
+:de3.arcnet-irc.org 461 vini MODE +l :Not enough parameters
+MODE #a +k
+:de3.arcnet-irc.org 461 vini MODE +k :Not enough parameters
+MODE #a +kl 123 12
+:vini!~vini@87-196-108-150.net.novis.pt MODE #a +kl 123 12
+
+MODE #42 ------+i
+:vini!~vini@87-196-108-150.net.novis.pt MODE #42 +i
+MODE #42 +i-i
+:vini!~vini@87-196-108-150.net.novis.pt MODE #42 -i
+MODE #42 +i -tt
+:vini!~vini@87-196-108-150.net.novis.pt MODE #42 +i
+MODE #42 -i -t
+:vini!~vini@87-196-108-150.net.novis.pt MODE #42 -i
+MODE #42 +i-t
+:vini!~vini@87-196-108-150.net.novis.pt MODE #42 +i
+MODE #42-t
+:de3.arcnet-irc.org 403 vini #42-t :No such channel
+MODE #42 -t
+MODE #42 -i +l 12
+:vini!~vini@87-196-108-150.net.novis.pt MODE #42 -i+l 12
+MODE #42 +i -l
+:vini!~vini@87-196-108-150.net.novis.pt MODE #42 -l+i
+MODE #42 -i+l
+:de3.arcnet-irc.org 461 vini MODE +l :Not enough parameters
+:vini!~vini@87-196-108-150.net.novis.pt MODE #42 -i
+MODE #42 +il 12
+:vini!~vini@87-196-108-150.net.novis.pt MODE #42 +il 12
+
+*/

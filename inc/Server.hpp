@@ -21,6 +21,7 @@
 # include "User.hpp"
 # include <signal.h>
 # include <climits>
+#include <limits.h>
 
 // NEW
 # include <poll.h>
@@ -30,9 +31,26 @@
 # define KICK_USAGE "Usage: KICK <nick> [reason], kicks the nick from the current channel\r\n"
 # define INV_USAGE "Usage: INVITE <nick> [<channel>], invites someone to a channel, by default the current channel\r\n"
 # define JOIN_USAGE "Usage: JOIN <channel>, joins the channel\r\n"
-# define NOT_OPERATOR ": You are not the channel operator\r\n"
+//# define NOT_OPERATOR ": You are not the channel operator\r\n"
 # define ERR_PASSWDMISMATCH "Password incorrect\r\n"
 # define ERR_NICKNAMEINUSE "Nickname is already in use\r\n"
+
+
+
+
+# define ERR_NOSUCHNICK "No such nick\r\n"							// 401
+# define ERR_NOSUCHCHANNEL "No such channel\r\n"					// 403
+
+
+# define ERR_NOTONCHANNEL "You're not on that channel\r\n"			// 442
+
+# define ERR_UNKNOWNMODE "is not a recognised channel mode\r\n"		// 472
+
+# define ERR_CHANOPRIVSNEEDED "You're not channel operator\r\n"		// 482
+
+
+
+
 
 class Server
 {

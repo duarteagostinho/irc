@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/16 21:42:30 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/17 13:49:08 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,8 @@ void Server::exec_cmd(std::string line, int index)
 {
 	std::vector<std::string> av;
 	int cmds = check_cmd(line, av);
+	for (size_t i = 0; i < av.size(); i++)
+		std::cout << "[" << av[i] << "]" << std::endl;
 	switch(cmds)
 	{
 		case 0:
@@ -176,8 +178,9 @@ void Server::kick(std::vector<std::string>& av, int index)
 	
 	if (av.size() < 3) // Missing arguments
 	{
-		response = ":irc.server 461 " + _users[index].getNickname() + " KICK :Not enough parameters\r\n";
-		send(_fds[index].fd, response.c_str(), response.size(), 0);
+		sendError(_fds[index].fd, 461, _users[index].getNickname() + " KICK", "Not enough parameters\r\n");
+		// response = ":irc.server 461 " + _users[index].getNickname() + " KICK :Not enough parameters\r\n";
+		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else if (!isChannel(av[1]))
 	{
@@ -554,8 +557,8 @@ void Server::handleLimit(std::vector<std::string>const &av, const int &i, const 
 		}
 		else // valid amount of arguments, check if it's a valid num
 		{
-			result = strtol(av[i + 1].c_str(), &end, 10);
-			if (result > 2147483647 || result < 0 || *end)
+			result = strtol(av[i + offset].c_str(), &end, 10);
+			if (result > INT_MAX || result < 0 || *end)
 			{
 				response = ":irc.server 461 " + _users[index].getNickname() + " MODE +l :Invalid parameters\r\n";
 				send(_fds[index].fd, response.c_str(), response.size(), 0);
@@ -588,9 +591,9 @@ void Server::handleKey(std::vector<std::string>const &av, const int &i, const in
 
 	if (flag)
 		return;
-		
+
 	int ch_i = getChannelIndex(av[1]);
-	std::cout << "\nOLD PASS: " << _channels[ch_i].getPass() << std::endl << std::endl;
+//	std::cout << "\nOLD PASS: " << _channels[ch_i].getPass() << std::endl << std::endl;
 	if (static_cast<size_t>(i + offset) >= av.size())
 	{
 		(sign < 0) ? c = "-" : c = "+";
@@ -627,7 +630,7 @@ void Server::handleKey(std::vector<std::string>const &av, const int &i, const in
 		offset++;
 	}
 	flag = 1;
-	std::cout << "\nNEW PASS: " << _channels[ch_i].getPass() << std::endl << std::endl;
+//	std::cout << "\nNEW PASS: " << _channels[ch_i].getPass() << std::endl << std::endl;
 }
 
 void Server::getOperatorData(std::map<std::string, int> &operators, std::vector<std::string> av, int i, int sign, int &offset, int index)
@@ -639,11 +642,11 @@ void Server::getOperatorData(std::map<std::string, int> &operators, std::vector<
 	{
 		return ;
 	}
-
-	if (_channels[ch_i].isUserOnChannel(av[i + index])) // CHECK IF THE USER AV[I + OFFSET] IS ON THE CHANNEL
+	if (!_channels[ch_i].isUserOnChannel(av[i + offset])) // CHECK IF THE USER AV[I + OFFSET] IS ON THE CHANNEL
 	{
-		std::string response = ":irc.server 401 " + _users[index].getNickname() + " " + av[i + offset] + " :No such nick\r\n";
-		send(_fds[index].fd, response.c_str(), response.size(), 0);
+		sendError(_fds[index].fd, 401, _users[index].getNickname() + " " + av[i + offset], ERR_NOSUCHNICK);
+		// std::string response = ":irc.server 401 " + _users[index].getNickname() + " " + av[i + offset] + " :No such nick\r\n";
+		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else
 	{
@@ -657,10 +660,16 @@ void Server::getOperatorData(std::map<std::string, int> &operators, std::vector<
 		}
 	}
 	offset++;
+	// for (std::map<std::string, int>::iterator it = operators.begin(); it != operators.end(); it++)
+	// 	std::cout << "--- Name1 ---" << it->first << std::endl;
 }
 
 void Server::handleOperator(std::map<std::string, int> &operators, std::vector<std::string> av, int index)
 {
+	// for (std::map<std::string, int>::iterator it = operators.begin(); it != operators.end(); it++)
+	// 	std::cout << "--- Name2 ---" << it->first << std::endl;
+
+
 	std::string response;
 	int ch_i = getChannelIndex(av[1]);
 	
@@ -696,10 +705,21 @@ void Server::mode(std::vector<std::string>& av, int index)
 
 	if (av.size() < 3) // Missing arguments or Print info
 	{
-		if (av.size() == 1)
+		// std::cout << "\n\n" << av.size() << "\n\n";
+		// for (size_t i = 0; i < av.size(); i++)
+		// {
+		// 	std::cout << "[" << av[i] << "]" << std::endl;
+		// 	if (i == 1)
+		// 	{
+		// 		std::cout << "opa" << std::endl;
+		// 		for (int j = 0; av[i][j]; j++)
+		// 			std::cout << "[" << (int)av[i][j] << "]" << std::endl;
+		// 	}
+				
+		// }
+		if (av.size() == 1 || av[1] == "")
 		{
 			response = ":irc.server 461 " + _users[index].getNickname() + " MODE :Not enough parameters\r\n";
-			send(_fds[index].fd, response.c_str(), response.size(), 0);
 		}
 		else // size == 2
 		{
@@ -707,34 +727,35 @@ void Server::mode(std::vector<std::string>& av, int index)
 				response = ":irc.server 502 " + _users[index].getNickname() + " :Cant change mode for other users\r\n";
 			else if (isChannel(av[1]))
 			{
-				response = 	":irc.server 324 " + _users[index].getNickname() + " " + av[1] + " " + _channels[ch_i].printMode() + "\r\n";
+				response = 	":irc.server 324 " + _users[index].getNickname() + " " + av[1] + " " + _channels[ch_i].printMode(_users[index].getNickname()) + "\r\n";
 				response += ":irc.server 329 " + _users[index].getNickname() + " " + av[1] + " " + _channels[ch_i].getChannelTime() + "\r\n";
 			}
 			else // Not a user nor a channel
-				response = 	":irc.server 403 " + _users[index].getNickname() + " " + av[1] + " :No such channel";
+				response = 	":irc.server 403 " + _users[index].getNickname() + " " + av[1] + " :No such channel\r\n";
 		}
 		send(_fds[index].fd, response.c_str(), response.size(), 0);
-		return ;
 	}
-	if (!isChannel(av[1]))
+	else if (!isChannel(av[1]))
 	{
-		response = 	":irc.server 403 " + _users[index].getNickname() + " " + av[1] + " :No such channel";
-		send(_fds[index].fd, response.c_str(), response.size(), 0);
-		return ;
-	}
-	else if (!_channels[ch_i].isOperator(_users[index].getNickname()))
-	{
-		response = ":irc.server 482 " + _users[index].getNickname() + " " + av[1] + " :You're not channel operator\r\n";
-		send(_fds[index].fd, response.c_str(), response.size(), 0);
-		return ;
+		sendError(_fds[index].fd, 403, _users[index].getNickname() + " " + av[1], ERR_NOSUCHCHANNEL);
+		// response = 	":irc.server 403 " + _users[index].getNickname() + " " + av[1] + " :No such channel\r\n";
+		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else if (!_channels[ch_i].isUserOnChannel(_users[index].getNickname()))
 	{
-		response = ":irc.server 442 " + _users[index].getNickname() + " " + av[1] + " :You're not on that channel\r\n";
-		send(_fds[index].fd, response.c_str(), response.size(), 0);
-		return ;
+		sendError(_fds[index].fd, 442, _users[index].getNickname() + " " + av[1], ERR_NOTONCHANNEL);
+		// response = ":irc.server 442 " + _users[index].getNickname() + " " + av[1] + " :You're not on that channel\r\n";
+		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
-//	int ch_i = getChannelIndex(av[1]);
+	else if (!_channels[ch_i].isOperator(_users[index].getNickname()))
+	{
+		sendError(_fds[index].fd, 482, _users[index].getNickname() + " " + av[1], ERR_CHANOPRIVSNEEDED);
+		// response = ":irc.server 482 " + _users[index].getNickname() + " " + av[1] + " :You're not channel operator\r\n";
+		// send(_fds[index].fd, response.c_str(), response.size(), 0);
+	}
+	else
+	{
+		//	int ch_i = getChannelIndex(av[1]);
 	
 	int sign = 1;
 	int inv = 0;
@@ -757,9 +778,8 @@ void Server::mode(std::vector<std::string>& av, int index)
 		// int offset = 1;
 		int offset = 1;
 		for (size_t j = 0; av[i][j]; j++)
-		{	
-			
-			std::cout << av[i][j] << std::endl;
+		{			
+//			std::cout << av[i][j] << std::endl;
 			switch(av[i][j])
 			{
 				case '+':
@@ -786,15 +806,16 @@ void Server::mode(std::vector<std::string>& av, int index)
 				case '\0':
 					break ;
 				default:
-					std::string response = ":irc.server 472 " + _users[index].getNickname()
-											+ " " + av[i][j] + " :is not a recognised channel mode.\r\n";
-					send(_fds[index].fd, response.c_str(), response.size(), 0);
+					sendError(_fds[index].fd, 472, _users[index].getNickname() + " " + av[i][j], ERR_UNKNOWNMODE);
+					// std::string response = ":irc.server 472 " + _users[index].getNickname()
+					// 						+ " " + av[i][j] + " :is not a recognised channel mode\r\n";
+					// send(_fds[index].fd, response.c_str(), response.size(), 0);
 			}
-			std::cout << "sign: " << sign << ", char: " << av[i][j] << std::endl;
-			std::cout << "i: " << inv << std::endl;
-			std::cout << "t: " << topic << std::endl;
+// 			std::cout << "sign: " << sign << ", char: " << av[i][j] << std::endl;
+// 			std::cout << "i: " << inv << std::endl;
+// 			std::cout << "t: " << topic << std::endl;
 //			std::cout << "k: " << key << std::endl;
-			std::cout << "o: " << op << std::endl;
+// 			std::cout << "o: " << op << std::endl;
 //			std::cout << "l: " << limit << std::endl;
 		}
 		i += offset;
@@ -805,196 +826,16 @@ void Server::mode(std::vector<std::string>& av, int index)
 	if (topic)
 		handleTopic(av, index, topic);
 
-	handleOperator(operators, av, index);
-	// if (op)
-
 
 	/*
 		For o, I can create a map, nick = key, 1, 0 or -1 = value 1 = add, 0 = nothing, -1 = remove;
-	*/
+	*/		
+	handleOperator(operators, av, index);
 
+	}
 	// BROADCAST THIS
 	// NEED TO TRACK IF THERE WERE ANY CHANGE OR NOT. PRINT ONLY IF CHANGES HAPPEN
 	// THIS DOESNT WORK !
 	// NEED TO BROADCAST ONLY THE CHANGES
-//	response = 	getClientInfo(index) + " MODE " + av[1] + " " + _channels[ch_i].printMode() + "\r\n";
+	//	response = 	getClientInfo(index) + " MODE " + av[1] + " " + _channels[ch_i].printMode() + "\r\n";
 }
-
-
-// void Server::mode(std::vector<std::string>& av, int index)
-// {	
-// 	// av[0] = whole line
-// 	// av[1] = channel
-// 	// av[2] = mode flags,{mode flags}
-// 	// av[3+] = target / pass
-
-// 	(void)av;
-// 	(void)index;
-
-
-// 	char c = 0;
-// 	std::string response;
-
-// 	class Modes
-// 	{
-// 	public:
-// 		std::pair<int, char> modes;
-
-		
-// 		std::string	op;
-// 		std::string	pass;
-// 		int 		limit;
-		
-// 	};
-// }	
-	// char getSign(std::string str) // Once a sign is found, advances the string while it's sign, returns last sign found
-	
-	// void 
-
-
-	// if (av.size() < 3) // Missing arguments or Print info
-	// {
-	// 	if (av.size() == 1)
-	// 	{
-	// 		response = ":irc.server 461 " + _users[index].getNickname() + " MODE :Not enough parameters\r\n";
-	// 		send(_fds[index].fd, response.c_str(), response.size(), 0);
-	// 	}
-	// 	else // size == 2
-	// 	{
-	// 		if (!doesUserExist(av[1]))
-	// 			response = ":irc.server 502 " + _users[index].getNickname() + " :Cant change mode for other users\r\n";
-	// 		else if (isChannel(av[1]))
-	// 		{
-	// 			response = 	":irc.server 324 " + _users[index].getNickname() + " " + av[1] + " <ch_modes> <limit> <pass> ";
-	// 			response += ":irc.server 329 " + _users[index].getNickname() + " " + av[1] + " <timestamp channel creation>";
-	// 		}
-	// 		else // Not a user nor a channel
-	// 			response = 	":irc.server 403 " + _users[index].getNickname() + " " + av[1] + " :No such channel";
-	// 	}
-	// 	send(_fds[index].fd, response.c_str(), response.size(), 0);
-	// 	return ;
-	// }
-
-	
-
-
-
-
-
-
-
-	// if l OR k OR o
-
-	// can be +i-t+l OR +il-t OR +i -t +l
-
-
-	// if (c != 'i' && c != 't' && c != 'k' && c != 'o' && c != 'l')
-	// {
-	// 	// ERR_UMODEUNKNOWNFLAG (501)
-	// 	// ERR_UNKNOWNMODE (472)
-	// }
-	
-	//	ERR_INVALIDKEY (525)
-	// If someone tries to set an invalid key, send this flag
-
-
-	/*
-		MODE 
-			:luna.AfterNET.Org 461 vivi MODE :Not enough parameters
-
-		MODE #channel
-			:luna.AfterNET.Org 324 vivi #b +tn
-			:luna.AfterNET.Org 329 vivi #b 1781365780
-			
-		MODE !channel
-			:luna.AfterNET.Org 403 vivi #v :No such channel
-
-		MODE vini (EXISTING USER)
-			:luna.AfterNET.Org 502 vivi :Cant change mode for other users
-
-		MODE #42 +o vini
-			:vivi!vini@AN-EA7BE6BE.net.novis.pt MODE #42 +o vini
-
-		
-
-	*/
-	
-/*
-/mode
-	Channel #channel modes: +tink * (prints current modes)
-/mode i
-	IF (!operator)
-		#channel :You're not channel operator
-	ELSE
-		<operator> sets mode +i on #channel
-*/
-
-
-/*
-mode
-	:Aurora.AfterNET.Org 461 vini MODE :Not enough parameters
-
-mode #42
-	:Aurora.AfterNET.Org 324 vini #3 +tnk 12
-	:Aurora.AfterNET.Org 329 vini #3 1781372033
-
-
-mode #42 k 123 (check if key is valid)
-	:vini!vini@AN-EA7BE6BE.net.novis.pt MODE #3 +k 12
-
-mode #42 -k 123
-	:vini!vini@AN-EA7BE6BE.net.novis.pt MODE #3 -k 12
-
-mode #42 -k (ignored)
-	:Aurora.AfterNET.Org 461 vini MODE +k :Not enough parameters
-
-mode #42 l
-	:Aurora.AfterNET.Org 461 vini MODE :Not enough parameters
-
-mode #42 l 2147483647 (max int) ?
-	:vini!vini@AN-EA7BE6BE.net.novis.pt MODE #3 +l 2147483647
-
-mode #42 o (IGNORED)
-
-mode #42 o chuchu
-	:Aurora.AfterNET.Org 401 vini chuchu :No such nick
-	
-mode #42 o vini
-
-+o (BROADCAST)
-:vini!vini@AN-EA7BE6BE.net.novis.pt MODE #3 +o vini
-
--o (BROADCAST)
-:vini!vini@AN-EA7BE6BE.net.novis.pt MODE #3 -o vini
-
-MODE #a +l
-:de3.arcnet-irc.org 461 vini MODE +l :Not enough parameters
-MODE #a +k
-:de3.arcnet-irc.org 461 vini MODE +k :Not enough parameters
-MODE #a +kl 123 12
-:vini!~vini@87-196-108-150.net.novis.pt MODE #a +kl 123 12
-
-MODE #42 ------+i
-:vini!~vini@87-196-108-150.net.novis.pt MODE #42 +i
-MODE #42 +i-i
-:vini!~vini@87-196-108-150.net.novis.pt MODE #42 -i
-MODE #42 +i -tt
-:vini!~vini@87-196-108-150.net.novis.pt MODE #42 +i
-MODE #42 -i -t
-:vini!~vini@87-196-108-150.net.novis.pt MODE #42 -i
-MODE #42 +i-t
-:vini!~vini@87-196-108-150.net.novis.pt MODE #42 +i
-MODE #42-t
-:de3.arcnet-irc.org 403 vini #42-t :No such channel
-MODE #42 -t
-MODE #42 -i +l 12
-:vini!~vini@87-196-108-150.net.novis.pt MODE #42 -i+l 12
-MODE #42 +i -l
-:vini!~vini@87-196-108-150.net.novis.pt MODE #42 -l+i
-MODE #42 -i+l
-:de3.arcnet-irc.org 461 vini MODE +l :Not enough parameters
-:vini!~vini@87-196-108-150.net.novis.pt MODE #42 -i
-MODE #42 +il 12
-:vini!~vini@87-196-108-150.net.novis.pt MODE #42 +il 12
-
-*/
