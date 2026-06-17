@@ -10,7 +10,7 @@ bool Server::_signal = false;
 ** ------------------------------- CONSTRUCTORS --------------------------------
 */
 
-Server::Server() :_sockfd(-1), _port(0), _exit_status(0)
+Server::Server() :_sockfd(-1), _port(0)
 {
 //   std::cout << "Default Constructor called" << std::endl;
 	User server(_sockfd,"server", "server");
@@ -224,13 +224,22 @@ void	Server::disconnect(int i)
 	_fds.erase(_fds.begin() + i);
 }
 
+//check first for "\r\n", if not just append to user.fd and continue
+//if not, check for user.registration == false
+	//if not just append as normal and exec command
 /*
 	Parses every message sent on the server. Checks for unregistered users before parsing what command has to be executed.
 */
-void Server::getMessage(std::string &line, char *buffer, int i)
+void Server::getMessage(char *buffer, int i)
 {
-	if (_users[i].getRegistration() == false)
+	_users[i].recvBuf.append(buffer);
+	std::cout << std::endl;
+	std::cout << _users[i].recvBuf << std::endl;
+	size_t find = _users[i].recvBuf.find("\r\n");
+	if (find != std::string::npos)
 	{
+		if (_users[i].getRegistration() == false)
+		{
 		_users[i].recvBuf.append(buffer);
 		while (_users[i].getRegistration() == false)
 		{
@@ -240,19 +249,45 @@ void Server::getMessage(std::string &line, char *buffer, int i)
 				break ;
 		}
 		return;
+		}
+		else
+		{
+			exec_cmd(_users[i].recvBuf, i);
+			_users[i].recvBuf.erase();
+		}
 	}
-	line.clear();
-	line.append(buffer);
-	size_t find = line.find("\r\n");
-	if (find != std::string::npos)
-	{
-		std::string cmd_line = line.substr(0, find);
-		exec_cmd(line, i);
-		line.erase(0, find + 2);
-		find = line.find("\r\n");
-	}
-//	line.clear();
+	else
+		return ;
 }
+
+// /*
+// 	Parses every message sent on the server. Checks for unregistered users before parsing what command has to be executed.
+// */
+// void Server::getMessage(std::string &line, char *buffer, int i)
+// {
+// 	if (_users[i].getRegistration() == false)
+// 	{
+// 		_users[i].recvBuf.append(buffer);
+// 		while (_users[i].getRegistration() == false)
+// 		{
+// 			std::string old = _users[i].recvBuf;
+// 			registerUser(i);
+// 			if ((size_t)i >= _users.size() || _users[i].recvBuf == old)
+// 				break ;
+// 		}
+// 		return;
+// 	}
+// 	line.append(buffer);
+// 	size_t find = line.find("\r\n");
+// 	if (find != std::string::npos)
+// 	{
+// 		std::string cmd_line = line.substr(0, find);
+// 		exec_cmd(line, i);
+// 		line.erase(0, find + 2);
+// 		find = line.find("\r\n");
+// 	}
+// 	line.clear();
+// }
 
 void	Server::setPassword(char *pass)
 {
@@ -276,7 +311,6 @@ void	Server::run()
 	server.revents = 0;
 	_fds.push_back(server);
 
-	std::string line;
 	while (Server::getSignal() == false)
 	{
 //		bool it = Server::getSignal();
@@ -327,7 +361,7 @@ void	Server::run()
 					}
 					buf[bytes] = 0;
 					std::cout << "raw buf: " << buf << ", bytes: " << bytes << std::endl;
-					getMessage(line, buf, i);
+					getMessage(buf, i);
 					if (i >= _fds.size()) // Why is this here??
 						continue;
 				}

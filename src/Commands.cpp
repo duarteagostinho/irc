@@ -794,7 +794,7 @@ void Server::mode(std::vector<std::string>& av, int index)
 
 	// might not need those
 
-//	int op = 0;
+	// int op = 0;
 
 	for (size_t i = 2; i < av.size(); ) // at least size 3
 	{

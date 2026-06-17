@@ -8,22 +8,20 @@
 # include <netinet/in.h>
 # include <stdlib.h>
 # include <map>
-#include <cstddef>
-#include <cstdio>
-#include <cstring>
-#include <iostream>
-#include <map>
-#include <netinet/in.h>
-#include <stdexcept>
-#include <string>
-#include <sys/socket.h>
-#include <sys/select.h>
-#include <unistd.h>
-#include <cerrno>
-#include <stdio.h>
-#include <sstream>
+# include <cstddef>
+# include <cstdio>
+# include <cstring>
+# include <stdexcept>
+# include <sys/select.h>
+# include <unistd.h>
+# include <cerrno>
+# include <stdio.h>
+# include <sstream>
 # include <fcntl.h>
 # include "User.hpp"
+# include <signal.h>
+# include <climits>
+#include <limits.h>
 
 // NEW
 # include <poll.h>
@@ -136,8 +134,6 @@ class Server
 		static bool					_signal;
 
 	public:
-		volatile sig_atomic_t		_exit_status;
-
         // Constructors & Destructor
         Server();									// Default
         Server(const Server &src);					// Copy
@@ -161,7 +157,7 @@ class Server
 		void	setPassword(char *pass);
 		void	setPort(int port);
 		int		getPort(void) const;
-		void	getMessage(std::string &line, char *buffer, int i);
+		void	getMessage(char *buffer, int i);
 		void	getUserConfig(std::string &line, char *buffer, int i);
 		const std::vector<Channel> &getChannel(void) const;
 		
@@ -215,6 +211,5 @@ class Server
 // Stream Operator Overload
 std::ostream &operator<<(std::ostream &o, const Server &i);
 
-
-
 #endif
+
