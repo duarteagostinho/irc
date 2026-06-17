@@ -26,6 +26,15 @@ const std::string&	User::getUsername() const
 	return _username;
 }
 
+void	User::setNickname(std::string nick)
+{
+	_nickname = nick;
+}
+
+void	User::setUsername(std::string user)
+{
+	_username = user;
+}
 
 std::string User::getAddress(void)
 {

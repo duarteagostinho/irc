@@ -22,45 +22,34 @@
 #include <cerrno>
 #include <stdio.h>
 #include <sstream>
-#include <fcntl.h>
-#include <signal.h>
-#include "User.hpp"
+# include <fcntl.h>
+# include "User.hpp"
 
 // NEW
 # include <poll.h>
 # include <vector>
-# include <sstream>
-//# include "Commands.hpp"
 # include "Channel.hpp"
 
 # define KICK_USAGE "Usage: KICK <nick> [reason], kicks the nick from the current channel\r\n"
 # define INV_USAGE "Usage: INVITE <nick> [<channel>], invites someone to a channel, by default the current channel\r\n"
 # define JOIN_USAGE "Usage: JOIN <channel>, joins the channel\r\n"
-# define NOT_OPERATOR ": You are not the channel operator\r\n"
+//# define NOT_OPERATOR ": You are not the channel operator\r\n"
+# define ERR_PASSWDMISMATCH "Password incorrect\r\n"
+# define ERR_NICKNAMEINUSE "Nickname is already in use\r\n"
 
 
-/*                        STRUCTURE FOR SOCKET ADDR
-    struct sockaddr_in {
-        sa_family_t sin_family;         // Address family (AF_INET)
-        in_port_t   sin_port;           // Port number in network byte order
-        struct      in_addr sin_addr;   // IP address (32-bit)
-};
-*/
 
 
-/*                      	   PROGRAM LOGIC
-	Init
-		socket()	  -- Create socket with file descriptor _sockfd
-		bind()		  -- Attach to _port using _addr
-		listen()	  -- Ready to accept connections
-	Run Loop
-		poll()        -- Waits for one of a set of file descriptors to become ready to perform I/O.
-		accept()	  -- Wait for client, get new fd
-		recv()		  -- Read IRC commands
-		send()		  -- Send responses from Server
-	Cleanup
-		close()		  -- Clean up socket
-*/
+# define ERR_NOSUCHNICK "No such nick\r\n"							// 401
+# define ERR_NOSUCHCHANNEL "No such channel\r\n"					// 403
+
+
+# define ERR_NOTONCHANNEL "You're not on that channel\r\n"			// 442
+
+# define ERR_UNKNOWNMODE "is not a recognised channel mode\r\n"		// 472
+
+# define ERR_CHANOPRIVSNEEDED "You're not channel operator\r\n"		// 482
+
 
 
 
@@ -72,8 +61,7 @@ class Server
 
 		std::string	_nickname;
 		std::string	_username;
-		bool		has_nick;
-		bool		has_user;
+		std::string	_pass;
 	};
 
 	private: 
@@ -92,6 +80,8 @@ class Server
 		std::vector<Channel>		_channels;
 		std::vector<User>			_users;
 
+		static bool					_signal;
+
 	public:
 		volatile sig_atomic_t		_exit_status;
 
@@ -102,9 +92,11 @@ class Server
 
         // Operators
         Server &operator=(const Server &src); // Copy Assignment
+		
+		// Server loop
 		bool	init(); // Creates socket, bind, listen
 		void	run();	// Accept clients in a loop;
-		void	newConnection(int fd);
+		void	newConnection(int fd, struct sockaddr_in address, socklen_t addr_size);
 		void	userMessage(int fd, const std::string &msg, ssize_t bytes);
 		void	disconnect(int fd);
 		void	parseMessage(int fd);
@@ -112,27 +104,28 @@ class Server
 		void	registerUser(int fd);
 		void	closeServer();	// Clean up
 
-
+		// Getters && Setters
 		void	setPassword(char *pass);
-
 		void	setPort(int port);
 		int		getPort(void) const;
-
-		void	getMessage(char *buffer, int i);
+		void	getMessage(std::string &line, char *buffer, int i);
 		void	getUserConfig(std::string &line, char *buffer, int i);
-
-
 		const std::vector<Channel> &getChannel(void) const;
+		
+		// Helpers
+		void	sendError(int fd, int code, const std::string target, const std::string &msg);
+		void	welcomeUser(int i);
 
 		// CMDS
 		void	exec_cmd(std::string line, int index);
-		int		check_cmd(std::string &line, std::vector<std::string>& av);
-		
 		void	kick(std::vector<std::string>& av, int index);
-		void	invite(std::vector<std::string>& av, int index);
-		void	topic(std::vector<std::string>& av, int index);
-		void	mode(void);
+		void	mode(std::vector<std::string>& av, int index);
 		void	join(std::vector<std::string>& av, int index);
+		void	part(std::vector<std::string>& av, int index);		
+		void	topic(std::vector<std::string>& av, int index);
+		void	invite(std::vector<std::string>& av, int index);
+		void	privmsg(std::vector<std::string>& av, int index);
+		int		check_cmd(std::string &line, std::vector<std::string>& av);
 
 		// DEL
 		void print_everything(void);
@@ -146,14 +139,24 @@ class Server
 		int getChannelIndex(const std::string name) const;
 		int getUserIndex(const std::string name) const;
 		bool doesUserExist(const std::string name) const;
-		std::string craftStringSpaces(const std::string str);
+		std::string craftStringSpaces(const std::string str, int times);
 		std::string getClientInfo(int index);
 
-	//SIGNAL Handler
-		// static void handler(int sig);
+		void broadcastMessage(Channel &channel, std::string message, int index, int flag);
 
-	//FD cleanup after SIGNAL
-		void cleanup(void);
+
+		static int getSignal(void);
+		static void setSignal(int signal);
+
+
+		void handleInv(std::vector<std::string>& av, int index, int inv);
+		void handleTopic(std::vector<std::string>& av, int index, int inv);
+		void handleKey(std::vector<std::string>const &av, const int &i, const int &sign, int &offset, int &flag, int index);
+		void handleLimit(std::vector<std::string>const &av, const int &i, const int &sign, int &offset, int &flag, int index);
+
+		void handleOperator(std::map<std::string, int> &operators, std::vector<std::string> av, int index);
+		void getOperatorData(std::map<std::string, int> &operators, std::vector<std::string> av, int i, int sign, int &offset, int index);
+
 };
 
 // Stream Operator Overload

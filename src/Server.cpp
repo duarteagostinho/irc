@@ -1,4 +1,10 @@
 #include "../inc/Server.hpp"
+#include <sstream>
+#include <string>
+#include <sys/socket.h>
+#include <vector>
+
+bool Server::_signal = false;
 
 /*
 ** ------------------------------- CONSTRUCTORS --------------------------------
@@ -6,14 +12,14 @@
 
 Server::Server() :_sockfd(-1), _port(0), _exit_status(0)
 {
-    std::cout << "Default Constructor called" << std::endl;
+//   std::cout << "Default Constructor called" << std::endl;
 	User server(_sockfd,"server", "server");
 	_users.push_back(server);
 }
 
 Server::Server(const Server &src)
 {
-    std::cout << "Copy Constructor called" << std::endl;
+//   std::cout << "Copy Constructor called" << std::endl;
     *this = src;
 }
 
@@ -21,8 +27,9 @@ Server::Server(const Server &src)
 ** -------------------------------- DESTRUCTOR --------------------------------
 */
 
-Server::~Server() {
-    std::cout << "Destructor called" << std::endl;
+Server::~Server() 
+{
+//   std::cout << "Destructor called" << std::endl;
 }
 
 /*
@@ -44,7 +51,6 @@ Server &Server::operator=(const Server &src)
 void Server::print_everything(void) // DEL
 {
 	std::cout << "|---------- INFO ----------|" << std::endl;
-
 	if (_channels.size() == 0)
 		std::cout << "No channel yet." << std::endl;
 	for (size_t i = 0; i < _channels.size(); i++)
@@ -52,6 +58,9 @@ void Server::print_everything(void) // DEL
 		std::cout << "channel: " << _channels[i].getName() << std::endl;
 		_channels[i].print_users();
 	}
+ std::cout << "|--------- USERS -----------|" << std::endl;
+ for (size_t j = 0; j < _users.size();j++)
+   std::cout << "User " << j << ": " << _users[j].getNickname() << std::endl;
 	std::cout << std::endl << "|---------- END ----------|" << std::endl;
 }
 
@@ -96,100 +105,6 @@ bool	Server::init()
 	std::cout << "      ╚════════════════════════╝" << std::endl;
 	return true;
 }
-//NOT WORKING
-
-// static void handler(int sig)
-// {
-// 	if (sig == SIGINT)
-// 	{
-// 		std::cout << "SIGINT received" << std::endl;
-// 		if (current_s)
-// 			current_s->_exit_status = 1;
-// 	}
-// }
-
-void Server::cleanup(void)
-{
-	for (size_t i = 0; i < _fds.size(); i++)
-	{
-		// send(_fds[i].fd, "")
-		close(_fds[i].fd);
-	}
-	exit(2);
-}
-
-void	Server::run()
-{
-	struct pollfd server;
-
-	server.fd = _sockfd;
-	server.events = POLLIN;
-	server.revents = 0;
-	_fds.push_back(server);
-
-	// signal(SIGINT, Server::handler);
-
-	while (!_exit_status)
-	{
-		print_everything();
-		if (poll(&_fds[0], _fds.size(), -1) == -1)
-		{
-			std::cerr << "-error: poll failure\n";
-			exit (10);
-		}
-
-		for (size_t i = 0; i < _fds.size() ;++i)
-		{
-			if (_fds[i].revents & POLLIN)
-			{
-				if (_fds[i].fd == _sockfd)  // New connection
-				{
-					struct sockaddr_in user_socket;
-					socklen_t user_size = sizeof(user_socket);
-					int user_fd = accept(_sockfd, (struct sockaddr *)&user_socket, &user_size);
-					if (user_fd < 0)
-					{
-						perror("accept()");
-						continue;
-					}
-					// Create user inside, after gathering the nick and username
-					// newConnection(user_fd, user_socket, user_size);
-					newConnection(user_fd);
-
-
-
-					// THIS WHOLE PACKAGE NEEDS TO BE IN THE USER REGISTRATION !!
-					std::ostringstream ss;
-					ss << user_fd;
-					std::string new_nick = "USER#" + ss.str();
-					User usr(user_fd, new_nick, new_nick);
-					_users.push_back(usr);
-					// THIS WHOLE PACKAGE NEEDS TO BE IN THE USER REGISTRATION !!
-				}
-				else // Existing user message 
-				{
-					char buf[4096] = {};
-					ssize_t bytes = recv(_fds[i].fd, buf, 4095, 0);
-					if (bytes < 0)
-					{
-						perror("recv()");
-						continue;
-					}
-					if (bytes == 0)
-					{
-						disconnect(i);
-						continue;
-					}
-					buf[bytes] = 0;
-					std::cout << "raw buf: " << buf << ", bytes: " << bytes << std::endl;
-//					userMessage(_fds[i].fd, buf, bytes);
-					getMessage(buf, i);
-				}
-			}
-		}
-	}
-	cleanup();
-}
 
 void	Server::setPort(int port)
 {
@@ -200,37 +115,115 @@ int		Server::getPort(void) const
 {
 	return (_port); 
 }
-
-void	Server::newConnection(int fd)
+ /*
+ 	Creates new client_fd and default user, adds them to the respective vectors.
+ */  
+void	Server::newConnection(int fd, struct sockaddr_in address, socklen_t addr_size)
 {
 	struct pollfd client;
 	client.fd = fd;
 	client.events = POLLIN;
 	client.revents = 0;
 	_fds.push_back(client);
+	User user(fd, "", "", address, addr_size);
+	_users.push_back(user);
 
 	std::cout << "[CONNECT] fd = "<< fd << std::endl;
 	return ;
+}
+/*
+	Uses the data, stored in user buffer, to parse the login credentials. Uses RFC protocol to also register user in Hexchat Client format.
+*/
+void	Server::registerUser(int i)
+{
+	std::string	cmdline = _users[i].recvBuf;
+	size_t find = cmdline.find("\r\n");
+
+	if (find == std::string::npos)
+		find = cmdline.find("\n"); // If using ncat with -C option, client only sends "\n" 
+	if (find == std::string::npos)
+		return;
+
+	std::string line = cmdline.substr(0, find);
+	size_t erase_len = find + 1;
+	if (find > 0 && cmdline[find - 1] == '\r')
+		find--;
+	line = cmdline.substr(0, find);
+	_users[i].recvBuf.erase(0, erase_len);
+
+	std::istringstream ss(line);
+	std::string	cmd, value;
+	ss >> cmd >> value;
+
+	if (cmd == "CAP")
+	{
+		if (value == "LS")
+			return ;
+		else if (value == "END")
+			return ;
+	}
+	if (cmd == "PASS")
+	{
+		if (value != _password)
+		{
+			sendError(_fds[i].fd, 464, "*", ERR_PASSWDMISMATCH);
+			disconnect(i);
+			return ;
+		}
+		_reg[i]._pass = value;
+		return ;
+	}
+	if (_reg[i]._pass.empty())
+		return ;
+	if (cmd == "NICK")
+	{
+		if (doesUserExist(value) == true)
+		{
+			sendError(_fds[i].fd, 433, value, ERR_NICKNAMEINUSE);
+			return;
+		}
+		_reg[i]._nickname = value;
+	}
+	if (cmd == "USER")
+		_reg[i]._username = value;
+	if (!_reg[i]._pass.empty() && !_reg[i]._username.empty() && !_reg[i]._nickname.empty())
+	{
+		_users[i].setUsername(_reg[i]._username);
+		_users[i].setNickname(_reg[i]._nickname);
+		_users[i].Register();
+		welcomeUser(i);
+		_reg.erase(i);
+		_users[i].recvBuf.clear();
+
+	}
+}
+
+void	Server::welcomeUser(int i)
+{
+		std::string welcome1 = ":irc.server 001 " + _reg[i]._nickname + " :Welcome to ircserv, " + _reg[i]._nickname + "\r\n";
+		std::string welcome2 = ":irc.server 002 " + _reg[i]._nickname + " :Your host is irc.server\r\n";
+		std::string welcome3 = ":irc.server 003 " + _reg[i]._nickname + " :This server was created in 2026\r\n";
+		std::string welcome4 = ":irc.server 004 " + _reg[i]._nickname + " irc.server v1.0 tilk o\r\n";
+
+		send(_fds[i].fd, welcome1.c_str(), welcome1.size(), 0);
+		send(_fds[i].fd, welcome2.c_str(), welcome2.size(), 0);
+		send(_fds[i].fd, welcome3.c_str(), welcome3.size(), 0);
+		send(_fds[i].fd, welcome4.c_str(), welcome4.size(), 0);
 }
 
 void	Server::disconnect(int i)
 {
 	std::cout << "[DISCONECT] fd = "<< _fds[i].fd << std::endl;
-//	if (_users.find(_fds[i].fd) != _users.end())
-//	{
 	std::cout << "nick=" << _users[i].getNickname() << std::endl;
-//		_users.erase(_fds[i].fd);
-	_users.erase(_users.begin() + i);
-//	}
+	//		_users.erase(_fds[i].fd);
+	if ((_users.begin() + i) != _users.end())
+		_users.erase(_users.begin() + i);
 	// else
 	// 	_pending.erase(_fds[i].fd);
 	close(_fds[i].fd);
 	_fds.erase(_fds.begin() + i);
 }
 
-//check first for "\r\n", if not just append to user.fd and continue
-//if not, check for user.registration == false
-	//if not just append as normal and exec command
 /*
 	Parses every message sent on the server. Checks for unregistered users before parsing what command has to be executed.
 */
@@ -260,115 +253,88 @@ void Server::getMessage(std::string &line, char *buffer, int i)
 	line.clear();
 }
 
-//verificar primeiro se o buffer tem "\r\n", depois verificar de que fd veio, e depois juntar a string do fd.user
-//se o buffer tiver "\r\n" limpa se o buffer e a variavel do fd.user
-//se o buffer NAO tiver "\r\n" limpa se apenas o buffer e faz se append na string fd.user
-
-//primeiro verificar se o buffer tem "\r\n", se sim, append na string do user, executa se o command e limpa se o buffer e a string do user
-//se o buffer nao tem "\r\n" append na string do user e limpar apenas o buffer
-//PRoblema, como diferenciar de onde vem o buffer, ve se pelo fd e com esse iterador procurar o user
-
-//acho que nao e preciso line ou apenas e preciso para fazer encontrar no buffer o "\r\n" se existir
-
-void Server::getMessage(char *buffer, int i)
-{
-	std::cout << std::endl;
-	//fazendo append primeiro
-	_users[i].recvBuf.append(buffer);
-
-	std::cout << _users[i].recvBuf << std::endl;
-	std::cout << _users[i].recvBuf.size();
-	std::cout << std::endl;
-
-	size_t find = _users[i].recvBuf.find("\r\n");
-	if (find != std::string::npos)
-	{
-		// // THIS LOOP IS JUST SENDING THE MESSAGE AND NICK BACK TO EACH OTHER CLIENT
-		// for (size_t j = 1; j < _fds.size(); j++) // start at 1 to always ignore the listening socket
-		// {
-		// 	std::ostringstream ss;
-		// 	std::string str;
-		// 	ss << _users[i].getNickname() << ": " << _users[i].recvBuf << "\r\n";
-		// 	str = ss.str();
-
-		// 	if (_fds[i].fd != _fds[j].fd) // Send to every fd that is not mine
-		// 		send(_fds[j].fd, str.c_str(), str.size() + 1, 0);
-		// }
-		// _users[i].recvBuf.erase(find, 2);
-		exec_cmd(_users[i].recvBuf, i);
-		_users[i].recvBuf.erase();
-	}
-	else
-		return ;
-
-//verificando primeiro se tem "\r\n"
-	// std::string tmp;
-	// tmp.append(buffer);
-	// size_t find = tmp.find("\r\n");
-	// if (find != std::string::npos)//isto significa que encontrou "\r\n"
-	// {
-	// 	//encontar o user pelo fd para dar append do buffer na string
-	// 	_users[i].recvBuf.append(buffer);
-	// 	exec_cmd(_users[i].recvBuf, i);
-	// 	//limpar a string usada para executar
-	// 	_users[i].recvBuf.erase();
-	// }
-	// else
-	// {
-	// 	//apenas dar append do buffer na string do user
-	// 	_users[i].recvBuf.append(buffer);
-	// }
-}
-
-// void Server::getMessage(std::string &line, char *buffer, int i)
-// {
-// 	std::cout << std::endl;
-// 	// for (size_t i = 0; i < line.size(); i++)
-// 	// 	std::cout << "line in: " << (int)line[i] << std::endl;
-// 	line.append(buffer);
-// 	size_t find = line.find("\r\n");
-// 	if (find != std::string::npos)
-// 	{
-// 		// Do stuff
-// //		line.erase(find, 2);
-// 		std::string msg = line.substr(0, find);
-// 		// parse and execute commands here
-// 		exec_cmd(line, i);
-		
-
-// 		// THIS LOOP IS JUST SENDING THE MESSAGE AND NICK BACK TO EACH OTHER CLIENT
-// 		for (size_t j = 1; j < _fds.size(); j++) // start at 1 to always ignore the listening socket
-// 		{
-// 			std::ostringstream ss;
-// 			std::string str;
-// 			ss << _users[i].getNickname() << ": " << line << "\r\n";
-// 			str = ss.str();
-
-// 			if (_fds[i].fd != _fds[j].fd) // Send to every fd that is not mine
-// 				send(_fds[j].fd, str.c_str(), str.size() + 1, 0);
-// 		}
-// 		// Reset string
-// 		line.erase(0, find + 2);
-// 	}
-// }
-
 void	Server::setPassword(char *pass)
 {
 	_password = pass;
 }
 
-
-std::string Server::usersPreChannelFormated(std::string name)
+void	Server::sendError(int fd, int code, const std::string target, const std::string &msg)
 {
-	std::string ret;
+	std::ostringstream ss;
+	ss << ":irc.server " << code << " " << target << " :" << msg << "\r\n";
+	send(fd, ss.str().c_str(), ss.str().size(), 0);
+}
 
-	std::vector<Channel>::iterator it = _channels.begin();
-	for ( ; it < _channels.end(); it++)
+void	Server::run()
+{
+	signal(SIGINT, Server::setSignal);
+	struct pollfd server;
+
+	server.fd = _sockfd;
+	server.events = POLLIN;
+	server.revents = 0;
+	_fds.push_back(server);
+
+	std::string line;
+	while (Server::getSignal() == false)
 	{
-		if (it->getName() == name)
-			break;
+//		bool it = Server::getSignal();
+//		std::cout << it << std::endl;
+//		std::cout << Server::getSignal << std::endl;
+//		line.clear();
+		print_everything();
+		if (poll(&_fds[0], _fds.size(), -1) == -1)
+		{
+			if (Server::getSignal() == false)
+				std::cerr << "-error: poll failure\n";
+			break ;
+		}
+		for (size_t i = 0; i < _fds.size();++i)
+		{
+			if (_fds[i].revents & POLLIN)
+			{
+				if (_fds[i].fd == _sockfd)  // New connection
+				{
+					struct sockaddr_in user_socket;
+					socklen_t user_size = sizeof(user_socket);
+					int user_fd = accept(_sockfd, (struct sockaddr *)&user_socket, &user_size);
+					if (user_fd < 0)
+					{
+						perror("accept()");
+						continue;
+					}
+					if (fcntl(user_fd, F_SETFL, O_NONBLOCK) < 0)
+					{
+						perror("fcntl()");
+						continue;
+					}
+					newConnection(user_fd, user_socket, user_size);
+				}
+				else // Existing user message 
+				{
+					char buf[4096] = {};
+					ssize_t bytes = recv(_fds[i].fd, buf, 4095, 0);
+					if (bytes < 0)
+					{
+						perror("recv()");
+						continue;
+					}
+					if (bytes == 0)
+					{
+						disconnect(i);
+						continue;
+					}
+					buf[bytes] = 0;
+					std::cout << "raw buf: " << buf << ", bytes: " << bytes << std::endl;
+					getMessage(line, buf, i);
+					if (i >= _fds.size()) // Why is this here??
+						continue;
+				}
+			}
+		}
 	}
-	return ("");
+	for (size_t i = 0; i < _fds.size(); i++)
+		close(_fds[i].fd);
 }
 
 bool Server::isChannel(std::string name)
@@ -411,3 +377,14 @@ bool Server::doesUserExist(const std::string name) const
 	return (false);
 }
 
+int Server::getSignal(void)
+{
+	return _signal;
+}
+
+void Server::setSignal(int signal)
+{ 
+	(void)signal;
+	std::cout << std::endl;
+	_signal = true;
+}
