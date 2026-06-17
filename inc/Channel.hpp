@@ -15,23 +15,20 @@ class Channel
         std::string                 _name;
         std::string                 _topic;
 		std::string                 _pass;
-        // Add any invited user to this vector, once it joins the channel, remove from here
-        std::vector<std::string>    _invited;
+        std::vector<std::string>    _invited; // track invited users
         std::map<std::string, bool> _users_op;
 		time_t						_creation;
 		time_t						_new_topic;
 		std::string					_topic_creator;
-		
-
-		bool	_inv_flag;	// set/remove invite only
-		bool	_topc_flag;	// set/remove topic restriction on operators
-		bool	_key_flag;	// set/remove key
-		bool	_optr_flag;	// set/remove operator
-		bool	_lim_flag;	// set/remove user limit to channel
-
+		int							_usersCount;
 		int							_max_users;
-        
-        public:
+		bool						_inv_flag;	// set/remove invite only
+		bool						_topc_flag;	// set/remove topic restriction on operators
+		bool						_key_flag;	// set/remove key
+		bool						_optr_flag;	// set/remove operator
+		bool						_lim_flag;	// set/remove user limit to channel
+
+    public:
         
         Channel();
         Channel(std::string name);
@@ -52,12 +49,11 @@ class Channel
 		std::string						getTopicTime(void) const;
 		std::string						getTopicMaker(void) const;
 		int								getMaxUsers(void) const;
+		int								getCount(void) const;
+
 
 	//Setters
-        // void    setInvite(bool state);
-        // void    setPassOnly(bool state);
-        void    setTopic(const std::string topic);
-
+        void							setTopic(const std::string topic);
 		void							setTopicTime(void);
 		void							setChannelTime(void);
 		void							setLimitMode(bool mode);
@@ -67,9 +63,7 @@ class Channel
 		void							setTopicMode(bool mode);
 		void							setPass(const std::string &str);
 		void							setTopicMaker(const std::string &str);
-
 		void							setMaxUsers(int &num);
-
 
 	//Utils
 		std::string         usersFormated(void);
@@ -85,6 +79,9 @@ class Channel
 		void				rmInvite(const std::string& nick);
 
 		std::string			printMode(const std::string &nickname);
+
+		void				incrementCount(void);
+		void				decrementCount(void);
 
 		// DEL
         void print_users(void);

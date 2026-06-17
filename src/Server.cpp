@@ -56,6 +56,7 @@ void Server::print_everything(void) // DEL
 	for (size_t i = 0; i < _channels.size(); i++)
 	{
 		std::cout << "channel: " << _channels[i].getName() << std::endl;
+		std::cout << "user count: " << _channels[i].getCount() << std::endl;
 		_channels[i].print_users();
 	}
  std::cout << "|--------- USERS -----------|" << std::endl;
@@ -283,6 +284,7 @@ void	Server::run()
 //		std::cout << it << std::endl;
 //		std::cout << Server::getSignal << std::endl;
 //		line.clear();
+		cleanChannels();
 		print_everything();
 		if (poll(&_fds[0], _fds.size(), -1) == -1)
 		{
@@ -388,4 +390,13 @@ void Server::setSignal(int signal)
 	(void)signal;
 	std::cout << std::endl;
 	_signal = true;
+}
+
+void Server::cleanChannels(void)
+{
+	for (size_t i = 0; i < _channels.size(); i++)
+	{
+		if (_channels[i].getCount() == 0)
+			_channels.erase(_channels.begin() + i);
+	}
 }

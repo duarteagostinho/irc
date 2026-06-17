@@ -172,6 +172,8 @@ class Server
 		void handleOperator(std::map<std::string, int> &operators, std::vector<std::string> av, int index);
 		void getOperatorData(std::map<std::string, int> &operators, std::vector<std::string> av, int i, int sign, int &offset, int index);
 
+
+		void cleanChannels(void);
 };
 
 // Stream Operator Overload
