@@ -70,3 +70,96 @@
 
   - https://www.rfc-editor.org/info/rfc1459/
   - 
+
+
+//check first for "\r\n", if not just append to user.fd and continue
+//if not, check for user.registration == false
+	//if not just append as normal and exec command
+/*
+	Parses every message sent on the server. Checks for unregistered users before parsing what command has to be executed.
+*/
+void Server::getMessage(std::string &line, char *buffer, int i)
+{
+	if (_users[i].getRegistration() == false)
+	{
+		_users[i].recvBuf.append(buffer);
+		while (_users[i].getRegistration() == false)
+		{
+			std::string old = _users[i].recvBuf;
+			registerUser(i);
+			if ((size_t)i >= _users.size() || _users[i].recvBuf == old)
+				break ;
+		}
+		return;
+	}
+	line.append(buffer);
+	size_t find = line.find("\r\n");
+	if (find != std::string::npos)
+	{
+		std::string cmd_line = line.substr(0, find);
+		exec_cmd(line, i);
+		line.erase(0, find + 2);
+		find = line.find("\r\n");
+	}
+	line.clear();
+}
+
+//verificar primeiro se o buffer tem "\r\n", depois verificar de que fd veio, e depois juntar a string do fd.user
+//se o buffer tiver "\r\n" limpa se o buffer e a variavel do fd.user
+//se o buffer NAO tiver "\r\n" limpa se apenas o buffer e faz se append na string fd.user
+
+//primeiro verificar se o buffer tem "\r\n", se sim, append na string do user, executa se o command e limpa se o buffer e a string do user
+//se o buffer nao tem "\r\n" append na string do user e limpar apenas o buffer
+//PRoblema, como diferenciar de onde vem o buffer, ve se pelo fd e com esse iterador procurar o user
+
+//acho que nao e preciso line ou apenas e preciso para fazer encontrar no buffer o "\r\n" se existir
+
+void Server::getMessage(char *buffer, int i)
+{
+	std::cout << std::endl;
+	//fazendo append primeiro
+	_users[i].recvBuf.append(buffer);
+
+	std::cout << _users[i].recvBuf << std::endl;
+	std::cout << _users[i].recvBuf.size();
+	std::cout << std::endl;
+
+	size_t find = _users[i].recvBuf.find("\r\n");
+	if (find != std::string::npos)
+	{
+		// // THIS LOOP IS JUST SENDING THE MESSAGE AND NICK BACK TO EACH OTHER CLIENT
+		// for (size_t j = 1; j < _fds.size(); j++) // start at 1 to always ignore the listening socket
+		// {
+		// 	std::ostringstream ss;
+		// 	std::string str;
+		// 	ss << _users[i].getNickname() << ": " << _users[i].recvBuf << "\r\n";
+		// 	str = ss.str();
+
+		// 	if (_fds[i].fd != _fds[j].fd) // Send to every fd that is not mine
+		// 		send(_fds[j].fd, str.c_str(), str.size() + 1, 0);
+		// }
+		// _users[i].recvBuf.erase(find, 2);
+		exec_cmd(_users[i].recvBuf, i);
+		_users[i].recvBuf.erase();
+	}
+	else
+		return ;
+
+//verificando primeiro se tem "\r\n"
+	// std::string tmp;
+	// tmp.append(buffer);
+	// size_t find = tmp.find("\r\n");
+	// if (find != std::string::npos)//isto significa que encontrou "\r\n"
+	// {
+	// 	//encontar o user pelo fd para dar append do buffer na string
+	// 	_users[i].recvBuf.append(buffer);
+	// 	exec_cmd(_users[i].recvBuf, i);
+	// 	//limpar a string usada para executar
+	// 	_users[i].recvBuf.erase();
+	// }
+	// else
+	// {
+	// 	//apenas dar append do buffer na string do user
+	// 	_users[i].recvBuf.append(buffer);
+	// }
+}

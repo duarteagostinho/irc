@@ -228,6 +228,38 @@ void	Server::disconnect(int i)
 	_fds.erase(_fds.begin() + i);
 }
 
+//check first for "\r\n", if not just append to user.fd and continue
+//if not, check for user.registration == false
+	//if not just append as normal and exec command
+/*
+	Parses every message sent on the server. Checks for unregistered users before parsing what command has to be executed.
+*/
+void Server::getMessage(std::string &line, char *buffer, int i)
+{
+	if (_users[i].getRegistration() == false)
+	{
+		_users[i].recvBuf.append(buffer);
+		while (_users[i].getRegistration() == false)
+		{
+			std::string old = _users[i].recvBuf;
+			registerUser(i);
+			if ((size_t)i >= _users.size() || _users[i].recvBuf == old)
+				break ;
+		}
+		return;
+	}
+	line.append(buffer);
+	size_t find = line.find("\r\n");
+	if (find != std::string::npos)
+	{
+		std::string cmd_line = line.substr(0, find);
+		exec_cmd(line, i);
+		line.erase(0, find + 2);
+		find = line.find("\r\n");
+	}
+	line.clear();
+}
+
 //verificar primeiro se o buffer tem "\r\n", depois verificar de que fd veio, e depois juntar a string do fd.user
 //se o buffer tiver "\r\n" limpa se o buffer e a variavel do fd.user
 //se o buffer NAO tiver "\r\n" limpa se apenas o buffer e faz se append na string fd.user
