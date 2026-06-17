@@ -1,23 +1,38 @@
-Implementar checks no USER e NICK:
-- Não aceitar algo como #user
-- USER deve seguir o formato <user> 0 * :<realname>
 
-Implementar MODE
 
-Implementar limites no servidor
-- Max Channel
-- Max Users on server
-- Max nick length
 
 Hunt a segfault
 -Joined channel, one with nc, one with hexchat,
 crtl C on nc, crtl c on server
 segfault on channel destructor? why?
 
+
+
+
+Implementar limites no servidor
+- Max Channel
+- Max Users on server
+- Max nick length
+
+
+
+Redo the logic of the invite mode
+Problem is initially, channel has no l or k mode and user has no invite, so it failts to enter
+
+
+
+-- Done maybe?
+
+Implement channel cleanup
+Implement channel verification if limit is set
+
+Implementar checks no USER e NICK:
+- Não aceitar algo como #user
+- USER deve seguir o formato <user> 0 * :<realname>
+
+Implementar MODE
+
 Modes problems
 -missing message error when non op tries to op someone
 -users not on channel can receive op status
 -its crashing after a few operators
-
-Implement channel cleanup
-Implement channel verification if limit is set

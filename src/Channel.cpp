@@ -137,14 +137,14 @@ std::string Channel::printMode(const std::string &nickname)
 
 // Orthodox Cannonical Form
 Channel::Channel()
-: _name(""), _topic(""), _pass(""), _creation(0), _new_topic(0), _usersCount(1), _max_users(0),
+: _name(""), _topic(""), _pass(""), _creation(0), _new_topic(0), _usersCount(1), _max_users(INT_MAX),
 _inv_flag(false), _topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false)
 {
 
 }
 
 Channel::Channel(std::string name)
-: _name(name), _topic(""), _pass(""), _creation(0), _new_topic(0), _usersCount(1), _max_users(0),
+: _name(name), _topic(""), _pass(""), _creation(0), _new_topic(0), _usersCount(1), _max_users(INT_MAX),
  _inv_flag(false), _topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false)
 {
 

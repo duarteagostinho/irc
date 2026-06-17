@@ -58,6 +58,8 @@
 # define ERR_PASSWDMISMATCH "Password incorrect"				// 464
 # define ERR_KEYSET "Channel key already set"  					// 467
 
+# define ERR_CHANNELISFULL "Cannot join channel (+l)"			//471
+
 # define ERR_UNKNOWNMODE "is not a recognised channel mode"		// 472
 # define ERR_INVITEONLYCHAN "Cannot join channel (+i)"			// 473
 

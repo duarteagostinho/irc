@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/17 18:02:01 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/17 19:16:53 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,17 +120,24 @@ void Server::join(std::vector<std::string>& av, int index)
 			if (passwords.size() > i) // DOES THIS WORK ?
 				pass = passwords[i];
 	
-			if (_channels[ch_i].getKeyMode() && _channels[ch_i].getPass() != pass)
+			if (!_channels[ch_i].hasInvite(_users[index].getNickname()))
 			{
-				sendMessage(_fds[index].fd, 475, _users[index].getNickname() + " " + ch_av[i], ERR_BADCHANNELKEY);
-				// response = ":irc.server 475 " + _users[index].getNickname() + " " + ch_av[i] + " :Cannot join channel (+k)\r\n";
-				// send(_fds[index].fd, response.c_str(), response.size(), 0);
-			}
-			else if (!_channels[ch_i].hasInvite(_users[index].getNickname()) && _channels[ch_i].getInviteMode())
-			{
-				sendMessage(_fds[index].fd, 473, _users[index].getNickname() + " " + ch_av[i], ERR_INVITEONLYCHAN);
-				// response = ":irc.server 473 " + _users[index].getNickname() + " " + ch_av[i] + " :Cannot join channel (+i)\r\n";
-				// send(_fds[index].fd, response.c_str(), response.size(), 0);
+				if (_channels[ch_i].getKeyMode() && _channels[ch_i].getPass() != pass)
+				{
+					sendMessage(_fds[index].fd, 475, _users[index].getNickname() + " " + ch_av[i], ERR_BADCHANNELKEY);
+					// response = ":irc.server 475 " + _users[index].getNickname() + " " + ch_av[i] + " :Cannot join channel (+k)\r\n";
+					// send(_fds[index].fd, response.c_str(), response.size(), 0);
+				}
+				else if (_channels[ch_i].getInviteMode())
+				{
+					sendMessage(_fds[index].fd, 473, _users[index].getNickname() + " " + ch_av[i], ERR_INVITEONLYCHAN);
+					// response = ":irc.server 473 " + _users[index].getNickname() + " " + ch_av[i] + " :Cannot join channel (+i)\r\n";
+					// send(_fds[index].fd, response.c_str(), response.size(), 0);
+				}
+				// else if (_channels[ch_i].getCount() >= _channels[ch_i].getMaxUsers() && _channels[ch_i].getLimitMode())
+				// {
+				// 	sendMessage(_fds[index].fd, 471, _users[index].getNickname() + " " + ch_av[i], ERR_CHANNELISFULL);
+				// }
 			}
 			else // If invited, no pass or pass was correct, enter channel
 			{

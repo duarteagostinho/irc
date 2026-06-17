@@ -8,6 +8,7 @@
 #include <map>
 #include <ctime>
 #include <sstream>
+#include <limits.h>
 
 class Channel
 {
