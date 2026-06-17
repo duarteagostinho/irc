@@ -166,7 +166,7 @@ void	Server::registerUser(int i)
 	{
 		if (value != _password)
 		{
-			sendError(_fds[i].fd, 464, "*", ERR_PASSWDMISMATCH);
+			sendMessage(_fds[i].fd, 464, "*", ERR_PASSWDMISMATCH);
 			disconnect(i);
 			return ;
 		}
@@ -179,7 +179,7 @@ void	Server::registerUser(int i)
 	{
 		if (doesUserExist(value) == true)
 		{
-			sendError(_fds[i].fd, 433, value, ERR_NICKNAMEINUSE);
+			sendMessage(_fds[i].fd, 433, value, ERR_NICKNAMEINUSE);
 			return;
 		}
 		_reg[i]._nickname = value;
@@ -259,7 +259,7 @@ void	Server::setPassword(char *pass)
 	_password = pass;
 }
 
-void	Server::sendError(int fd, int code, const std::string target, const std::string &msg)
+void	Server::sendMessage(int fd, int code, const std::string target, const std::string &msg)
 {
 	std::ostringstream ss;
 	ss << ":irc.server " << code << " " << target << " :" << msg << "\r\n";

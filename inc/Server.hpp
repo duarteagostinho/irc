@@ -31,44 +31,6 @@
 # define KICK_USAGE "Usage: KICK <nick> [reason], kicks the nick from the current channel\r\n"
 # define INV_USAGE "Usage: INVITE <nick> [<channel>], invites someone to a channel, by default the current channel\r\n"
 # define JOIN_USAGE "Usage: JOIN <channel>, joins the channel\r\n"
-//# define NOT_OPERATOR ": You are not the channel operator\r\n"
-
-
-
-
-// # define RPL_NOTOPIC "No topic is set\r\n"							// 331
-
-// # define RPL_ENDOFINVITELIST "End of Invite List\r\n"				// 337
-
-
-// # define ERR_NOSUCHNICK "No such nick\r\n"							// 401
-// # define ERR_NOSUCHCHANNEL "No such channel\r\n"					// 403
-
-// # define ERR_CANNOTSENDTOCHAN "Cannot send to channel\r\n"			// 404
-
-// # define ERR_NORECIPIENT "No recipient given (PRIVMSG)\r\n"			// 411
-// # define ERR_NOTEXTTOSEND "No text to send\r\n"						// 412
-
-// # define ERR_NICKNAMEINUSE "Nickname is already in use\r\n"			// 433
-
-
-
-// # define ERR_NOTONCHANNEL "You're not on that channel\r\n"			// 442
-// # define ERR_USERONCHANNEL "is already on channel\r\n"				// 443
-
-// # define ERR_NEEDMOREPARAMS "Not enough parameters\r\n"				// 461
-// # define ERR_PASSWDMISMATCH "Password incorrect\r\n"				// 464
-// # define ERR_KEYSET "Channel key already set\r\n"  					// 467
-
-// # define ERR_UNKNOWNMODE "is not a recognised channel mode\r\n"		// 472
-// # define ERR_INVITEONLYCHAN "Cannot join channel (+i)\r\n"			// 473
-
-// # define ERR_BADCHANNELKEY "Cannot join channel (+k)\r\n"			// 475
-
-// # define ERR_CHANOPRIVSNEEDED "You're not channel operator\r\n"		// 482
-
-// # define ERR_INVALIDMODEPARAM "Invalid parameters\r\n" 				// 696
-
 
 # define RPL_NOTOPIC "No topic is set"							// 331
 
@@ -82,6 +44,8 @@
 
 # define ERR_NORECIPIENT "No recipient given (PRIVMSG)"			// 411
 # define ERR_NOTEXTTOSEND "No text to send"						// 412
+
+# define ERR_UNKNOWNCOMMAND "Unknown command"					// 421
 
 # define ERR_NICKNAMEINUSE "Nickname is already in use"			// 433
 
@@ -100,6 +64,8 @@
 # define ERR_BADCHANNELKEY "Cannot join channel (+k)"			// 475
 
 # define ERR_CHANOPRIVSNEEDED "You're not channel operator"		// 482
+
+# define ERR_USERSDONTMATCH ""
 
 # define ERR_INVALIDMODEPARAM "Invalid parameters" 				// 696
 
@@ -162,7 +128,7 @@ class Server
 		const std::vector<Channel> &getChannel(void) const;
 		
 		// Helpers
-		void	sendError(int fd, int code, const std::string target, const std::string &msg);
+		void	sendMessage(int fd, int code, const std::string target, const std::string &msg);
 		void	welcomeUser(int i);
 
 		// CMDS

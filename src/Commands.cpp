@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/17 15:06:00 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/17 16:41:32 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,6 +78,7 @@ void Server::exec_cmd(std::string line, int index)
 			break ;
 		default: // HEXCHAT SENDS MODE <CHANNEL> AND WHO <CHANNEL> HANDLE IT
 			std::string response = ":irc.server 421 " + _users[index].getNickname() + " :Unknown command\r\n";
+			sendMessage(_fds[index].fd, 421, _users[index].getNickname() + " JOIN", ERR_NEEDMOREPARAMS);
 			// send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	line.clear();
@@ -96,7 +97,7 @@ void Server::join(std::vector<std::string>& av, int index)
 	
 	if (av.size() == 1) // Missing arguments
 	{
-		sendError(_fds[index].fd, 461, _users[index].getNickname() + " JOIN", ERR_NEEDMOREPARAMS);
+		sendMessage(_fds[index].fd, 461, _users[index].getNickname() + " JOIN", ERR_NEEDMOREPARAMS);
 		// response = ":irc.server 461 " + _users[index].getNickname() + " JOIN :Not enough parameters\r\n";
 		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 		return ;
@@ -108,7 +109,7 @@ void Server::join(std::vector<std::string>& av, int index)
 	{
 		if (ch_av[i][0] != '#')
 		{
-			sendError(_fds[index].fd, 403, _users[index].getNickname() + " " + ch_av[i], ERR_NOSUCHCHANNEL);
+			sendMessage(_fds[index].fd, 403, _users[index].getNickname() + " " + ch_av[i], ERR_NOSUCHCHANNEL);
 			// response = ":irc.server 403 " + _users[index].getNickname() + " " + ch_av[i] + " :No such channel\r\n";
 			// send(_fds[index].fd, response.c_str(), response.size(), 0);
 		}
@@ -121,13 +122,13 @@ void Server::join(std::vector<std::string>& av, int index)
 	
 			if (_channels[ch_i].getKeyMode() && _channels[ch_i].getPass() != pass)
 			{
-				sendError(_fds[index].fd, 475, _users[index].getNickname() + " " + ch_av[i], ERR_BADCHANNELKEY);
+				sendMessage(_fds[index].fd, 475, _users[index].getNickname() + " " + ch_av[i], ERR_BADCHANNELKEY);
 				// response = ":irc.server 475 " + _users[index].getNickname() + " " + ch_av[i] + " :Cannot join channel (+k)\r\n";
 				// send(_fds[index].fd, response.c_str(), response.size(), 0);
 			}
 			else if (!_channels[ch_i].hasInvite(_users[index].getNickname()) && _channels[ch_i].getInviteMode())
 			{
-				sendError(_fds[index].fd, 473, _users[index].getNickname() + " " + ch_av[i], ERR_INVITEONLYCHAN);
+				sendMessage(_fds[index].fd, 473, _users[index].getNickname() + " " + ch_av[i], ERR_INVITEONLYCHAN);
 				// response = ":irc.server 473 " + _users[index].getNickname() + " " + ch_av[i] + " :Cannot join channel (+i)\r\n";
 				// send(_fds[index].fd, response.c_str(), response.size(), 0);
 			}
@@ -148,11 +149,14 @@ void Server::join(std::vector<std::string>& av, int index)
 								+ getClientInfo(index) + " " + _channels[ch_i].getTopicTime() + "\r\n";
 					broadcastMessage(_channels[ch_i], response, index, 1);
 				}
-				response = ":irc.server 353 " + _users[index].getNickname() + " = " + ch_av[i] + " :" + _channels[ch_i].usersFormated() + "\r\n";
-				send(_fds[index].fd, response.c_str(), response.size(), 0);
+				sendMessage(_fds[index].fd, 353, _users[index].getNickname() + " = " + ch_av[i], _channels[ch_i].usersFormated());
+				// response = ":irc.server 353 " + _users[index].getNickname() + " = " + ch_av[i] + " :" + _channels[ch_i].usersFormated() + "\r\n";
+				// send(_fds[index].fd, response.c_str(), response.size(), 0);
 
-				response = ":irc.server 366 " + _users[index].getNickname() + " " + ch_av[i] + " :End of /NAMES list\r\n"; 
-				send(_fds[index].fd, response.c_str(), response.size(), 0);
+
+				sendMessage(_fds[index].fd, 366, _users[index].getNickname() + " " + ch_av[i], "End of /NAMES list");
+				// response = ":irc.server 366 " + _users[index].getNickname() + " " + ch_av[i] + " :End of /NAMES list\r\n"; 
+				// send(_fds[index].fd, response.c_str(), response.size(), 0);
 			}
 		}
 		else // New channel creation
@@ -182,25 +186,25 @@ void Server::kick(std::vector<std::string>& av, int index)
 	
 	if (av.size() < 3) // Missing arguments
 	{
-		sendError(_fds[index].fd, 461, _users[index].getNickname() + " KICK", ERR_NEEDMOREPARAMS);
+		sendMessage(_fds[index].fd, 461, _users[index].getNickname() + " KICK", ERR_NEEDMOREPARAMS);
 		// response = ":irc.server 461 " + _users[index].getNickname() + " KICK :Not enough parameters\r\n";
 		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else if (!isChannel(av[1]))
 	{
-		sendError(_fds[index].fd, 403, _users[index].getNickname() + " " + av[1], ERR_NOSUCHCHANNEL);
+		sendMessage(_fds[index].fd, 403, _users[index].getNickname() + " " + av[1], ERR_NOSUCHCHANNEL);
 		// response = ":irc.server 403 " + _users[index].getNickname() + " " + av[1] + " :No such channel\r\n";
 		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else if (!_channels[getChannelIndex(av[1])].isOperator(_users[index].getNickname()))
 	{
-		sendError(_fds[index].fd, 482, _users[index].getNickname() + " " + av[1], ERR_CHANOPRIVSNEEDED);
+		sendMessage(_fds[index].fd, 482, _users[index].getNickname() + " " + av[1], ERR_CHANOPRIVSNEEDED);
 		// response = ":irc.server 482 " + _users[index].getNickname() + " " + av[1] + " :You're not channel operator\r\n";
 		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else if (!_channels[getChannelIndex(av[1])].isUserOnChannel(av[2]))
 	{
-		sendError(_fds[index].fd, 401, _users[index].getNickname() + " " + av[2], ERR_NOSUCHNICK);
+		sendMessage(_fds[index].fd, 401, _users[index].getNickname() + " " + av[2], ERR_NOSUCHNICK);
 		// response = ":irc.server 401 " + _users[index].getNickname() + " " + av[2] + " :No such nick\r\n";
 		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
@@ -230,7 +234,7 @@ void Server::topic(std::vector<std::string>& av, int index)
 
 	if (av.size() == 1) // Missing arguments
 	{
-		sendError(_fds[index].fd, 461, _users[index].getNickname() + " TOPIC", ERR_NEEDMOREPARAMS);
+		sendMessage(_fds[index].fd, 461, _users[index].getNickname() + " TOPIC", ERR_NEEDMOREPARAMS);
 		// response = ":irc.server 461 " + _users[index].getNickname() + " TOPIC :Not enough parameters\r\n";
 		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 		return ;
@@ -242,7 +246,7 @@ void Server::topic(std::vector<std::string>& av, int index)
 		int ch_i = getChannelIndex(ch_av[i]); // Getting the channel index here
 		if (!isChannel(ch_av[i])) // could check for ch_i == -1 here, left this way cause it's easier to understand
 		{
-			sendError(_fds[index].fd, 403, _users[index].getNickname() + " " + ch_av[i], ERR_NOSUCHCHANNEL);
+			sendMessage(_fds[index].fd, 403, _users[index].getNickname() + " " + ch_av[i], ERR_NOSUCHCHANNEL);
 			// response = ":irc.server 403 " + _users[index].getNickname() + " " + ch_av[i] + " :No such channel\r\n";
 			// send(_fds[index].fd, response.c_str(), response.size(), 0);
 		}
@@ -250,24 +254,24 @@ void Server::topic(std::vector<std::string>& av, int index)
 		{
 			if (_channels[ch_i].getTopic() == "") // If Topic is not set
 			{
-				sendError(_fds[index].fd, 331, _users[index].getNickname() + " " + ch_av[i], RPL_NOTOPIC);
+				sendMessage(_fds[index].fd, 331, _users[index].getNickname() + " " + ch_av[i], RPL_NOTOPIC);
 				// response =":irc.server 331 " + _users[index].getNickname() + " " + ch_av[i] + " :No topic is set\r\n";
 				// send(_fds[index].fd, response.c_str(), response.size(), 0);
 			}
 			else
 			{
-//				sendError(_fds[index].fd, 332, _users[index].getNickname() + " " + ch_av[i], _channels[ch_i].getTopic() + "\r\n");
+//				sendMessage(_fds[index].fd, 332, _users[index].getNickname() + " " + ch_av[i], _channels[ch_i].getTopic() + "\r\n");
 				response = ":irc.server 332 " + _users[index].getNickname() + " " + ch_av[i] + " :" + _channels[ch_i].getTopic() + "\r\n";
 				send(_fds[index].fd, response.c_str(), response.size(), 0);
 				
-//				sendError(_fds[index].fd, 482, _users[index].getNickname() + " " + av[2], ERR_CHANOPRIVSNEEDED);
+//				sendMessage(_fds[index].fd, 482, _users[index].getNickname() + " " + av[2], ERR_CHANOPRIVSNEEDED);
 				response = ":irc.server 333 " + _users[index].getNickname() + " " + ch_av[i] + " " + _channels[ch_i].getTopicMaker() + " " + _channels[ch_i].getTopicTime()  + "\r\n";
 				send(_fds[index].fd, response.c_str(), response.size(), 0);
 			}
 		}
 		else if (!_channels[ch_i].isOperator(_users[index].getNickname()) && _channels[ch_i].getTopicMode())
 		{
-			sendError(_fds[index].fd, 482, _users[index].getNickname() + " " + ch_av[i], ERR_CHANOPRIVSNEEDED);
+			sendMessage(_fds[index].fd, 482, _users[index].getNickname() + " " + ch_av[i], ERR_CHANOPRIVSNEEDED);
 			// response = ":irc.server 482 " + _users[index].getNickname() + " " + ch_av[i] + " :You're not channel operator\r\n";
 			// send(_fds[index].fd, response.c_str(), response.size(), 0);
 		}
@@ -293,37 +297,37 @@ void Server::invite(std::vector<std::string>& av, int index)
 
 	if (av.size() == 1) // Missing arguments
 	{
-		sendError(_fds[index].fd, 337, _users[index].getNickname(), RPL_ENDOFINVITELIST);
+		sendMessage(_fds[index].fd, 337, _users[index].getNickname(), RPL_ENDOFINVITELIST);
 		// response = ":irc.server 337 " + _users[index].getNickname() + " :End of Invite List\r\n";
 		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else if (av.size() < 3)
 	{
-		sendError(_fds[index].fd, 461, _users[index].getNickname() + " INVITE", ERR_NEEDMOREPARAMS);
+		sendMessage(_fds[index].fd, 461, _users[index].getNickname() + " INVITE", ERR_NEEDMOREPARAMS);
 		// response = ":irc.server 461 " + _users[index].getNickname() + " INVITE :Not enough parameters\r\n";
 		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else if (!doesUserExist(av[1]))
 	{
-		sendError(_fds[index].fd, 401, _users[index].getNickname() + " " + av[2], ERR_NOSUCHNICK);
+		sendMessage(_fds[index].fd, 401, _users[index].getNickname() + " " + av[2], ERR_NOSUCHNICK);
 		// response = ":irc.server 401 " + _users[index].getNickname() + " " + av[2] +  " :No such nick\r\n";
 		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else if (!isChannel(av[2]))
 	{
-		sendError(_fds[index].fd, 403, _users[index].getNickname() + " " + av[2], ERR_NOSUCHCHANNEL);
+		sendMessage(_fds[index].fd, 403, _users[index].getNickname() + " " + av[2], ERR_NOSUCHCHANNEL);
 		// response = ":irc.server 403 " + _users[index].getNickname() + " " + av[2] + " :No such channel\r\n";
 		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else if (_channels[getChannelIndex(av[2])].isUserOnChannel(av[1]))
 	{
-		sendError(_fds[index].fd, 443, _users[index].getNickname() + " " + av[1] + " " + av[2], ERR_USERONCHANNEL);
+		sendMessage(_fds[index].fd, 443, _users[index].getNickname() + " " + av[1] + " " + av[2], ERR_USERONCHANNEL);
 		// response = ":irc.server 443 " + _users[index].getNickname() + " " + av[1] + " " + av[2] + " :is already on channel\r\n";
 		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else if (!_channels[getChannelIndex(av[2])].isOperator(_users[index].getNickname()))
 	{
-		sendError(_fds[index].fd, 482, _users[index].getNickname() + " " + av[2], ERR_CHANOPRIVSNEEDED);
+		sendMessage(_fds[index].fd, 482, _users[index].getNickname() + " " + av[2], ERR_CHANOPRIVSNEEDED);
 		// response = ":irc.server 482 " + _users[index].getNickname() + " " + av[2] + " :You're not channel operator\r\n";
 		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
@@ -352,10 +356,10 @@ void	Server::privmsg(std::vector<std::string>& av, int index)
 	{
 		std::string response;
 		if (av.size() == 1)
-			sendError(_fds[index].fd, 411, _users[index].getNickname(), ERR_NORECIPIENT);
+			sendMessage(_fds[index].fd, 411, _users[index].getNickname(), ERR_NORECIPIENT);
 //			response = ":server 411 " + _users[index].getNickname() + " :No recipient given (PRIVMSG)\r\n";
 		else
-			sendError(_fds[index].fd, 412, _users[index].getNickname(), ERR_NOTEXTTOSEND);
+			sendMessage(_fds[index].fd, 412, _users[index].getNickname(), ERR_NOTEXTTOSEND);
 //			response = ":server 412 " + _users[index].getNickname() + " :No text to send\r\n";
 		send(_fds[index].fd, response.c_str(), response.size(), 0);
 		return ;
@@ -371,10 +375,10 @@ void	Server::privmsg(std::vector<std::string>& av, int index)
 		if (!channel && !user)  // Error for sure
 		{
 			if (targets[i][0] == '#')
-				sendError(_fds[index].fd, 403, _users[index].getNickname() + " " + targets[i], ERR_NOSUCHCHANNEL);
+				sendMessage(_fds[index].fd, 403, _users[index].getNickname() + " " + targets[i], ERR_NOSUCHCHANNEL);
 //				response = ":server 403 " + _users[index].getNickname() + " " + targets[i] + " :No such channel\r\n";
 			else
-				sendError(_fds[index].fd, 401, _users[index].getNickname() + " " + targets[i], ERR_NOSUCHNICK);
+				sendMessage(_fds[index].fd, 401, _users[index].getNickname() + " " + targets[i], ERR_NOSUCHNICK);
 //				response = ":server 401 " + _users[index].getNickname() + " " + targets[i] + " :No such nick\r\n";
 //			send(_users[index].getFd(), response.c_str(), response.size(), 0);
 			continue ;
@@ -384,7 +388,7 @@ void	Server::privmsg(std::vector<std::string>& av, int index)
 			send(_users[getUserIndex(targets[i])].getFd(), response.c_str(), response.size(), 0);		
 		else if (targets.size() > 1 || !_channels[getChannelIndex(targets[i])].isUserOnChannel(_users[index].getNickname()))
 		{
-//			sendError(_fds[index].fd, 404, _users[index].getNickname() + " " + targets[i], ERR_CANNOTSENDTOCHAN);
+//			sendMessage(_fds[index].fd, 404, _users[index].getNickname() + " " + targets[i], ERR_CANNOTSENDTOCHAN);
 			// Check if sender is in the channel or if there are multiple args
 			response = ":server 404 " + _users[index].getNickname() + " " + targets[i] + " :Cannot send to channel\r\n";
 			send(_users[index].getFd(), response.c_str(), response.size(), 0);
@@ -405,7 +409,7 @@ void Server::part(std::vector<std::string>& av, int index)
 
 	if (av.size() == 1) // Missing arguments
 	{
-		sendError(_fds[index].fd, 461, _users[index].getNickname() + " PART", ERR_NEEDMOREPARAMS);
+		sendMessage(_fds[index].fd, 461, _users[index].getNickname() + " PART", ERR_NEEDMOREPARAMS);
 		// response = ":irc.server 461 " + _users[index].getNickname() + " PART :Not enough parameters\r\n";
 		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 		return ;
@@ -417,7 +421,7 @@ void Server::part(std::vector<std::string>& av, int index)
 		int ch_i = getChannelIndex(ch_av[i]);
 		if (!isChannel(ch_av[i]))
 		{
-			sendError(_fds[index].fd, 403, _users[index].getNickname() + " " + ch_av[i], ERR_NOSUCHCHANNEL);
+			sendMessage(_fds[index].fd, 403, _users[index].getNickname() + " " + ch_av[i], ERR_NOSUCHCHANNEL);
 			// response = ":irc.server 403 " + _users[index].getNickname() + " " + ch_av[i] + " :No such channel\r\n";
 			// send(_fds[index].fd, response.c_str(), response.size(), 0);
 		}
@@ -577,7 +581,7 @@ void Server::handleLimit(std::vector<std::string>const &av, const int &i, const 
 		if (static_cast<size_t>(i + offset) >= av.size())
 		{
 //			std::cout << ":irc.server 461 <nick> MODE +l :Not enough parameters" << std::endl;
-			sendError(_fds[index].fd, 461, _users[index].getNickname() + " MODE +l", ERR_NEEDMOREPARAMS);
+			sendMessage(_fds[index].fd, 461, _users[index].getNickname() + " MODE +l", ERR_NEEDMOREPARAMS);
 			// response = ":irc.server 461 " + _users[index].getNickname() + " MODE +l :Not enough parameters\r\n";
 			// send(_fds[index].fd, response.c_str(), response.size(), 0);
 		}
@@ -586,7 +590,7 @@ void Server::handleLimit(std::vector<std::string>const &av, const int &i, const 
 			result = strtol(av[i + offset].c_str(), &end, 10);
 			if (result > INT_MAX || result < 0 || *end)
 			{
-				sendError(_fds[index].fd, 696, _users[index].getNickname() + " MODE +l", ERR_INVALIDMODEPARAM); // Changed to 696
+				sendMessage(_fds[index].fd, 696, _users[index].getNickname() + " MODE +l", ERR_INVALIDMODEPARAM); // Changed to 696
 				// response = ":irc.server 461 " + _users[index].getNickname() + " MODE +l :Invalid parameters\r\n";
 				// send(_fds[index].fd, response.c_str(), response.size(), 0);
 			}
@@ -624,7 +628,7 @@ void Server::handleKey(std::vector<std::string>const &av, const int &i, const in
 	if (static_cast<size_t>(i + offset) >= av.size())
 	{
 		(sign < 0) ? c = "-" : c = "+";
-		sendError(_fds[index].fd, 461, _users[index].getNickname() + " MODE " + c, ERR_NEEDMOREPARAMS);
+		sendMessage(_fds[index].fd, 461, _users[index].getNickname() + " MODE " + c, ERR_NEEDMOREPARAMS);
 		// response = ":irc.server 461 " + _users[index].getNickname() + " MODE " + c + "k :Not enough parameters\r\n";
 		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 //		std::cout << ":irc.server 461 " + _users[index].getNickname() + " MODE " + c + "k :Not enough parameters" << std::endl;
@@ -633,7 +637,7 @@ void Server::handleKey(std::vector<std::string>const &av, const int &i, const in
 	{
 		if (av[i + offset] != _channels[ch_i].getPass() && _channels[ch_i].getKeyMode()) // incorrect password
 		{
-			sendError(_fds[index].fd, 467, _users[index].getNickname() + " " + av[1], ERR_KEYSET);
+			sendMessage(_fds[index].fd, 467, _users[index].getNickname() + " " + av[1], ERR_KEYSET);
 			// response = ":irc.server 467 " + _users[index].getNickname() + " " + av[1] + " :Channel key already set\r\n";
 			// send(_fds[index].fd, response.c_str(), response.size(), 0);
 			offset++;
@@ -672,7 +676,7 @@ void Server::getOperatorData(std::map<std::string, int> &operators, std::vector<
 	}
 	if (!_channels[ch_i].isUserOnChannel(av[i + offset])) // CHECK IF THE USER AV[I + OFFSET] IS ON THE CHANNEL
 	{
-		sendError(_fds[index].fd, 401, _users[index].getNickname() + " " + av[i + offset], ERR_NOSUCHNICK);
+		sendMessage(_fds[index].fd, 401, _users[index].getNickname() + " " + av[i + offset], ERR_NOSUCHNICK);
 		// std::string response = ":irc.server 401 " + _users[index].getNickname() + " " + av[i + offset] + " :No such nick\r\n";
 		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
@@ -764,95 +768,84 @@ void Server::mode(std::vector<std::string>& av, int index)
 	}
 	else if (!isChannel(av[1]))
 	{
-		sendError(_fds[index].fd, 403, _users[index].getNickname() + " " + av[1], ERR_NOSUCHCHANNEL);
+		sendMessage(_fds[index].fd, 403, _users[index].getNickname() + " " + av[1], ERR_NOSUCHCHANNEL);
 		// response = 	":irc.server 403 " + _users[index].getNickname() + " " + av[1] + " :No such channel\r\n";
 		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else if (!_channels[ch_i].isUserOnChannel(_users[index].getNickname()))
 	{
-		sendError(_fds[index].fd, 442, _users[index].getNickname() + " " + av[1], ERR_NOTONCHANNEL);
+		sendMessage(_fds[index].fd, 442, _users[index].getNickname() + " " + av[1], ERR_NOTONCHANNEL);
 		// response = ":irc.server 442 " + _users[index].getNickname() + " " + av[1] + " :You're not on that channel\r\n";
 		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else if (!_channels[ch_i].isOperator(_users[index].getNickname()))
 	{
-		sendError(_fds[index].fd, 482, _users[index].getNickname() + " " + av[1], ERR_CHANOPRIVSNEEDED);
+		sendMessage(_fds[index].fd, 482, _users[index].getNickname() + " " + av[1], ERR_CHANOPRIVSNEEDED);
 		// response = ":irc.server 482 " + _users[index].getNickname() + " " + av[1] + " :You're not channel operator\r\n";
 		// send(_fds[index].fd, response.c_str(), response.size(), 0);
 	}
 	else
 	{
-		//	int ch_i = getChannelIndex(av[1]);
-	
-	int sign = 1;
-	int inv = 0;
-	int topic = 0;
-	int	limit_flag = 0;
-	int	key_flag = 0;
-	std::map<std::string, int> operators;
+		
+		int sign, offset;
+		int inv = 0;
+		int topic = 0;
+		int	limit_flag = 0;
+		int	key_flag = 0;
+		std::map<std::string, int> operators;
 
-
-	// might not need those
-
-//	int op = 0;
-
-	for (size_t i = 2; i < av.size(); ) // at least size 3
-	{
-		// everytime I start a new string, I set the offset to 1 
-		// because if I find l, k or o. The next string is the arg im looking for
-		// everytime I parse one of those, I increase the offset
-		// expect to find the arg at av[i + offset] !
-		// int offset = 1;
-		int offset = 1;
-		for (size_t j = 0; av[i][j]; j++)
-		{			
-//			std::cout << av[i][j] << std::endl;
-			switch(av[i][j])
+		for (size_t i = 2; i < av.size(); ) // at least size 3
+		{
+			// everytime I start a new string, I set the offset to 1 
+			// because if I find l, k or o. The next string is the arg im looking for
+			// everytime I parse one of those, I increase the offset
+			// expect to find the arg at av[i + offset] !
+			offset = 1;
+			sign = 1;
+			for (size_t j = 0; av[i][j]; j++)
 			{
-				case '+':
-					sign = adv_peek(av[i], j);
-					break ;
-				case '-':
-					sign = adv_peek(av[i], j);
-					break ;
-				case 't':
-					topic += (sign * av[i][j]);
-					break ;
-				case 'i':
-					inv += (sign * av[i][j]);
-					break ;
-				case 'o':
-					getOperatorData(operators, av, i, sign, offset, index);
-					break ;
-				case 'k':
-					handleKey(av, i, sign, offset, key_flag, index);
-					break ;
-				case 'l':
-					handleLimit(av, i, sign, offset, limit_flag, index);
-					break ;
-				case '\0':
-					break ;
-				default:
-					sendError(_fds[index].fd, 472, _users[index].getNickname() + " " + av[i][j], ERR_UNKNOWNMODE);
-					// std::string response = ":irc.server 472 " + _users[index].getNickname()
-					// 						+ " " + av[i][j] + " :is not a recognised channel mode\r\n";
-					// send(_fds[index].fd, response.c_str(), response.size(), 0);
+				switch(av[i][j])
+				{
+					case '+':
+						sign = adv_peek(av[i], j);
+						break ;
+					case '-':
+						sign = adv_peek(av[i], j);
+						break ;
+					case 't':
+						topic += (sign * av[i][j]);
+						break ;
+					case 'i':
+						inv += (sign * av[i][j]);
+						break ;
+					case 'o':
+						getOperatorData(operators, av, i, sign, offset, index);
+						break ;
+					case 'k':
+						handleKey(av, i, sign, offset, key_flag, index);
+						break ;
+					case 'l':
+						handleLimit(av, i, sign, offset, limit_flag, index);
+						break ;
+					case '\0':
+						break ;
+					default:
+						sendMessage(_fds[index].fd, 472, _users[index].getNickname() + " " + av[i][j], ERR_UNKNOWNMODE);
+						// std::string response = ":irc.server 472 " + _users[index].getNickname()
+						// 						+ " " + av[i][j] + " :is not a recognised channel mode\r\n";
+						// send(_fds[index].fd, response.c_str(), response.size(), 0);
+				}
 			}
+			i += offset;
 		}
-		i += offset;
-	}
-	if (inv)
-		handleInv(av, index, inv);
+		if (inv)
+			handleInv(av, index, inv);
 
-	if (topic)
-		handleTopic(av, index, topic);
+		if (topic)
+			handleTopic(av, index, topic);
 
-
-	/*
-		For o, I can create a map, nick = key, 1, 0 or -1 = value 1 = add, 0 = nothing, -1 = remove;
-	*/		
-	handleOperator(operators, av, index);
-
+		//	For o, I can create a map, nick = key, 1, 0 or -1 = value 1 = add, 0 = nothing, -1 = remove;
+		handleOperator(operators, av, index);
 	}
 	// BROADCAST THIS
 	// NEED TO TRACK IF THERE WERE ANY CHANGE OR NOT. PRINT ONLY IF CHANGES HAPPEN

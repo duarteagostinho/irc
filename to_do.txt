@@ -18,3 +18,6 @@ Modes problems
 -missing message error when non op tries to op someone
 -users not on channel can receive op status
 -its crashing after a few operators
+
+Implement channel cleanup
+Implement channel verification if limit is set
