@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/17 19:16:53 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/17 19:37:22 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,47 +125,49 @@ void Server::join(std::vector<std::string>& av, int index)
 				if (_channels[ch_i].getKeyMode() && _channels[ch_i].getPass() != pass)
 				{
 					sendMessage(_fds[index].fd, 475, _users[index].getNickname() + " " + ch_av[i], ERR_BADCHANNELKEY);
+					continue ;
 					// response = ":irc.server 475 " + _users[index].getNickname() + " " + ch_av[i] + " :Cannot join channel (+k)\r\n";
 					// send(_fds[index].fd, response.c_str(), response.size(), 0);
 				}
 				else if (_channels[ch_i].getInviteMode())
 				{
 					sendMessage(_fds[index].fd, 473, _users[index].getNickname() + " " + ch_av[i], ERR_INVITEONLYCHAN);
+					continue ;
 					// response = ":irc.server 473 " + _users[index].getNickname() + " " + ch_av[i] + " :Cannot join channel (+i)\r\n";
 					// send(_fds[index].fd, response.c_str(), response.size(), 0);
 				}
-				// else if (_channels[ch_i].getCount() >= _channels[ch_i].getMaxUsers() && _channels[ch_i].getLimitMode())
-				// {
-				// 	sendMessage(_fds[index].fd, 471, _users[index].getNickname() + " " + ch_av[i], ERR_CHANNELISFULL);
-				// }
+				else if (_channels[ch_i].getCount() >= _channels[ch_i].getMaxUsers() && _channels[ch_i].getLimitMode())
+				{
+					sendMessage(_fds[index].fd, 471, _users[index].getNickname() + " " + ch_av[i], ERR_CHANNELISFULL);
+					continue ;
+				}
 			}
-			else // If invited, no pass or pass was correct, enter channel
-			{
-				_channels[ch_i].addUser(_users[index].getNickname(), 0);
-				_channels[ch_i].incrementCount();
-				_channels[ch_i].rmInvite(_users[index].getNickname());
+			// If invited, no pass or pass was correct, enter channel
 
-				response = ":" + _users[index].getNickname() + " JOIN " + ch_av[i] + "\r\n";
+			_channels[ch_i].addUser(_users[index].getNickname(), 0);
+			_channels[ch_i].incrementCount();
+			_channels[ch_i].rmInvite(_users[index].getNickname());
+
+			response = ":" + _users[index].getNickname() + " JOIN " + ch_av[i] + "\r\n";
+			broadcastMessage(_channels[ch_i], response, index, 1);
+
+			if (_channels[ch_i].getTopic() != "")
+			{
+				response = ":irc.server 332 " + _users[index].getNickname() + " " + ch_av[i] + " :" + _channels[ch_i].getTopic() + "\r\n";
 				broadcastMessage(_channels[ch_i], response, index, 1);
 
-				if (_channels[ch_i].getTopic() != "")
-				{
-					response = ":irc.server 332 " + _users[index].getNickname() + " " + ch_av[i] + " :" + _channels[ch_i].getTopic() + "\r\n";
-					broadcastMessage(_channels[ch_i], response, index, 1);
-
-					response = ":irc.server 333 " + _users[index].getNickname() + " "
-								+ ch_av[i] + " " + getClientInfo(index) + " " + _channels[ch_i].getTopicTime() + "\r\n";
-					broadcastMessage(_channels[ch_i], response, index, 1);
-				}
-				sendMessage(_fds[index].fd, 353, _users[index].getNickname() + " = " + ch_av[i], _channels[ch_i].usersFormated());
-				// response = ":irc.server 353 " + _users[index].getNickname() + " = " + ch_av[i] + " :" + _channels[ch_i].usersFormated() + "\r\n";
-				// send(_fds[index].fd, response.c_str(), response.size(), 0);
-
-
-				sendMessage(_fds[index].fd, 366, _users[index].getNickname() + " " + ch_av[i], "End of /NAMES list");
-				// response = ":irc.server 366 " + _users[index].getNickname() + " " + ch_av[i] + " :End of /NAMES list\r\n"; 
-				// send(_fds[index].fd, response.c_str(), response.size(), 0);
+				response = ":irc.server 333 " + _users[index].getNickname() + " "
+							+ ch_av[i] + " " + getClientInfo(index) + " " + _channels[ch_i].getTopicTime() + "\r\n";
+				broadcastMessage(_channels[ch_i], response, index, 1);
 			}
+			sendMessage(_fds[index].fd, 353, _users[index].getNickname() + " = " + ch_av[i], _channels[ch_i].usersFormated());
+			// response = ":irc.server 353 " + _users[index].getNickname() + " = " + ch_av[i] + " :" + _channels[ch_i].usersFormated() + "\r\n";
+			// send(_fds[index].fd, response.c_str(), response.size(), 0);
+
+
+			sendMessage(_fds[index].fd, 366, _users[index].getNickname() + " " + ch_av[i], "End of /NAMES list");
+			// response = ":irc.server 366 " + _users[index].getNickname() + " " + ch_av[i] + " :End of /NAMES list\r\n"; 
+			// send(_fds[index].fd, response.c_str(), response.size(), 0);
 		}
 		else // New channel creation
 		{
