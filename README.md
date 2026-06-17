@@ -9,7 +9,26 @@
     IRC (Internet Relay Chat) is a text-based protocol designed for real time instant messaging through TCP/IP connections. It follows a client-server model with the server as its backbone and connection point to all the different clients and other servers, thus forming an IRC network.
 
  ## Sockets:
+    Sockets are one of the common ways to handle server and client interactions. The client connects to server, exchanges information and then disconnects, this is a common way to use sockets.
+
+    There is a typical flow of events when using sockets. In a connection-oriented client-to-server model, the socket on the server waits for requests through the clients socket. To be able to do this, the server first establishes (binds) an address for connections that the clients can use. When this is done, the server waits for requests from the client. The data exchange between the client to the server takes place when the client connects to server through a socket. Afterwards, the server performs the client's request and sends its reply back.
+
+ ### Typical Flow of Events for connection-oriented socket:
+   1. The socket() API creates an endpoint for communications and returns a socket descriptor that represents the endpoint.
+   2. When an application has a socket descriptor, it can bind a unique name to the socket. Servers must bind a name to be accessible from the network.
+   3. The listen() API indicates a willingness to accept client connection requests. When a listen() API is issued for a socket, that socket cannot actively initiate connection requests. The listen() API is     issued after a socket is allocated with a socket() API and the bind() API binds a name to the socket. A listen() API must be issued before an accept() API is issued.
+   4. The client application uses a connect() API on a stream socket to establish a connection to the server.
+   5. The server application uses the accept() API to accept a client connection request. The server must issue the bind() and listen() APIs successfully before it can issue an accept() API.
+   6. When a connection is established between stream sockets (between client and server), you can use any of the socket API data transfer APIs. Clients and servers have many data transfer APIs from which to choose, such as send(), recv(), read(), write(), and others.
+   7. When a server or client wants to stop operations, it issues a close() API to release any system resources acquired by the socket.
     
+
+<p align="center">
+  Here's a visual representation of the flow of events:<br>
+  <img src="./imgs/flow_chart.gif" alt="Flow of Events">
+</p>
+
+*Source: [How sockets work, IBM Documentation](https://www.ibm.com/docs/en/i/7.4.0?topic=programming-how-sockets-work)*
     
 
 # Instruction:
@@ -41,7 +60,7 @@
 
   - **KICK:** to remove a user from a channel
 
-      - **EXAMPLE:**  #KICK ***user channel***
+      - **EXAMPLE:**  /kick (user) (channel)
 
   - **INVITE:** to invite a user to a channel
 
@@ -70,6 +89,7 @@
  ## Articles:
 
   - https://www.rfc-editor.org/info/rfc1459/
+  - https://www.ibm.com/docs/en/i/7.4.0?topic=programming-how-sockets-work
   - 
 
 
