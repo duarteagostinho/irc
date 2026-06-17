@@ -241,6 +241,7 @@ void Server::getMessage(std::string &line, char *buffer, int i)
 		}
 		return;
 	}
+	line.clear();
 	line.append(buffer);
 	size_t find = line.find("\r\n");
 	if (find != std::string::npos)
@@ -250,7 +251,7 @@ void Server::getMessage(std::string &line, char *buffer, int i)
 		line.erase(0, find + 2);
 		find = line.find("\r\n");
 	}
-	line.clear();
+//	line.clear();
 }
 
 void	Server::setPassword(char *pass)

@@ -34,23 +34,76 @@
 # define INV_USAGE "Usage: INVITE <nick> [<channel>], invites someone to a channel, by default the current channel\r\n"
 # define JOIN_USAGE "Usage: JOIN <channel>, joins the channel\r\n"
 //# define NOT_OPERATOR ": You are not the channel operator\r\n"
-# define ERR_PASSWDMISMATCH "Password incorrect\r\n"
-# define ERR_NICKNAMEINUSE "Nickname is already in use\r\n"
 
 
 
 
-# define ERR_NOSUCHNICK "No such nick\r\n"							// 401
-# define ERR_NOSUCHCHANNEL "No such channel\r\n"					// 403
+// # define RPL_NOTOPIC "No topic is set\r\n"							// 331
+
+// # define RPL_ENDOFINVITELIST "End of Invite List\r\n"				// 337
 
 
-# define ERR_NOTONCHANNEL "You're not on that channel\r\n"			// 442
+// # define ERR_NOSUCHNICK "No such nick\r\n"							// 401
+// # define ERR_NOSUCHCHANNEL "No such channel\r\n"					// 403
 
-# define ERR_UNKNOWNMODE "is not a recognised channel mode\r\n"		// 472
+// # define ERR_CANNOTSENDTOCHAN "Cannot send to channel\r\n"			// 404
 
-# define ERR_CHANOPRIVSNEEDED "You're not channel operator\r\n"		// 482
+// # define ERR_NORECIPIENT "No recipient given (PRIVMSG)\r\n"			// 411
+// # define ERR_NOTEXTTOSEND "No text to send\r\n"						// 412
+
+// # define ERR_NICKNAMEINUSE "Nickname is already in use\r\n"			// 433
 
 
+
+// # define ERR_NOTONCHANNEL "You're not on that channel\r\n"			// 442
+// # define ERR_USERONCHANNEL "is already on channel\r\n"				// 443
+
+// # define ERR_NEEDMOREPARAMS "Not enough parameters\r\n"				// 461
+// # define ERR_PASSWDMISMATCH "Password incorrect\r\n"				// 464
+// # define ERR_KEYSET "Channel key already set\r\n"  					// 467
+
+// # define ERR_UNKNOWNMODE "is not a recognised channel mode\r\n"		// 472
+// # define ERR_INVITEONLYCHAN "Cannot join channel (+i)\r\n"			// 473
+
+// # define ERR_BADCHANNELKEY "Cannot join channel (+k)\r\n"			// 475
+
+// # define ERR_CHANOPRIVSNEEDED "You're not channel operator\r\n"		// 482
+
+// # define ERR_INVALIDMODEPARAM "Invalid parameters\r\n" 				// 696
+
+
+# define RPL_NOTOPIC "No topic is set"							// 331
+
+# define RPL_ENDOFINVITELIST "End of Invite List"				// 337
+
+
+# define ERR_NOSUCHNICK "No such nick"							// 401
+# define ERR_NOSUCHCHANNEL "No such channel"					// 403
+
+# define ERR_CANNOTSENDTOCHAN "Cannot send to channel"			// 404
+
+# define ERR_NORECIPIENT "No recipient given (PRIVMSG)"			// 411
+# define ERR_NOTEXTTOSEND "No text to send"						// 412
+
+# define ERR_NICKNAMEINUSE "Nickname is already in use"			// 433
+
+
+
+# define ERR_NOTONCHANNEL "You're not on that channel"			// 442
+# define ERR_USERONCHANNEL "is already on channel"				// 443
+
+# define ERR_NEEDMOREPARAMS "Not enough parameters"				// 461
+# define ERR_PASSWDMISMATCH "Password incorrect"				// 464
+# define ERR_KEYSET "Channel key already set"  					// 467
+
+# define ERR_UNKNOWNMODE "is not a recognised channel mode"		// 472
+# define ERR_INVITEONLYCHAN "Cannot join channel (+i)"			// 473
+
+# define ERR_BADCHANNELKEY "Cannot join channel (+k)"			// 475
+
+# define ERR_CHANOPRIVSNEEDED "You're not channel operator"		// 482
+
+# define ERR_INVALIDMODEPARAM "Invalid parameters" 				// 696
 
 
 
