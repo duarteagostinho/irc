@@ -60,7 +60,7 @@
 
   - **KICK:** to remove a user from a channel
 
-      - **EXAMPLE:**  /kick (user) (channel)
+      - **EXAMPLE:**  /kick ***channel user***
 
   - **INVITE:** to invite a user to a channel
 
@@ -68,7 +68,7 @@
 
   - **TOPIC:** to change or view the channel TOPIC
 
-      - **EXAMPLE:** #TOPIC ** **
+      - **EXAMPLE:** #TOPIC ***channel :new topic***
 
   - **MODE:** to set modes
 
@@ -82,7 +82,7 @@
 
     +/-l -> to set/remove user limit on a channel
 
-      - **EXAMPLE:** #MODE i+ <user channel>
+      - **EXAMPLE:** #MODE +-+ikl 10 ***user channel***
 
 # Resources:
 
