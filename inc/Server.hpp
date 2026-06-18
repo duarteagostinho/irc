@@ -36,6 +36,7 @@
 
 # define RPL_ENDOFINVITELIST "End of Invite List"				// 337
 
+# define RPL_ENDOFNAMES "End of /NAMES list"					// 366
 
 # define ERR_NOSUCHNICK "No such nick"							// 401
 # define ERR_NOSUCHCHANNEL "No such channel"					// 403
@@ -50,7 +51,6 @@
 # define ERR_NICKNAMEINUSE "Nickname is already in use"			// 433
 
 
-
 # define ERR_NOTONCHANNEL "You're not on that channel"			// 442
 # define ERR_USERONCHANNEL "is already on channel"				// 443
 
@@ -58,16 +58,18 @@
 # define ERR_PASSWDMISMATCH "Password incorrect"				// 464
 # define ERR_KEYSET "Channel key already set"  					// 467
 
-# define ERR_CHANNELISFULL "Cannot join channel (+l)"			//471
+# define ERR_CHANNELISFULL "Cannot join channel (+l)"			// 471
 
 # define ERR_UNKNOWNMODE "is not a recognised channel mode"		// 472
 # define ERR_INVITEONLYCHAN "Cannot join channel (+i)"			// 473
-
 # define ERR_BADCHANNELKEY "Cannot join channel (+k)"			// 475
+# define ERR_BADCHANMASK "Bad Channel name"						// 476
 
 # define ERR_CHANOPRIVSNEEDED "You're not channel operator"		// 482
 
-# define ERR_USERSDONTMATCH ""
+# define ERR_USERSDONTMATCH "Cant change mode for other users"	// 502
+
+# define ERR_INVALIDKEY "Key is not well-formed"				// 525
 
 # define ERR_INVALIDMODEPARAM "Invalid parameters" 				// 696
 
@@ -89,12 +91,8 @@ class Server
 		int							_port;
 		std::string					_password;
 		struct sockaddr_in			_addr;
-//		std::map<int, User>			_users;
 		std::map<int, std::string>	_pending;
 		std::map<int, Registration>	_reg;
-		//std::map<int, Channel>	_channels;
-
-
 		std::vector<struct pollfd>	_fds;
 		std::vector<Channel>		_channels;
 		std::vector<User>			_users;
@@ -127,14 +125,14 @@ class Server
 		int		getPort(void) const;
 		void	getMessage(std::string &line, char *buffer, int i);
 		void	getUserConfig(std::string &line, char *buffer, int i);
-		const std::vector<Channel> &getChannel(void) const;
-		
+
 		// Helpers
 		void	sendMessage(int fd, int code, const std::string target, const std::string &msg);
 		void	welcomeUser(int i);
 
 		// CMDS
 		void	exec_cmd(std::string line, int index);
+		void	who(std::vector<std::string>& av, int index);
 		void	kick(std::vector<std::string>& av, int index);
 		void	mode(std::vector<std::string>& av, int index);
 		void	join(std::vector<std::string>& av, int index);

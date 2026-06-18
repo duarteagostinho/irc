@@ -40,6 +40,16 @@ Server &Server::operator=(const Server &src)
 {
     if (this != &src) {
         // Copy attributes here
+		_sockfd = src._sockfd ;
+		_port = src._port;
+		_password = src._password;
+		_addr = src._addr;
+		_pending = src._pending;
+		_reg = src._reg;
+		_channels = src._channels;
+		_fds = src._fds;
+		_channels = src._channels;
+		_users = src._users;
     }
     return *this;
 }
@@ -285,7 +295,7 @@ void	Server::run()
 //		std::cout << Server::getSignal << std::endl;
 //		line.clear();
 		cleanChannels();
-		print_everything();
+//		print_everything();
 		if (poll(&_fds[0], _fds.size(), -1) == -1)
 		{
 			if (Server::getSignal() == false)
@@ -328,7 +338,7 @@ void	Server::run()
 						continue;
 					}
 					buf[bytes] = 0;
-					std::cout << "raw buf: " << buf << ", bytes: " << bytes << std::endl;
+//					std::cout << "raw buf: " << buf << ", bytes: " << bytes << std::endl;
 					getMessage(line, buf, i);
 					if (i >= _fds.size()) // Why is this here??
 						continue;
