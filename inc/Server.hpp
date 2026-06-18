@@ -74,6 +74,8 @@
 # define ERR_INVALIDMODEPARAM "Invalid parameters" 				// 696
 
 
+# define ERR_ERRONEUSNICKNAME "Erroneous nickname"
+
 
 class Server
 {
@@ -129,6 +131,9 @@ class Server
 		// Helpers
 		void	sendMessage(int fd, int code, const std::string target, const std::string &msg);
 		void	welcomeUser(int i);
+		bool 	isValidNickname(std::string &str);
+		bool	isValidUsername( std::string &str);
+
 
 		// CMDS
 		void	exec_cmd(std::string line, int index);

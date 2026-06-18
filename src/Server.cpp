@@ -188,6 +188,11 @@ void	Server::registerUser(int i)
 		return ;
 	if (cmd == "NICK")
 	{
+		if (!isValidNickname(value))
+		{
+			sendMessage(_fds[i].fd, 432, value, ERR_ERRONEUSNICKNAME);
+			return;
+		}
 		if (doesUserExist(value) == true)
 		{
 			sendMessage(_fds[i].fd, 433, value, ERR_NICKNAMEINUSE);
@@ -196,7 +201,30 @@ void	Server::registerUser(int i)
 		_reg[i]._nickname = value;
 	}
 	if (cmd == "USER")
-		_reg[i]._username = value;
+	{
+		std::string user = value;
+		std::string mode, unused, realname;
+		ss >> mode >> unused;
+		std::getline(ss >> std::ws, realname);
+		if (user.empty() || mode.empty() || unused.empty() || realname.empty())
+		{
+			sendMessage(_fds[i].fd, 461, "*", ERR_NEEDMOREPARAMS);
+			return;
+		}
+		if (realname[0] == ':')
+			realname = realname.substr(1);
+		if (realname.empty())
+		{
+			sendMessage(_fds[i].fd, 461, "*", ERR_NEEDMOREPARAMS);
+			return;
+		}
+		if (!isValidUsername(user))
+		{
+			sendMessage(_fds[i].fd, 432, user, ERR_ERRONEUSNICKNAME);
+			return;
+		}
+		_reg[i]._username = user;
+	}
 	if (!_reg[i]._pass.empty() && !_reg[i]._username.empty() && !_reg[i]._nickname.empty())
 	{
 		_users[i].setUsername(_reg[i]._username);
@@ -208,6 +236,7 @@ void	Server::registerUser(int i)
 
 	}
 }
+
 
 void	Server::welcomeUser(int i)
 {
@@ -250,7 +279,7 @@ void Server::getMessage(char *buffer, int i)
 	{
 		if (_users[i].getRegistration() == false)
 		{
-			_users[i].recvBuf.append(buffer);
+//			_users[i].recvBuf.append(buffer);
 			while (_users[i].getRegistration() == false)
 			{
 				std::string old = _users[i].recvBuf;
@@ -394,6 +423,39 @@ bool Server::doesUserExist(const std::string name) const
 	}
 	return (false);
 }
+
+bool Server::isValidNickname(std::string &str) 
+{
+	if (str.empty())
+		return false;
+	std::string forbidden = "#&!@:%+~";
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		unsigned char c = str[i];
+		if (c <= 32 || c > 126)
+			return false;
+		if (forbidden.find(c) != std::string::npos)
+			return false;
+	}
+	return true;
+}
+
+bool Server::isValidUsername( std::string &str)
+{
+	if (str.empty())
+		return false;
+	std::string forbidden = "#&!@:%+~";
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		unsigned char c = str[i];
+		if (c <= 32 || c > 126)
+			return false;
+		if (forbidden.find(c) != std::string::npos)
+			return false;
+	}
+	return true;
+}
+
 
 int Server::getSignal(void)
 {
