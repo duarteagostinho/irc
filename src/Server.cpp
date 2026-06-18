@@ -4,20 +4,22 @@
 #include <sys/socket.h>
 #include <vector>
 
+bool Server::_signal = false;
+
 /*
 ** ------------------------------- CONSTRUCTORS --------------------------------
 */
 
 Server::Server() : _sockfd(-1), _port(0)
 {
-    std::cout << "Default Constructor called" << std::endl;
+//   std::cout << "Default Constructor called" << std::endl;
 	User server(_sockfd,"server", "server");
 	_users.push_back(server);
 }
 
 Server::Server(const Server &src)
 {
-    std::cout << "Copy Constructor called" << std::endl;
+//   std::cout << "Copy Constructor called" << std::endl;
     *this = src;
 }
 
@@ -25,8 +27,9 @@ Server::Server(const Server &src)
 ** -------------------------------- DESTRUCTOR --------------------------------
 */
 
-Server::~Server() {
-    std::cout << "Destructor called" << std::endl;
+Server::~Server() 
+{
+//   std::cout << "Destructor called" << std::endl;
 }
 
 /*
@@ -197,10 +200,10 @@ void	Server::registerUser(int i)
 
 void	Server::welcomeUser(int i)
 {
-		std::string welcome1 = ":server 001 " + _reg[i]._nickname + " :Welcome to ircserv\r\n";
-		std::string welcome2 = ":server 002 " + _reg[i]._nickname + " :Your host is server\r\n";
-		std::string welcome3 = ":server 003 " + _reg[i]._nickname + " :This server was created in 2026\r\n";
-		std::string welcome4 = ":server 004 " + _reg[i]._nickname + " server 1.0 0 0\r\n";
+		std::string welcome1 = ":irc.server 001 " + _reg[i]._nickname + " :Welcome to ircserv, " + _reg[i]._nickname + "\r\n";
+		std::string welcome2 = ":irc.server 002 " + _reg[i]._nickname + " :Your host is irc.server\r\n";
+		std::string welcome3 = ":irc.server 003 " + _reg[i]._nickname + " :This server was created in 2026\r\n";
+		std::string welcome4 = ":irc.server 004 " + _reg[i]._nickname + " irc.server v1.0 tilk o\r\n";
 
 		send(_fds[i].fd, welcome1.c_str(), welcome1.size(), 0);
 		send(_fds[i].fd, welcome2.c_str(), welcome2.size(), 0);
@@ -212,7 +215,7 @@ void	Server::disconnect(int i)
 {
 	std::cout << "[DISCONECT] fd = "<< _fds[i].fd << std::endl;
 	std::cout << "nick=" << _users[i].getNickname() << std::endl;
-	//		_users.erase(_fds[i].fd);	
+	//		_users.erase(_fds[i].fd);
 	if ((_users.begin() + i) != _users.end())
 		_users.erase(_users.begin() + i);
 	// else
@@ -242,11 +245,12 @@ void Server::getMessage(std::string &line, char *buffer, int i)
 	size_t find = line.find("\r\n");
 	if (find != std::string::npos)
 	{
-		std::string cmd_line = line.substr(0, find);	
+		std::string cmd_line = line.substr(0, find);
 		exec_cmd(line, i);
 		line.erase(0, find + 2);
 		find = line.find("\r\n");
 	}
+//	line.clear();
 }
 
 void	Server::setPassword(char *pass)
@@ -257,12 +261,13 @@ void	Server::setPassword(char *pass)
 void	Server::sendError(int fd, int code, const std::string target, const std::string &msg)
 {
 	std::ostringstream ss;
-	ss << ":server " << code << " " << target << " :" << msg << "\r\n";
+	ss << ":irc.server " << code << " " << target << " :" << msg << "\r\n";
 	send(fd, ss.str().c_str(), ss.str().size(), 0);
 }
 
 void	Server::run()
 {
+	signal(SIGINT, Server::setSignal);
 	struct pollfd server;
 
 	server.fd = _sockfd;
@@ -271,17 +276,20 @@ void	Server::run()
 	_fds.push_back(server);
 
 	std::string line;
-	while (true)
+	while (Server::getSignal() == false)
 	{
-		line.clear();
-		 print_everything();
+//		bool it = Server::getSignal();
+//		std::cout << it << std::endl;
+//		std::cout << Server::getSignal << std::endl;
+//		line.clear();
+		print_everything();
 		if (poll(&_fds[0], _fds.size(), -1) == -1)
 		{
-			std::cerr << "-error: poll failure\n";
-			exit (10);
+			if (Server::getSignal() == false)
+				std::cerr << "-error: poll failure\n";
+			break ;
 		}
-
-		for (size_t i = 0; i < _fds.size() ;++i)
+		for (size_t i = 0; i < _fds.size();++i)
 		{
 			if (_fds[i].revents & POLLIN)
 			{
@@ -293,6 +301,11 @@ void	Server::run()
 					if (user_fd < 0)
 					{
 						perror("accept()");
+						continue;
+					}
+					if (fcntl(user_fd, F_SETFL, O_NONBLOCK) < 0)
+					{
+						perror("fcntl()");
 						continue;
 					}
 					newConnection(user_fd, user_socket, user_size);
@@ -314,12 +327,14 @@ void	Server::run()
 					buf[bytes] = 0;
 					std::cout << "raw buf: " << buf << ", bytes: " << bytes << std::endl;
 					getMessage(line, buf, i);
-					if (i >= _fds.size())
+					if (i >= _fds.size()) // Why is this here??
 						continue;
 				}
 			}
 		}
 	}
+	for (size_t i = 0; i < _fds.size(); i++)
+		close(_fds[i].fd);
 }
 
 bool Server::isChannel(std::string name)
@@ -360,4 +375,16 @@ bool Server::doesUserExist(const std::string name) const
 			return (true);
 	}
 	return (false);
+}
+
+int Server::getSignal(void)
+{
+	return _signal;
+}
+
+void Server::setSignal(int signal)
+{ 
+	(void)signal;
+	std::cout << std::endl;
+	_signal = true;
 }
