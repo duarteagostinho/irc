@@ -137,15 +137,15 @@ std::string Channel::printMode(const std::string &nickname)
 
 // Orthodox Cannonical Form
 Channel::Channel()
-: _name(""), _topic(""), _pass(""), _creation(0), _new_topic(0), _inv_flag(false),
-_topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false), _max_users(0)
+: _name(""), _topic(""), _pass(""), _creation(0), _new_topic(0), _usersCount(1), _max_users(INT_MAX),
+_inv_flag(false), _topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false)
 {
 
 }
 
 Channel::Channel(std::string name)
-: _name(name), _topic(""), _pass(""), _creation(0), _new_topic(0), _inv_flag(false),
-_topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false), _max_users(0)
+: _name(name), _topic(""), _pass(""), _creation(0), _new_topic(0), _usersCount(1), _max_users(INT_MAX),
+ _inv_flag(false), _topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false)
 {
 
 }
@@ -169,13 +169,17 @@ Channel &Channel::operator=(const Channel &other)
 		_pass = other._pass;
 		_users_op = other._users_op;
         _invited = other._invited;
+		_creation = other._creation;
+		_new_topic = other._new_topic;
+		_topic_creator = other._topic_creator;
+		_usersCount = other._usersCount;
+		_max_users = other._max_users;
 		_inv_flag = other._inv_flag;
 		_topc_flag = other._topc_flag;
 		_key_flag = other._key_flag;
 		_optr_flag = other._optr_flag;
 		_lim_flag = other._lim_flag;
-		_creation = other._creation;
-		_max_users = other._max_users;
+
     }
     return *this;
 }
@@ -247,6 +251,12 @@ int Channel::getMaxUsers(void) const
 	return (_max_users);
 }
 
+int Channel::getCount(void) const
+{
+	return (_usersCount);
+}
+
+
 // //Setters
 void Channel::setTopic(const std::string topic)
 {
@@ -304,75 +314,12 @@ void Channel::setMaxUsers(int &num)
 	_max_users = num;
 }
 
-// void Channel::addUser(std::string& nick)
-// {
-//     if (std::find(_users.begin(), _users.end(), nick) != _users.end())
-//     {
-//         if (_userLimit == -1)
-//         {
-//             _users.push_back(nick);
-//             std::cout << "User added to " << _name << std::endl;
-//         }
-//         else if (_userLimit > _users.size())
-//         {
-//             _users.push_back(nick);
-//             std::cout << "User added to " << _name << std::endl;
-//         }
-//         else
-//         {
-//             std::cout << "No space on the channel" << std::endl;
-//             return ;
-//         }
-//     }
-//     else
-//         return ;
-// }
+void Channel::incrementCount(void)
+{
+	_usersCount++;
+}
 
-// void Channel::rmUser(std::string& nick)
-// {   
-//     if (std::find(_users.begin(), _users.end(), nick) != _users.end())
-//     {
-//         if (*(std::find(_users.begin(), _users.end(), nick)) == _creator)
-//         {
-//             std::cout << "That User can't be removed from the channel " << _name << " has he is the creator" << std::endl;
-//             return ;
-//         }
-//         else
-//         {
-//             _users.erase(_users.begin() + pos);
-//             std::cout << "User removed from " << _name << std::endl;
-//             return ;
-//         }
-//     }
-// }
-
-// void Channel::addOperator(std::string& nick)
-// {
-//   size_t pos = opFlag_users.find(nick);
-//    std::find(opFlag_users.begin(), opFlag_users.end(), nick);
-//    auto it = std::find(opFlag_users.begin(), opFlag_users.end(), [&nick]());
-//     if (() != std::string::npos)
-//     {
-//         _operators.push_back(nick);
-//         std::cout << "User added has an operator to " << _name << std::endl;
-//     }
-//     else
-//         return ;
-// }
-
-// void Channel::rmOperator(std::string &nick)
-// {
-//     if (nick == _creator)
-//     {
-//         std::cout << "That User can't be removed from operator status has he is the creator of the channel " << _name << std::endl;
-//         return ;
-//     }
-//     if ((size_t pos = _operators.find(nick)) != std::string::npos)
-//     {
-//         _operators.erase(_operators.begin() + pos);
-//         std::cout << "User removed has an operator from " << _name << std::endl;
-//         return ;
-//     }
-//     else
-//         return ;
-// }
+void Channel::decrementCount(void)
+{
+	_usersCount--;
+}

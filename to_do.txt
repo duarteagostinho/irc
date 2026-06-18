@@ -1,20 +1,58 @@
-Implementar checks no USER e NICK:
-- Não aceitar algo como #user
-- USER deve seguir o formato <user> 0 * :<realname>
+When a user disconnect from the server
+Broadcast with flag 0
 
-Implementar MODE
+NEED TO SEND IT ONLY TO THE USERS THAT SHARE A CHANNEL WITH ME !!!
 
-Implementar limites no servidor
-- Max Channel
-- Max Users on server
+:jiji!jiji@740E9B.95C97E.C247D8.AE513.IP QUIT :EOF from client
+:<user>!nick@ip QUIT :EOF from client
+
+
+------
+
+
+WHO Cmd
+
+
+----
+For names
+
 - Max nick length
+- Max Channel length
+
+
+
+-----------------------------------------
+
 
 Hunt a segfault
 -Joined channel, one with nc, one with hexchat,
 crtl C on nc, crtl c on server
 segfault on channel destructor? why?
 
+
+
+-- Done maybe?
+
+Finish properly the server constructors !
+
+Implement channel cleanup
+Implement channel verification if limit is set
+
+Implementar checks no USER e NICK:
+- Não aceitar algo como #user
+- USER deve seguir o formato <user> 0 * :<realname>
+
+Implementar MODE
+
 Modes problems
 -missing message error when non op tries to op someone
 -users not on channel can receive op status
 -its crashing after a few operators
+
+Implementar limites no servidor
+- Max Channel
+- Max Users on server
+- Max nick length
+
+Redo the logic of the invite mode
+Problem is initially, channel has no l or k mode and user has no invite, so it failts to enter

@@ -36,11 +36,51 @@
 # define KICK_USAGE "Usage: KICK <nick> [reason], kicks the nick from the current channel\r\n"
 # define INV_USAGE "Usage: INVITE <nick> [<channel>], invites someone to a channel, by default the current channel\r\n"
 # define JOIN_USAGE "Usage: JOIN <channel>, joins the channel\r\n"
-# define NOT_OPERATOR ": You are not the channel operator\r\n"
-# define ERR_PASSWDMISMATCH "Password incorrect\r\n"
-# define ERR_NICKNAMEINUSE "Nickname is already in use\r\n"
-# define ERR_NEEDMOREPARAMS "Not enough parameters\r\n"
-# define ERR_ERRONEUSNICKNAME "Erroneous nickname\r\n"
+
+# define RPL_NOTOPIC "No topic is set"							// 331
+
+# define RPL_ENDOFINVITELIST "End of Invite List"				// 337
+
+# define RPL_ENDOFNAMES "End of /NAMES list"					// 366
+
+# define ERR_NOSUCHNICK "No such nick"							// 401
+# define ERR_NOSUCHCHANNEL "No such channel"					// 403
+
+# define ERR_CANNOTSENDTOCHAN "Cannot send to channel"			// 404
+
+# define ERR_NORECIPIENT "No recipient given (PRIVMSG)"			// 411
+# define ERR_NOTEXTTOSEND "No text to send"						// 412
+
+# define ERR_UNKNOWNCOMMAND "Unknown command"					// 421
+
+# define ERR_NICKNAMEINUSE "Nickname is already in use"			// 433
+
+
+# define ERR_NOTONCHANNEL "You're not on that channel"			// 442
+# define ERR_USERONCHANNEL "is already on channel"				// 443
+
+# define ERR_NEEDMOREPARAMS "Not enough parameters"				// 461
+# define ERR_PASSWDMISMATCH "Password incorrect"				// 464
+# define ERR_KEYSET "Channel key already set"  					// 467
+
+# define ERR_CHANNELISFULL "Cannot join channel (+l)"			// 471
+
+# define ERR_UNKNOWNMODE "is not a recognised channel mode"		// 472
+# define ERR_INVITEONLYCHAN "Cannot join channel (+i)"			// 473
+# define ERR_BADCHANNELKEY "Cannot join channel (+k)"			// 475
+# define ERR_BADCHANMASK "Bad Channel name"						// 476
+
+# define ERR_CHANOPRIVSNEEDED "You're not channel operator"		// 482
+
+# define ERR_USERSDONTMATCH "Cant change mode for other users"	// 502
+
+# define ERR_INVALIDKEY "Key is not well-formed"				// 525
+
+# define ERR_INVALIDMODEPARAM "Invalid parameters" 				// 696
+
+
+# define ERR_ERRONEUSNICKNAME "Erroneous nickname"
+
 
 class Server
 {
@@ -58,12 +98,8 @@ class Server
 		int							_port;
 		std::string					_password;
 		struct sockaddr_in			_addr;
-//		std::map<int, User>			_users;
 		std::map<int, std::string>	_pending;
 		std::map<int, Registration>	_reg;
-		//std::map<int, Channel>	_channels;
-
-
 		std::vector<struct pollfd>	_fds;
 		std::vector<Channel>		_channels;
 		std::vector<User>			_users;
@@ -94,18 +130,19 @@ class Server
 		void	setPassword(char *pass);
 		void	setPort(int port);
 		int		getPort(void) const;
-		void	getMessage(std::string &line, char *buffer, int i);
+		void	getMessage(char *buffer, int i);
 		void	getUserConfig(std::string &line, char *buffer, int i);
-		const std::vector<Channel> &getChannel(void) const;
-		
+
 		// Helpers
-		void	sendError(int fd, int code, const std::string target, const std::string &msg);
+		void	sendMessage(int fd, int code, const std::string target, const std::string &msg);
 		void	welcomeUser(int i);
-		bool	isValidNickname( std::string &str);
+		bool 	isValidNickname(std::string &str);
 		bool	isValidUsername( std::string &str);
+
 
 		// CMDS
 		void	exec_cmd(std::string line, int index);
+		void	who(std::vector<std::string>& av, int index);
 		void	kick(std::vector<std::string>& av, int index);
 		void	mode(std::vector<std::string>& av, int index);
 		void	join(std::vector<std::string>& av, int index);
@@ -135,6 +172,18 @@ class Server
 
 		static int getSignal(void);
 		static void setSignal(int signal);
+
+
+		void handleInv(std::vector<std::string>& av, int index, int inv);
+		void handleTopic(std::vector<std::string>& av, int index, int inv);
+		void handleKey(std::vector<std::string>const &av, const int &i, const int &sign, int &offset, int &flag, int index);
+		void handleLimit(std::vector<std::string>const &av, const int &i, const int &sign, int &offset, int &flag, int index);
+
+		void handleOperator(std::map<std::string, int> &operators, std::vector<std::string> av, int index);
+		void getOperatorData(std::map<std::string, int> &operators, std::vector<std::string> av, int i, int sign, int &offset, int index);
+
+
+		void cleanChannels(void);
 };
 
 // Stream Operator Overload
