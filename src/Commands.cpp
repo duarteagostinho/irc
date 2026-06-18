@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/18 16:10:52 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/18 16:39:01 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,6 +103,7 @@ void Server::join(std::vector<std::string>& av, int index)
 		splitString(av[2], passwords, ',');
 	for (size_t i = 0; i < ch_av.size(); i++)
 	{
+		pass = "";
 		if (ch_av[i][0] != '#')
 			sendMessage(_fds[index].fd, 403, _users[index].getNickname() + " " + ch_av[i], ERR_NOSUCHCHANNEL);
 		else if (isChannel(ch_av[i])) // Valid channel, we either enther of fail to enter
@@ -135,7 +136,7 @@ void Server::join(std::vector<std::string>& av, int index)
 			_channels[ch_i].incrementCount();
 			_channels[ch_i].rmInvite(_users[index].getNickname());
 
-			response = ":" + _users[index].getNickname() + " JOIN " + ch_av[i] + "\r\n";
+			response = getClientInfo(index) + " JOIN " + ch_av[i] + "\r\n";
 			broadcastMessage(_channels[ch_i], response, index, 1);
 
 			if (_channels[ch_i].getTopic() != "")

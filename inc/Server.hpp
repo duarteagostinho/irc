@@ -123,7 +123,7 @@ class Server
 		void	setPassword(char *pass);
 		void	setPort(int port);
 		int		getPort(void) const;
-		void	getMessage(std::string &line, char *buffer, int i);
+		void	getMessage(char *buffer, int i);
 		void	getUserConfig(std::string &line, char *buffer, int i);
 
 		// Helpers
