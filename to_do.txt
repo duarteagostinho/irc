@@ -1,3 +1,12 @@
+WHO Cmd
+
+
+-----
+
+
+DONE DONE
+
+
 When a user disconnect from the server
 Broadcast with flag 0
 
@@ -6,19 +15,12 @@ NEED TO SEND IT ONLY TO THE USERS THAT SHARE A CHANNEL WITH ME !!!
 :jiji!jiji@740E9B.95C97E.C247D8.AE513.IP QUIT :EOF from client
 :<user>!nick@ip QUIT :EOF from client
 
-
 ------
 
-
-WHO Cmd
-
-
-----
 For names
 
 - Max nick length
 - Max Channel length
-
 
 
 -----------------------------------------

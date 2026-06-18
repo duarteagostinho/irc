@@ -233,7 +233,6 @@ void	Server::registerUser(int i)
 		welcomeUser(i);
 		_reg.erase(i);
 		_users[i].recvBuf.clear();
-
 	}
 }
 
@@ -251,19 +250,24 @@ void	Server::welcomeUser(int i)
 		send(_fds[i].fd, welcome4.c_str(), welcome4.size(), 0);
 }
 
-void	Server::disconnect(int i)
+void	Server::disconnect(int index)
 {
-	std::cout << "[DISCONECT] fd = "<< _fds[i].fd << std::endl;
-	std::cout << "nick=" << _users[i].getNickname() << std::endl;
-	//		_users.erase(_fds[i].fd)
-	std::string quit = getClientInfo(i) + " QUIT :Quit: Disconnected\r\n";
-	send(_fds[i].fd, quit.c_str(), quit.size(), 0);
-	if ((_users.begin() + i) != _users.end())
-		_users.erase(_users.begin() + i);
-	// else
-	// 	_pending.erase(_fds[i].fd);
-	close(_fds[i].fd);
-	_fds.erase(_fds.begin() + i);
+//	std::cout << "[DISCONECT] fd = "<< _fds[index].fd << std::endl;
+//	std::cout << "nick=" << _users[index].getNickname() << std::endl;
+
+	for (size_t i = 0; i < _channels.size(); i++)
+	{
+		if (_channels[i].isUserOnChannel(_users[index].getNickname()))
+		{
+			broadcastMessage(_channels[i], getClientInfo(index) + " QUIT :Quit: Leaving\r\n", index, 0);
+			_channels[i].rmUser(_users[index].getNickname());
+			_channels[i].decrementCount();
+		}
+	}
+	if ((_users.begin() + index) != _users.end())
+		_users.erase(_users.begin() + index);
+	close(_fds[index].fd);
+	_fds.erase(_fds.begin() + index);
 }
 
 /*

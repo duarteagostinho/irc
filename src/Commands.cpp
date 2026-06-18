@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/18 17:42:11 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/18 19:17:27 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,7 +153,7 @@ void Server::join(std::vector<std::string>& av, int index)
 		}
 		else // New channel creation
 		{
-			if (ch_av[i].size() == 1)
+			if (ch_av[i].size() == 1 || ch_av[i].size() > 30)
 			{
 				sendMessage(_fds[index].fd, 476, _users[index].getNickname() + " " + ch_av[i], ERR_BADCHANMASK);
 				continue ;
@@ -414,7 +414,6 @@ void Server::broadcastMessage(Channel &channel, std::string message, int index, 
 {
 	if (flag)
 		send(_fds[index].fd, message.c_str(), message.size(), 0);
-	std::cout << "\n\n" << _fds.size() << "\n\n";
 	for (size_t i = 1; i < _fds.size(); i++)
 	{
 		if (_fds[i].fd != _fds[index].fd && channel.isUserOnChannel(_users[i].getNickname()))
