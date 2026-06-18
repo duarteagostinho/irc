@@ -240,7 +240,7 @@ void Server::getMessage(char *buffer, int i)
 	{
 		if (_users[i].getRegistration() == false)
 		{
-		_users[i].recvBuf.append(buffer);
+		std::cout << _users[i].recvBuf << std::endl;
 		while (_users[i].getRegistration() == false)
 		{
 			std::string old = _users[i].recvBuf;
