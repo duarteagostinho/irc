@@ -6,7 +6,7 @@
 /*   By: duandrad <duandrad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/18 19:25:24 by duandrad         ###   ########.fr       */
+/*   Updated: 2026/06/18 19:32:53 by duandrad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -176,7 +176,7 @@ void Server::join(std::vector<std::string>& av, int index)
 			sendMessage(_fds[index].fd, 403, _users[index].getNickname() + " " + ch_av[i], ERR_NOSUCHCHANNEL);
 		else if (isChannel(ch_av[i])) // Valid channel, we either enther of fail to enter
 		{
-			int c_index = getChannelIndex(ch_av[i]);
+			int ch_i = getChannelIndex(ch_av[i]);
 
 			if (passwords.size() > i)
 				pass = passwords[i];
@@ -414,6 +414,7 @@ void Server::part(std::vector<std::string>& av, int index)
 	splitString(av[1], ch_av, ',');
 	for (size_t i = 0; i < ch_av.size(); i++)
 	{
+		int	ch_i = getChannelIndex(ch_av[i]);
 		if (!isChannel(ch_av[i]))
 			sendMessage(_fds[index].fd, 403, _users[index].getNickname() + " " + ch_av[i], ERR_NOSUCHCHANNEL);
 		else if (av.size() == 2) // Just leave

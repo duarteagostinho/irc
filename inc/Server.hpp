@@ -38,48 +38,32 @@
 # define JOIN_USAGE "Usage: JOIN <channel>, joins the channel\r\n"
 
 # define RPL_NOTOPIC "No topic is set"							// 331
-
 # define RPL_ENDOFINVITELIST "End of Invite List"				// 337
-
 # define RPL_ENDOFNAMES "End of /NAMES list"					// 366
-
 # define ERR_NOSUCHNICK "No such nick"							// 401
 # define ERR_NOSUCHCHANNEL "No such channel"					// 403
-
 # define ERR_CANNOTSENDTOCHAN "Cannot send to channel"			// 404
-
 # define ERR_NORECIPIENT "No recipient given (PRIVMSG)"			// 411
 # define ERR_NOTEXTTOSEND "No text to send"						// 412
-
 # define ERR_UNKNOWNCOMMAND "Unknown command"					// 421
-
+# define ERR_ERRONEUSNICKNAME "Erroneous nickname"				// 432
 # define ERR_NICKNAMEINUSE "Nickname is already in use"			// 433
-
-
 # define ERR_NOTONCHANNEL "You're not on that channel"			// 442
 # define ERR_USERONCHANNEL "is already on channel"				// 443
-
 # define ERR_NEEDMOREPARAMS "Not enough parameters"				// 461
 # define ERR_PASSWDMISMATCH "Password incorrect"				// 464
 # define ERR_KEYSET "Channel key already set"  					// 467
-
 # define ERR_CHANNELISFULL "Cannot join channel (+l)"			// 471
-
 # define ERR_UNKNOWNMODE "is not a recognised channel mode"		// 472
 # define ERR_INVITEONLYCHAN "Cannot join channel (+i)"			// 473
 # define ERR_BADCHANNELKEY "Cannot join channel (+k)"			// 475
 # define ERR_BADCHANMASK "Bad Channel name"						// 476
-
 # define ERR_CHANOPRIVSNEEDED "You're not channel operator"		// 482
-
 # define ERR_USERSDONTMATCH "Cant change mode for other users"	// 502
-
 # define ERR_INVALIDKEY "Key is not well-formed"				// 525
-
 # define ERR_INVALIDMODEPARAM "Invalid parameters" 				// 696
 
 
-# define ERR_ERRONEUSNICKNAME "Erroneous nickname"
 
 
 class Server

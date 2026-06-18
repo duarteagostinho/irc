@@ -428,6 +428,8 @@ bool Server::isValidNickname(std::string &str)
 {
 	if (str.empty())
 		return false;
+	if (str.size() > 30)
+		return false;
 	std::string forbidden = "#&!@:%+~";
 	for (size_t i = 0; i < str.size(); i++)
 	{
@@ -443,6 +445,8 @@ bool Server::isValidNickname(std::string &str)
 bool Server::isValidUsername( std::string &str)
 {
 	if (str.empty())
+		return false;
+	if (str.size() > 30)
 		return false;
 	std::string forbidden = "#&!@:%+~";
 	for (size_t i = 0; i < str.size(); i++)

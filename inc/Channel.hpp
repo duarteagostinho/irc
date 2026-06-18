@@ -41,7 +41,7 @@ class Channel
 		const std::string				getName() const;
         const std::string               getPass() const;
 		const std::string               getTopic() const;
-		bool							getLimMode() const;
+		bool							getLimitMode() const;
 		bool							getKeyMode() const;
 		bool                      		getInviteMode() const;
 		bool							getOperatorMode() const;
@@ -68,19 +68,19 @@ class Channel
 
 	//Utils
 		std::string         			usersFormated(void);
-        void                			rmUser(std::string& nick);
+        void                			rmUser(const std::string& nick);
 		bool							hasInvite(std::string nick);
-		void                			rmOperator(std::string& nick);
-		void                			addOperator(std::string& nick);
+		void                			rmOperator(const std::string& nick);
+		void                			addOperator(const std::string& nick);
 		bool                			isOperator(const std::string nick) const;
 		void                			addUser(const std::string& nick, bool flag);
 		bool							isUserOnChannel(const std::string nick) const;
-			
+
 		void							addInvite(const std::string& nick);
 		void							rmInvite(const std::string& nick);
-			
+
 		std::string						printMode(const std::string &nickname);
-			
+
 		void							incrementCount(void);
 		void							decrementCount(void);
 
