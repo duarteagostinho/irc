@@ -177,6 +177,11 @@ void	Server::registerUser(int i)
 		return ;
 	if (cmd == "NICK")
 	{
+		if (!isValidNickname(value))
+		{
+			sendError(_fds[i].fd, 432, value, ERR_ERRONEUSNICKNAME);
+			return;
+		}
 		if (doesUserExist(value) == true)
 		{
 			sendError(_fds[i].fd, 433, value, ERR_NICKNAMEINUSE);
@@ -185,7 +190,30 @@ void	Server::registerUser(int i)
 		_reg[i]._nickname = value;
 	}
 	if (cmd == "USER")
-		_reg[i]._username = value;
+	{
+		std::string user = value;
+		std::string mode, unused, realname;
+		ss >> mode >> unused;
+		std::getline(ss >> std::ws, realname);
+		if (user.empty() || mode.empty() || unused.empty() || realname.empty())
+		{
+			sendError(_fds[i].fd, 461, "*", ERR_NEEDMOREPARAMS);
+			return;
+		}
+		if (realname[0] == ':')
+			realname = realname.substr(1);
+		if (realname.empty())
+		{
+			sendError(_fds[i].fd, 461, "*", ERR_NEEDMOREPARAMS);
+			return;
+		}
+		if (!isValidUsername(user))
+		{
+			sendError(_fds[i].fd, 432, user, ERR_ERRONEUSNICKNAME);
+			return;
+		}
+		_reg[i]._username = user;
+	}
 	if (!_reg[i]._pass.empty() && !_reg[i]._username.empty() && !_reg[i]._nickname.empty())
 	{
 		_users[i].setUsername(_reg[i]._username);
@@ -200,10 +228,11 @@ void	Server::registerUser(int i)
 
 void	Server::welcomeUser(int i)
 {
-		std::string welcome1 = ":irc.server 001 " + _reg[i]._nickname + " :Welcome to ircserv, " + _reg[i]._nickname + "\r\n";
-		std::string welcome2 = ":irc.server 002 " + _reg[i]._nickname + " :Your host is irc.server\r\n";
-		std::string welcome3 = ":irc.server 003 " + _reg[i]._nickname + " :This server was created in 2026\r\n";
-		std::string welcome4 = ":irc.server 004 " + _reg[i]._nickname + " irc.server v1.0 tilk o\r\n";
+		std::string nick = _users[i].getNickname();
+		std::string welcome1 = ":irc.server 001 " + nick + " :Welcome to ircserv, " + nick + "\r\n";
+		std::string welcome2 = ":irc.server 002 " + nick + " :Your host is irc.server\r\n";
+		std::string welcome3 = ":irc.server 003 " + nick + " :This server was created in 2026\r\n";
+		std::string welcome4 = ":irc.server 004 " + nick + " irc.server v1.0 itkl o\r\n";
 
 		send(_fds[i].fd, welcome1.c_str(), welcome1.size(), 0);
 		send(_fds[i].fd, welcome2.c_str(), welcome2.size(), 0);
@@ -215,7 +244,7 @@ void	Server::disconnect(int i)
 {
 	std::cout << "[DISCONECT] fd = "<< _fds[i].fd << std::endl;
 	std::cout << "nick=" << _users[i].getNickname() << std::endl;
-	//		_users.erase(_fds[i].fd);
+	//		_users.erase(_fds[i].fd);	
 	if ((_users.begin() + i) != _users.end())
 		_users.erase(_users.begin() + i);
 	// else
@@ -245,12 +274,11 @@ void Server::getMessage(std::string &line, char *buffer, int i)
 	size_t find = line.find("\r\n");
 	if (find != std::string::npos)
 	{
-		std::string cmd_line = line.substr(0, find);
+		std::string cmd_line = line.substr(0, find);	
 		exec_cmd(line, i);
 		line.erase(0, find + 2);
 		find = line.find("\r\n");
 	}
-//	line.clear();
 }
 
 void	Server::setPassword(char *pass)
@@ -261,7 +289,7 @@ void	Server::setPassword(char *pass)
 void	Server::sendError(int fd, int code, const std::string target, const std::string &msg)
 {
 	std::ostringstream ss;
-	ss << ":irc.server " << code << " " << target << " :" << msg << "\r\n";
+	ss << ":server " << code << " " << target << " :" << msg << "\r\n";
 	send(fd, ss.str().c_str(), ss.str().size(), 0);
 }
 
@@ -281,7 +309,7 @@ void	Server::run()
 //		bool it = Server::getSignal();
 //		std::cout << it << std::endl;
 //		std::cout << Server::getSignal << std::endl;
-//		line.clear();
+		line.clear();
 		print_everything();
 		if (poll(&_fds[0], _fds.size(), -1) == -1)
 		{
@@ -289,7 +317,7 @@ void	Server::run()
 				std::cerr << "-error: poll failure\n";
 			break ;
 		}
-		for (size_t i = 0; i < _fds.size();++i)
+		for (size_t i = 0; i < _fds.size() ;++i)
 		{
 			if (_fds[i].revents & POLLIN)
 			{
@@ -327,7 +355,7 @@ void	Server::run()
 					buf[bytes] = 0;
 					std::cout << "raw buf: " << buf << ", bytes: " << bytes << std::endl;
 					getMessage(line, buf, i);
-					if (i >= _fds.size()) // Why is this here??
+					if (i >= _fds.size())
 						continue;
 				}
 			}
@@ -375,6 +403,38 @@ bool Server::doesUserExist(const std::string name) const
 			return (true);
 	}
 	return (false);
+}
+
+bool Server::isValidNickname(std::string &str) 
+{
+	if (str.empty())
+		return false;
+	std::string forbidden = "#&!@:%+~";
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		unsigned char c = str[i];
+		if (c <= 32 || c > 126)
+			return false;
+		if (forbidden.find(c) != std::string::npos)
+			return false;
+	}
+	return true;
+}
+
+bool Server::isValidUsername( std::string &str) 
+{
+	if (str.empty())
+		return false;
+	std::string forbidden = "#&!@:%+~";
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		unsigned char c = str[i];
+		if (c <= 32 || c > 126)
+			return false;
+		if (forbidden.find(c) != std::string::npos)
+			return false;
+	}
+	return true;
 }
 
 int Server::getSignal(void)
