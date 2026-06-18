@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/18 16:39:01 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/18 17:42:11 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -571,7 +571,7 @@ void Server::getOperatorData(std::map<std::string, int> &operators, std::vector<
 
 	if (static_cast<size_t>(i + offset) >= av.size())
 		return ;
-	if (!_channels[ch_i].isUserOnChannel(av[i + offset])) // CHECK IF THE USER AV[I + OFFSET] IS ON THE CHANNEL
+	if (!_channels[ch_i].isUserOnChannel(av[i + offset])) // Check if user av[i + offset] is on the channel
 		sendMessage(_fds[index].fd, 401, _users[index].getNickname() + " " + av[i + offset], ERR_NOSUCHNICK);
 	else
 	{

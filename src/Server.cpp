@@ -226,7 +226,9 @@ void	Server::disconnect(int i)
 {
 	std::cout << "[DISCONECT] fd = "<< _fds[i].fd << std::endl;
 	std::cout << "nick=" << _users[i].getNickname() << std::endl;
-	//		_users.erase(_fds[i].fd);
+	//		_users.erase(_fds[i].fd)
+	std::string quit = getClientInfo(i) + " QUIT :Quit: Disconnected\r\n";
+	send(_fds[i].fd, quit.c_str(), quit.size(), 0);
 	if ((_users.begin() + i) != _users.end())
 		_users.erase(_users.begin() + i);
 	// else
