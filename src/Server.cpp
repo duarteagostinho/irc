@@ -239,15 +239,17 @@ void	Server::registerUser(int i)
 
 void	Server::welcomeUser(int i)
 {
-		std::string welcome1 = ":irc.server 001 " + _reg[i]._nickname + " :Welcome to ircserv, " + _reg[i]._nickname + "\r\n";
-		std::string welcome2 = ":irc.server 002 " + _reg[i]._nickname + " :Your host is irc.server\r\n";
-		std::string welcome3 = ":irc.server 003 " + _reg[i]._nickname + " :This server was created in 2026\r\n";
-		std::string welcome4 = ":irc.server 004 " + _reg[i]._nickname + " irc.server v1.0 tilk o\r\n";
+		std::string nick = _reg[i]._nickname;
+		std::string welcome1 = ":irc.server 001 " + nick + " :Welcome to ircserv, " + nick + "\r\n";
+		std::string welcome2 = ":irc.server 002 " + nick + " :Your host is irc.server\r\n";
+		std::string welcome3 = ":irc.server 003 " + nick + " :This server was created in 2026\r\n";
+		std::string welcome4 = ":irc.server 004 " + nick + " irc.server v1.0 tilk o\r\n";
 
 		send(_fds[i].fd, welcome1.c_str(), welcome1.size(), 0);
 		send(_fds[i].fd, welcome2.c_str(), welcome2.size(), 0);
 		send(_fds[i].fd, welcome3.c_str(), welcome3.size(), 0);
 		send(_fds[i].fd, welcome4.c_str(), welcome4.size(), 0);
+
 }
 
 void	Server::disconnect(int index)
@@ -278,6 +280,7 @@ void Server::getMessage(char *buffer, int i)
 	_users[i].recvBuf.append(buffer);
 //	std::cout << std::endl;
 //	std::cout << _users[i].recvBuf << std::endl;
+std::cout << "[" << buffer << "]" << std::endl;
 	size_t find = _users[i].recvBuf.find("\r\n");
 	if (find != std::string::npos)
 	{
@@ -295,6 +298,7 @@ void Server::getMessage(char *buffer, int i)
 		}
 		else
 		{
+//			break_cmd(_users[i].recvBuf, i);
 			exec_cmd(_users[i].recvBuf, i);
 			_users[i].recvBuf.erase();
 		}
@@ -432,6 +436,8 @@ bool Server::isValidNickname(std::string &str)
 {
 	if (str.empty())
 		return false;
+	if (str.size() > 30)
+		return false;
 	std::string forbidden = "#&!@:%+~";
 	for (size_t i = 0; i < str.size(); i++)
 	{
@@ -447,6 +453,8 @@ bool Server::isValidNickname(std::string &str)
 bool Server::isValidUsername( std::string &str)
 {
 	if (str.empty())
+		return false;
+	if (str.size() > 30)
 		return false;
 	std::string forbidden = "#&!@:%+~";
 	for (size_t i = 0; i < str.size(); i++)
