@@ -6,7 +6,7 @@
 /*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/19 14:14:54 by vloureir         ###   ########.fr       */
+/*   Updated: 2026/06/22 11:16:36 by vloureir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,24 +15,21 @@
 int Server::check_cmd(std::string &line, std::vector<std::string>& av)
 {
 	// Clean the string from the carriage return
-
-//	std::cout << "alo 1" << std::endl;
 	std::string to_del = "\r\n";
 	size_t pos = line.find(to_del);
 	if (pos != line.npos)
 		line.erase(pos, to_del.length());
-//	std::cout << "alo 2" << std::endl;
+
 	// Create an argv from the data
 	splitString(line, av, ' ');
 	std::cout << av.size() << std::endl;
 	// If no line is sent, return err
 	if (av.size() == 0)
 		return (7);
-//	std::cout << "alo 4" << std::endl;
+
 	// Check the first index for the chosen commands
 	std::string accepted[] = {"KICK", "INVITE", "TOPIC", "MODE", "JOIN", "PRIVMSG", "PART", "WHO"};
 	const size_t size = sizeof(accepted) / sizeof(accepted[0]);
-//	std::cout << size << std::endl;
 	for (size_t i = 0; i < size; i++)
 	{
 		if (accepted[i] == av[0])
@@ -74,10 +71,8 @@ void Server::exec_cmd(std::string line, int index)
 			part(av, index);
 			break;
 		case 7:
-//			who(av, index);
 			break ;
-		default: // HEXCHAT SENDS MODE <CHANNEL> AND WHO <CHANNEL> HANDLE IT
-//			std::string response = ":irc.server 421 " + _users[index].getNickname() + " :Unknown command\r\n";
+		default:
 			sendMessage(_fds[index].fd, 421, _users[index].getNickname() + " " + av[0], ERR_UNKNOWNCOMMAND);
 	}
 	line.clear();
@@ -110,10 +105,8 @@ void Server::join(std::vector<std::string>& av, int index)
 		else if (isChannel(ch_av[i])) // Valid channel, we either enther of fail to enter
 		{
 			int ch_i = getChannelIndex(ch_av[i]);
-
 			if (passwords.size() > i)
 				pass = passwords[i];
-	
 			if (!_channels[ch_i].hasInvite(_users[index].getNickname()))
 			{
 				if (_channels[ch_i].getKeyMode() && _channels[ch_i].getPass() != pass)
@@ -132,19 +125,16 @@ void Server::join(std::vector<std::string>& av, int index)
 					continue ;
 				}
 			} // If invited, no pass or pass was correct, enter channel
-
 			_channels[ch_i].addUser(_users[index].getNickname(), 0);
 			_channels[ch_i].incrementCount();
 			_channels[ch_i].rmInvite(_users[index].getNickname());
-
+			
 			response = getClientInfo(index) + " JOIN " + ch_av[i] + "\r\n";
 			broadcastMessage(_channels[ch_i], response, index, 1);
-
 			if (_channels[ch_i].getTopic() != "")
 			{
 				response = ":irc.server 332 " + _users[index].getNickname() + " " + ch_av[i] + " :" + _channels[ch_i].getTopic() + "\r\n";
 				broadcastMessage(_channels[ch_i], response, index, 1);
-
 				response = ":irc.server 333 " + _users[index].getNickname() + " "
 							+ ch_av[i] + " " + getClientInfo(index) + " " + _channels[ch_i].getTopicTime() + "\r\n";
 				broadcastMessage(_channels[ch_i], response, index, 1);
@@ -154,7 +144,7 @@ void Server::join(std::vector<std::string>& av, int index)
 		}
 		else // New channel creation
 		{
-			if (ch_av[i].size() == 1 || ch_av[i].size() > 30)
+			if (ch_av[i].size() == 1 || ch_av[i].size() > 30) // Invalid Channel name
 			{
 				sendMessage(_fds[index].fd, 476, _users[index].getNickname() + " " + ch_av[i], ERR_BADCHANMASK);
 				continue ;
@@ -186,7 +176,7 @@ void Server::kick(std::vector<std::string>& av, int index)
 		sendMessage(_fds[index].fd, 461, _users[index].getNickname() + " KICK", ERR_NEEDMOREPARAMS);
 		return ;
 	}
-	int ch_i = getChannelIndex(av[1]);		
+	int ch_i = getChannelIndex(av[1]);
 	if (!isChannel(av[1]))
 		sendMessage(_fds[index].fd, 403, _users[index].getNickname() + " " + av[1], ERR_NOSUCHCHANNEL);
 	else if (!_channels[ch_i].isOperator(_users[index].getNickname()))
@@ -431,8 +421,6 @@ void Server::broadcastMessage(Channel &channel, std::string message, int index, 
 
 
 /////////////////////////// MODE ///////////////////////////////
-
-
 static int adv_peek(std::string str, size_t &j)
 {
 	size_t valid_j;
@@ -457,13 +445,13 @@ void Server::handleInv(std::vector<std::string>& av, int index, int inv)
 	{
 		_channels[ch].setInviteMode(true);
 		response = getClientInfo(index) + " MODE " + av[1] + " +i\r\n";
-		broadcastMessage(_channels[ch], response, index, 1); // DO IT IN THE END !!!
+		broadcastMessage(_channels[ch], response, index, 1);
 	}
 	else if (inv < 0 && _channels[ch].getInviteMode())
 	{
 		_channels[ch].setInviteMode(false);
 		response = getClientInfo(index) + " MODE " + av[1] + " -i\r\n";
-		broadcastMessage(_channels[ch], response, index, 1); // DO IT IN THE END !!!
+		broadcastMessage(_channels[ch], response, index, 1);
 	}
 }
 
@@ -476,13 +464,13 @@ void Server::handleTopic(std::vector<std::string>& av, int index, int topic)
 	{
 		_channels[ch].setTopicMode(true);
 		response = getClientInfo(index) + " MODE " + av[1] + " +t\r\n";
-		broadcastMessage(_channels[ch], response, index, 1); // DO IT IN THE END !!!
+		broadcastMessage(_channels[ch], response, index, 1);
 	}
 	else if (topic < 0 && _channels[ch].getTopicMode())
 	{
 		_channels[ch].setTopicMode(false);
 		response = getClientInfo(index) + " MODE " + av[1] + " -t\r\n";
-		broadcastMessage(_channels[ch], response, index, 1); // DO IT IN THE END !!!
+		broadcastMessage(_channels[ch], response, index, 1);
 	}
 }
 
@@ -499,7 +487,7 @@ void Server::handleLimit(std::vector<std::string>const &av, const int &i, const 
 	{
 		_channels[ch_i].setLimitMode(false);
 		response = getClientInfo(index) + " MODE " + av[1] + " -l\r\n";
-		broadcastMessage(_channels[ch_i], response, index, 1); // DO IT IN THE END !!!
+		broadcastMessage(_channels[ch_i], response, index, 1);
 	}
 	else
 	{
@@ -516,7 +504,7 @@ void Server::handleLimit(std::vector<std::string>const &av, const int &i, const 
 				
 				ss << result;
 				response = getClientInfo(index) + " MODE " + av[1] + " +l " + ss.str() + "\r\n";
-				broadcastMessage(_channels[ch_i], response, index, 1); // DO IT IN THE END !!!
+				broadcastMessage(_channels[ch_i], response, index, 1);
 				_channels[ch_i].setMaxUsers(result);
 				_channels[ch_i].setLimitMode(true);
 			}
@@ -555,7 +543,7 @@ void Server::handleKey(std::vector<std::string>const &av, const int &i, const in
 		if (sign < 0) // remove password
 		{
 			response = getClientInfo(index) + " MODE " + av[1] + " -k " + av[i + offset] + "\r\n";
-			broadcastMessage(_channels[ch_i], response, index, 1); // DO IT IN THE END !!!
+			broadcastMessage(_channels[ch_i], response, index, 1);
 			_channels[ch_i].setKeyMode(false);
 			_channels[ch_i].setPass("");
 		}
@@ -564,7 +552,7 @@ void Server::handleKey(std::vector<std::string>const &av, const int &i, const in
 			_channels[ch_i].setKeyMode(true);
 			_channels[ch_i].setPass(av[i + offset]);
 			response = getClientInfo(index) + " MODE " + av[1] + " +k " + av[i + offset] + "\r\n";
-			broadcastMessage(_channels[ch_i], response, index, 1); // DO IT IN THE END !!!
+			broadcastMessage(_channels[ch_i], response, index, 1);
 		}
 		offset++;
 	}
@@ -602,14 +590,14 @@ void Server::handleOperator(std::map<std::string, int> &operators, std::vector<s
 			// Add User
 			_channels[ch_i].addOperator(it->first);
 			response = getClientInfo(index) + " MODE " + av[1] + " +o " + it->first + "\r\n";
-			broadcastMessage(_channels[ch_i], response, index, 1); // DO IT IN THE END !!!
+			broadcastMessage(_channels[ch_i], response, index, 1);
 		}
 		else if (it->second < 0 && _channels[ch_i].isOperator(it->first))
 		{
 			// Remove User
 			_channels[ch_i].rmOperator(it->first);
 			response = getClientInfo(index) + " MODE " + av[1] + " -o " + it->first + "\r\n";
-			broadcastMessage(_channels[ch_i], response, index, 1); // DO IT IN THE END !!!
+			broadcastMessage(_channels[ch_i], response, index, 1);
 		}
 		std::cout << "Name: " << it->first << ", op status: " << it->second << std::endl;
 	}
@@ -697,33 +685,12 @@ void Server::mode(std::vector<std::string>& av, int index)
 			handleTopic(av, index, topic);
 		handleOperator(operators, av, index); // map: key: nick, value: 1 = add, 0 = nothing, -1 = remove;
 	}
-	// BROADCAST THIS
-	// NEED TO TRACK IF THERE WERE ANY CHANGE OR NOT. PRINT ONLY IF CHANGES HAPPEN
-	// THIS DOESNT WORK !
-	// NEED TO BROADCAST ONLY THE CHANGES
-	//	response = 	getClientInfo(index) + " MODE " + av[1] + " " + _channels[ch_i].printMode() + "\r\n";
 }
-
-void Server::who(std::vector<std::string>& av, int index)
-{
-//	(void)av;
-//	(void)index;
-	if (av.size() == 1)
-		sendMessage(_fds[index].fd, 315, _users[index].getNickname(), "End of /WHO List");
-	else
-		sendMessage(_fds[index].fd, 315, _users[index].getNickname() + " " + av[1], "End of /WHO List");
-}
-
 
 /*
-av[4]
-
-av[0] -
-
-av[1] +
-
-av[2] 1245 (LIMIT) + hello (KEY) // Which comes first, stays first
-
-av[3] jinx vini (OP)
-
+	av[4]
+	av[0] -
+	av[1] +
+	av[2] 1245 (LIMIT) + hello (KEY) // Which comes first, stays first
+	av[3] chaud vini (OP)
 */
