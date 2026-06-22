@@ -3,16 +3,16 @@
 // DEL
 void Channel::print_users(void)
 {
-	for (std::map<std::string, bool>::iterator it = _users_op.begin(); it != _users_op.end(); it++)
-	{
-		std::cout << "user: " << it->first;
-        std::cout << ", op: ";
-        if (it->second)
-            std::cout << "true";
-        else
-            std::cout << "false";
-        std::cout << std::endl;
-	}
+	// for (std::map<std::string, bool>::iterator it = _users_op.begin(); it != _users_op.end(); it++)
+	// {
+	// 	std::cout << "user: " << it->first;
+    //     std::cout << ", op: ";
+    //     if (it->second)
+    //         std::cout << "true";
+    //     else
+    //         std::cout << "false";
+    //     std::cout << std::endl;
+	// }
 }
 
 // UTILS
@@ -137,15 +137,15 @@ std::string Channel::printMode(const std::string &nickname)
 
 // Orthodox Cannonical Form
 Channel::Channel()
-: _name(""), _topic(""), _pass(""), _creation(0), _new_topic(0), _inv_flag(false),
-_topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false), _max_users(0)
+: _name(""), _topic(""), _pass(""), _creation(0), _new_topic(0), _usersCount(1), _max_users(INT_MAX),
+_inv_flag(false), _topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false)
 {
 
 }
 
 Channel::Channel(std::string name)
-: _name(name), _topic(""), _pass(""), _creation(0), _new_topic(0), _inv_flag(false),
-_topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false), _max_users(0)
+: _name(name), _topic(""), _pass(""), _creation(0), _new_topic(0), _usersCount(1), _max_users(INT_MAX),
+ _inv_flag(false), _topc_flag(true), _key_flag(false), _optr_flag(false), _lim_flag(false)
 {
 
 }
@@ -169,13 +169,17 @@ Channel &Channel::operator=(const Channel &other)
 		_pass = other._pass;
 		_users_op = other._users_op;
         _invited = other._invited;
+		_creation = other._creation;
+		_new_topic = other._new_topic;
+		_topic_creator = other._topic_creator;
+		_usersCount = other._usersCount;
+		_max_users = other._max_users;
 		_inv_flag = other._inv_flag;
 		_topc_flag = other._topc_flag;
 		_key_flag = other._key_flag;
 		_optr_flag = other._optr_flag;
 		_lim_flag = other._lim_flag;
-		_creation = other._creation;
-		_max_users = other._max_users;
+
     }
     return *this;
 }
@@ -247,6 +251,12 @@ int Channel::getMaxUsers(void) const
 	return (_max_users);
 }
 
+int Channel::getCount(void) const
+{
+	return (_usersCount);
+}
+
+
 // //Setters
 void Channel::setTopic(const std::string topic)
 {
@@ -302,4 +312,14 @@ void Channel::setPass(const std::string &str)
 void Channel::setMaxUsers(int &num)
 {
 	_max_users = num;
+}
+
+void Channel::incrementCount(void)
+{
+	_usersCount++;
+}
+
+void Channel::decrementCount(void)
+{
+	_usersCount--;
 }

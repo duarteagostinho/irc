@@ -1,10 +1,10 @@
 #ifndef USER_HPP
 # define USER_HPP
 
-# include <iostream>
+//# include <iostream>
 # include <string>
-# include <sys/socket.h>
-# include <netinet/in.h>
+//# include <sys/socket.h>
+//# include <netinet/in.h>
 # include <arpa/inet.h>
 
 class User
@@ -28,19 +28,21 @@ class User
 		~User();
 		User &operator=(const User &src);
 
-
-		int			getFd() const;
+		// Getter
+		int					getFd() const;
+		std::string			getAddress(void);
 		const std::string&	getNickname() const;
 		const std::string&	getUsername() const;
-		void	setNickname(std::string nick);
-		void	setUsername(std::string user);
-		void	Register(void);
-		bool	getRegistration(void) const;
+		bool				getRegistration(void) const;
 
-		std::string getAddress(void);
+		// Setter
+		void				setNickname(std::string nick);
+		void				setUsername(std::string user);
 
+		// Utils
+		void				Register(void);
 };
 
-std::ostream &			operator<<( std::ostream & o, User const & i );
+//std::ostream &			operator<<( std::ostream & o, User const & i );
 
 #endif /* ************************************************************ USER_H */

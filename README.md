@@ -85,11 +85,14 @@
       - **EXAMPLE:** #MODE +-+ikl 10 ***user channel***
 
 # Resources:
+   ## Articles:
 
- ## Articles:
+   [IRC Protocol 1459](https://www.rfc-editor.org/info/rfc1459/)
 
-  - https://www.rfc-editor.org/info/rfc1459/
-  - https://www.ibm.com/docs/en/i/7.4.0?topic=programming-how-sockets-work
-  - 
+   [IRC Protocol 2812](https://www.rfc-editor.org/info/rfc2812/)
 
+   [IBM Socket Documentation](https://www.ibm.com/docs/en/i/7.4.0?topic=programming-how-sockets-work)
 
+   [Modern IRC Protocol](https://modern.ircdocs.horse)
+
+   [Simplified IRC Implementation Video](https://www.youtube.com/watch?v=dquxuXeZXgo&start=0)

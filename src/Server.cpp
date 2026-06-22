@@ -40,6 +40,16 @@ Server &Server::operator=(const Server &src)
 {
     if (this != &src) {
         // Copy attributes here
+		_sockfd = src._sockfd ;
+		_port = src._port;
+		_password = src._password;
+		_addr = src._addr;
+		_pending = src._pending;
+		_reg = src._reg;
+		_channels = src._channels;
+		_fds = src._fds;
+		_channels = src._channels;
+		_users = src._users;
     }
     return *this;
 }
@@ -56,6 +66,7 @@ void Server::print_everything(void) // DEL
 	for (size_t i = 0; i < _channels.size(); i++)
 	{
 		std::cout << "channel: " << _channels[i].getName() << std::endl;
+		std::cout << "user count: " << _channels[i].getCount() << std::endl;
 		_channels[i].print_users();
 	}
  std::cout << "|--------- USERS -----------|" << std::endl;
@@ -166,7 +177,7 @@ void	Server::registerUser(int i)
 	{
 		if (value != _password)
 		{
-			sendError(_fds[i].fd, 464, "*", ERR_PASSWDMISMATCH);
+			sendMessage(_fds[i].fd, 464, "*", ERR_PASSWDMISMATCH);
 			disconnect(i);
 			return ;
 		}
@@ -177,15 +188,43 @@ void	Server::registerUser(int i)
 		return ;
 	if (cmd == "NICK")
 	{
+		if (!isValidNickname(value))
+		{
+			sendMessage(_fds[i].fd, 432, value, ERR_ERRONEUSNICKNAME);
+			return;
+		}
 		if (doesUserExist(value) == true)
 		{
-			sendError(_fds[i].fd, 433, value, ERR_NICKNAMEINUSE);
+			sendMessage(_fds[i].fd, 433, value, ERR_NICKNAMEINUSE);
 			return;
 		}
 		_reg[i]._nickname = value;
 	}
 	if (cmd == "USER")
-		_reg[i]._username = value;
+	{
+		std::string user = value;
+		std::string mode, unused, realname;
+		ss >> mode >> unused;
+		std::getline(ss >> std::ws, realname);
+		if (user.empty() || mode.empty() || unused.empty() || realname.empty())
+		{
+			sendMessage(_fds[i].fd, 461, "*", ERR_NEEDMOREPARAMS);
+			return;
+		}
+		if (realname[0] == ':')
+			realname = realname.substr(1);
+		if (realname.empty())
+		{
+			sendMessage(_fds[i].fd, 461, "*", ERR_NEEDMOREPARAMS);
+			return;
+		}
+		if (!isValidUsername(user))
+		{
+			sendMessage(_fds[i].fd, 432, user, ERR_ERRONEUSNICKNAME);
+			return;
+		}
+		_reg[i]._username = user;
+	}
 	if (!_reg[i]._pass.empty() && !_reg[i]._username.empty() && !_reg[i]._nickname.empty())
 	{
 		_users[i].setUsername(_reg[i]._username);
@@ -194,34 +233,43 @@ void	Server::registerUser(int i)
 		welcomeUser(i);
 		_reg.erase(i);
 		_users[i].recvBuf.clear();
-
 	}
 }
 
+
 void	Server::welcomeUser(int i)
 {
-		std::string welcome1 = ":irc.server 001 " + _reg[i]._nickname + " :Welcome to ircserv, " + _reg[i]._nickname + "\r\n";
-		std::string welcome2 = ":irc.server 002 " + _reg[i]._nickname + " :Your host is irc.server\r\n";
-		std::string welcome3 = ":irc.server 003 " + _reg[i]._nickname + " :This server was created in 2026\r\n";
-		std::string welcome4 = ":irc.server 004 " + _reg[i]._nickname + " irc.server v1.0 tilk o\r\n";
+		std::string nick = _reg[i]._nickname;
+		std::string welcome1 = ":irc.server 001 " + nick + " :Welcome to ircserv, " + nick + "\r\n";
+		std::string welcome2 = ":irc.server 002 " + nick + " :Your host is irc.server\r\n";
+		std::string welcome3 = ":irc.server 003 " + nick + " :This server was created in 2026\r\n";
+		std::string welcome4 = ":irc.server 004 " + nick + " irc.server v1.0 tilk o\r\n";
 
 		send(_fds[i].fd, welcome1.c_str(), welcome1.size(), 0);
 		send(_fds[i].fd, welcome2.c_str(), welcome2.size(), 0);
 		send(_fds[i].fd, welcome3.c_str(), welcome3.size(), 0);
 		send(_fds[i].fd, welcome4.c_str(), welcome4.size(), 0);
+
 }
 
-void	Server::disconnect(int i)
+void	Server::disconnect(int index)
 {
-	std::cout << "[DISCONECT] fd = "<< _fds[i].fd << std::endl;
-	std::cout << "nick=" << _users[i].getNickname() << std::endl;
-	//		_users.erase(_fds[i].fd);
-	if ((_users.begin() + i) != _users.end())
-		_users.erase(_users.begin() + i);
-	// else
-	// 	_pending.erase(_fds[i].fd);
-	close(_fds[i].fd);
-	_fds.erase(_fds.begin() + i);
+//	std::cout << "[DISCONECT] fd = "<< _fds[index].fd << std::endl;
+//	std::cout << "nick=" << _users[index].getNickname() << std::endl;
+
+	for (size_t i = 0; i < _channels.size(); i++)
+	{
+		if (_channels[i].isUserOnChannel(_users[index].getNickname()))
+		{
+			broadcastMessage(_channels[i], getClientInfo(index) + " QUIT :Quit: Leaving\r\n", index, 0);
+			_channels[i].rmUser(_users[index].getNickname());
+			_channels[i].decrementCount();
+		}
+	}
+	if ((_users.begin() + index) != _users.end())
+		_users.erase(_users.begin() + index);
+	close(_fds[index].fd);
+	_fds.erase(_fds.begin() + index);
 }
 
 //check first for "\r\n", if not just append to user.fd and continue
@@ -233,25 +281,27 @@ void	Server::disconnect(int i)
 void Server::getMessage(char *buffer, int i)
 {
 	_users[i].recvBuf.append(buffer);
-	std::cout << std::endl;
-	std::cout << _users[i].recvBuf << std::endl;
+//	std::cout << std::endl;
+//	std::cout << _users[i].recvBuf << std::endl;
+std::cout << "[" << buffer << "]" << std::endl;
 	size_t find = _users[i].recvBuf.find("\r\n");
 	if (find != std::string::npos)
 	{
 		if (_users[i].getRegistration() == false)
 		{
-		std::cout << _users[i].recvBuf << std::endl;
-		while (_users[i].getRegistration() == false)
-		{
-			std::string old = _users[i].recvBuf;
-			registerUser(i);
-			if ((size_t)i >= _users.size() || _users[i].recvBuf == old)
-				break ;
-		}
-		return;
+//			_users[i].recvBuf.append(buffer);
+			while (_users[i].getRegistration() == false)
+			{
+				std::string old = _users[i].recvBuf;
+				registerUser(i);
+				if ((size_t)i >= _users.size() || _users[i].recvBuf == old)
+					break ;
+			}
+			return;
 		}
 		else
 		{
+//			break_cmd(_users[i].recvBuf, i);
 			exec_cmd(_users[i].recvBuf, i);
 			_users[i].recvBuf.erase();
 		}
@@ -294,7 +344,7 @@ void	Server::setPassword(char *pass)
 	_password = pass;
 }
 
-void	Server::sendError(int fd, int code, const std::string target, const std::string &msg)
+void	Server::sendMessage(int fd, int code, const std::string target, const std::string &msg)
 {
 	std::ostringstream ss;
 	ss << ":irc.server " << code << " " << target << " :" << msg << "\r\n";
@@ -311,13 +361,15 @@ void	Server::run()
 	server.revents = 0;
 	_fds.push_back(server);
 
+//	std::string line;
 	while (Server::getSignal() == false)
 	{
 //		bool it = Server::getSignal();
 //		std::cout << it << std::endl;
 //		std::cout << Server::getSignal << std::endl;
 //		line.clear();
-		print_everything();
+		cleanChannels();
+//		print_everything();
 		if (poll(&_fds[0], _fds.size(), -1) == -1)
 		{
 			if (Server::getSignal() == false)
@@ -360,7 +412,7 @@ void	Server::run()
 						continue;
 					}
 					buf[bytes] = 0;
-					std::cout << "raw buf: " << buf << ", bytes: " << bytes << std::endl;
+//					std::cout << "raw buf: " << buf << ", bytes: " << bytes << std::endl;
 					getMessage(buf, i);
 					if (i >= _fds.size()) // Why is this here??
 						continue;
@@ -412,6 +464,43 @@ bool Server::doesUserExist(const std::string name) const
 	return (false);
 }
 
+bool Server::isValidNickname(std::string &str) 
+{
+	if (str.empty())
+		return false;
+	if (str.size() > 30)
+		return false;
+	std::string forbidden = "#&!@:%+~";
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		unsigned char c = str[i];
+		if (c <= 32 || c > 126)
+			return false;
+		if (forbidden.find(c) != std::string::npos)
+			return false;
+	}
+	return true;
+}
+
+bool Server::isValidUsername( std::string &str)
+{
+	if (str.empty())
+		return false;
+	if (str.size() > 30)
+		return false;
+	std::string forbidden = "#&!@:%+~";
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		unsigned char c = str[i];
+		if (c <= 32 || c > 126)
+			return false;
+		if (forbidden.find(c) != std::string::npos)
+			return false;
+	}
+	return true;
+}
+
+
 int Server::getSignal(void)
 {
 	return _signal;
@@ -422,4 +511,13 @@ void Server::setSignal(int signal)
 	(void)signal;
 	std::cout << std::endl;
 	_signal = true;
+}
+
+void Server::cleanChannels(void)
+{
+	for (size_t i = 0; i < _channels.size(); i++)
+	{
+		if (_channels[i].getCount() == 0)
+			_channels.erase(_channels.begin() + i);
+	}
 }
