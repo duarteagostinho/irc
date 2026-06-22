@@ -1,7 +1,3 @@
-# include <iostream>
-# include <sys/types.h>
-# include <sys/socket.h>
-# include <netinet/in.h>
 # include "../inc/Server.hpp"
 
 int args_check(Server &server, int argc, char **argv)
@@ -47,12 +43,8 @@ int main(int argc, char **argv)
 	if (args_check(server, argc, argv) == -1 || !server.init())
 		return (1);
 	server.setPassword(argv[2]);
-    // if ()
-	// 	return 1;
 	server.run();
 
-	// create a signal handler for ctrl c ?
-    
     return 0;
 }
 

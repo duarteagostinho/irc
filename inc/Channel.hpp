@@ -2,7 +2,6 @@
 #define CHANNEL_HPP
 
 # include <string>
-//#include <iostream>
 # include <vector>
 # include <algorithm>
 # include <map>
@@ -78,9 +77,6 @@ class Channel
 		bool				isOperator(const std::string nick) const;
 		void				addUser(const std::string& nick, bool flag);
 		bool				isUserOnChannel(const std::string nick) const;
-
-		// DEL
-        void print_users(void);
 };
 
 #endif

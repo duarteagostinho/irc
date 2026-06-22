@@ -1,10 +1,7 @@
 #ifndef USER_HPP
 # define USER_HPP
 
-//# include <iostream>
 # include <string>
-//# include <sys/socket.h>
-//# include <netinet/in.h>
 # include <arpa/inet.h>
 
 class User
@@ -42,7 +39,5 @@ class User
 		// Utils
 		void				Register(void);
 };
-
-//std::ostream &			operator<<( std::ostream & o, User const & i );
 
 #endif /* ************************************************************ USER_H */

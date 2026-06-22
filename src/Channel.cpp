@@ -1,20 +1,5 @@
 #include "../inc/Channel.hpp"
 
-// DEL
-void Channel::print_users(void)
-{
-	// for (std::map<std::string, bool>::iterator it = _users_op.begin(); it != _users_op.end(); it++)
-	// {
-	// 	std::cout << "user: " << it->first;
-    //     std::cout << ", op: ";
-    //     if (it->second)
-    //         std::cout << "true";
-    //     else
-    //         std::cout << "false";
-    //     std::cout << std::endl;
-	// }
-}
-
 // UTILS
 bool Channel::isOperator(const std::string nick) const
 {

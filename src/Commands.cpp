@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Commands.cpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: vloureir <vloureir@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/05/27 15:37:18 by vloureir          #+#    #+#             */
-/*   Updated: 2026/06/22 11:16:36 by vloureir         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "../inc/Server.hpp"
 
 int Server::check_cmd(std::string &line, std::vector<std::string>& av)
@@ -125,6 +113,8 @@ void Server::join(std::vector<std::string>& av, int index)
 					continue ;
 				}
 			} // If invited, no pass or pass was correct, enter channel
+			if (_channels[ch_i].isUserOnChannel(_users[index].getNickname()))
+				continue ;
 			_channels[ch_i].addUser(_users[index].getNickname(), 0);
 			_channels[ch_i].incrementCount();
 			_channels[ch_i].rmInvite(_users[index].getNickname());

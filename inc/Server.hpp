@@ -6,21 +6,12 @@
 # include <sys/types.h>
 # include <sys/socket.h>
 # include <netinet/in.h>
-//# include <stdlib.h>
 # include <map>
-//# include <cstddef>
 # include <cstdio>
 # include <cstring>
-//# include <stdexcept>
-//# include <sys/select.h>
-//# include <unistd.h>
-//# include <cerrno>
-//# include <stdio.h>
 # include <sstream>
 # include <fcntl.h>
 # include <signal.h>
-//# include <climits>
-//# include <limits.h>
 # include <poll.h>
 # include <vector>
 # include "User.hpp"
@@ -90,19 +81,14 @@ class Server
 		bool		init(); // Creates socket, bind, listen
 		void		run();	// Accept clients in a loop;
 		void		newConnection(int fd, struct sockaddr_in address, socklen_t addr_size);
-		void		userMessage(int fd, const std::string &msg, ssize_t bytes);
 		void		disconnect(int fd);
-		void		parseMessage(int fd);
-		void		handleCommand(int fd, const std::string &line);
 		void		registerUser(int fd);
-		void		closeServer();	// Clean up  ??????????????
 
 		// Getters && Setters
 		void		setPassword(char *pass);
 		void		setPort(int port);
 		int			getPort(void) const;
 		void		getMessage(char *buffer, int i);
-		void		getUserConfig(std::string &line, char *buffer, int i); // ???????
 
 		// Helpers
 		void		welcomeUser(int i);
@@ -143,12 +129,6 @@ class Server
 		// Signals
 		static int	getSignal(void);
 		static void	setSignal(int signal);
-
-		// DEL
-		void print_everything(void);
 };
-
-// Stream Operator Overload
-//std::ostream &operator<<(std::ostream &o, const Server &i);
 
 #endif

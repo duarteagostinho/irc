@@ -1,8 +1,4 @@
 #include "../inc/Server.hpp"
-#include <sstream>
-#include <string>
-#include <sys/socket.h>
-#include <vector>
 
 bool Server::_signal = false;
 
@@ -12,14 +8,12 @@ bool Server::_signal = false;
 
 Server::Server() : _sockfd(-1), _port(0)
 {
-//   std::cout << "Default Constructor called" << std::endl;
 	User server(_sockfd,"server", "server");
 	_users.push_back(server);
 }
 
 Server::Server(const Server &src)
 {
-//   std::cout << "Copy Constructor called" << std::endl;
     *this = src;
 }
 
@@ -29,7 +23,7 @@ Server::Server(const Server &src)
 
 Server::~Server() 
 {
-//   std::cout << "Destructor called" << std::endl;
+
 }
 
 /*
@@ -52,27 +46,6 @@ Server &Server::operator=(const Server &src)
 		_users = src._users;
     }
     return *this;
-}
-
-/*
-** --------------------------------- DEL ---------------------------------
-*/
-
-void Server::print_everything(void) // DEL
-{
-	std::cout << "|---------- INFO ----------|" << std::endl;
-	if (_channels.size() == 0)
-		std::cout << "No channel yet." << std::endl;
-	for (size_t i = 0; i < _channels.size(); i++)
-	{
-		std::cout << "channel: " << _channels[i].getName() << std::endl;
-		std::cout << "user count: " << _channels[i].getCount() << std::endl;
-		_channels[i].print_users();
-	}
- std::cout << "|--------- USERS -----------|" << std::endl;
- for (size_t j = 0; j < _users.size();j++)
-   std::cout << "User " << j << ": " << _users[j].getNickname() << std::endl;
-	std::cout << std::endl << "|---------- END ----------|" << std::endl;
 }
 
 /*
@@ -254,9 +227,6 @@ void	Server::welcomeUser(int i)
 
 void	Server::disconnect(int index)
 {
-//	std::cout << "[DISCONECT] fd = "<< _fds[index].fd << std::endl;
-//	std::cout << "nick=" << _users[index].getNickname() << std::endl;
-
 	for (size_t i = 0; i < _channels.size(); i++)
 	{
 		if (_channels[i].isUserOnChannel(_users[index].getNickname()))
@@ -278,15 +248,11 @@ void	Server::disconnect(int index)
 void Server::getMessage(char *buffer, int i)
 {
 	_users[i].recvBuf.append(buffer);
-//	std::cout << std::endl;
-//	std::cout << _users[i].recvBuf << std::endl;
-std::cout << "[" << buffer << "]" << std::endl;
 	size_t find = _users[i].recvBuf.find("\r\n");
 	if (find != std::string::npos)
 	{
 		if (_users[i].getRegistration() == false)
 		{
-//			_users[i].recvBuf.append(buffer);
 			while (_users[i].getRegistration() == false)
 			{
 				std::string old = _users[i].recvBuf;
@@ -298,7 +264,6 @@ std::cout << "[" << buffer << "]" << std::endl;
 		}
 		else
 		{
-//			break_cmd(_users[i].recvBuf, i);
 			exec_cmd(_users[i].recvBuf, i);
 			_users[i].recvBuf.erase();
 		}
@@ -332,12 +297,7 @@ void	Server::run()
 //	std::string line;
 	while (Server::getSignal() == false)
 	{
-//		bool it = Server::getSignal();
-//		std::cout << it << std::endl;
-//		std::cout << Server::getSignal << std::endl;
-//		line.clear();
 		cleanChannels();
-//		print_everything();
 		if (poll(&_fds[0], _fds.size(), -1) == -1)
 		{
 			if (Server::getSignal() == false)
@@ -380,9 +340,8 @@ void	Server::run()
 						continue;
 					}
 					buf[bytes] = 0;
-//					std::cout << "raw buf: " << buf << ", bytes: " << bytes << std::endl;
 					getMessage(buf, i);
-					if (i >= _fds.size()) // Why is this here??
+					if (i >= _fds.size())
 						continue;
 				}
 			}
@@ -438,7 +397,7 @@ bool Server::isValidNickname(std::string &str)
 		return false;
 	if (str.size() > 30)
 		return false;
-	std::string forbidden = "#&!@:%+~";
+	std::string forbidden = "#&!@:%+~,";
 	for (size_t i = 0; i < str.size(); i++)
 	{
 		unsigned char c = str[i];
@@ -467,7 +426,6 @@ bool Server::isValidUsername( std::string &str)
 	}
 	return true;
 }
-
 
 int Server::getSignal(void)
 {
